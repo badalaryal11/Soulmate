@@ -3,6 +3,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../widgets/profile_card.dart';
+import 'match_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<UserProvider>();
+
+      // Set up match listener
+      provider.onMatchFound = (user) {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
+          );
+        }
+      };
+
       if (provider.users.isEmpty) {
         provider.loadUsers();
       }

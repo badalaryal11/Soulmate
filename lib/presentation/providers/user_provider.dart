@@ -37,10 +37,32 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  int _swipeCount = 0;
+  int _nextMatchThreshold = 3; // Initial low threshold for demo
+
+  // Use a simple callback for match event to keep it lightweight, or a Stream
+  Function(User)? onMatchFound;
+
   void userSwiped(int index) {
-    // You might want to pre-fetch more users when list gets low
+    _swipeCount++;
+
+    // Check for match
+    if (_swipeCount >= _nextMatchThreshold) {
+      _triggerMatch(index);
+      _swipeCount = 0;
+      _nextMatchThreshold =
+          5 + (DateTime.now().millisecond % 5); // Random threshold 5-9
+    }
+
     if (index >= _users.length - 5) {
-      loadUsers();
+      loadUsers(gender: _selectedGender);
+    }
+  }
+
+  void _triggerMatch(int index) {
+    if (index < _users.length) {
+      final user = _users[index];
+      onMatchFound?.call(user);
     }
   }
 }
