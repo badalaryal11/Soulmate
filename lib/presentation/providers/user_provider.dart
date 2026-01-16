@@ -10,7 +10,7 @@ class UserProvider extends ChangeNotifier {
   UserProvider({UserRepository? userRepository})
     : _userRepository = userRepository ?? UserRepository();
 
-  List<User> _users = [];
+  final List<User> _users = [];
   UserStatus _status = UserStatus.initial;
   String? _errorMessage;
 
