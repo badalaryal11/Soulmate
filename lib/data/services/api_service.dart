@@ -6,9 +6,13 @@ import 'dart:developer' as developer;
 class ApiService {
   static const String _baseUrl = 'https://randomuser.me/api/';
 
-  Future<List<User>> fetchUsers({int results = 20}) async {
+  Future<List<User>> fetchUsers({int results = 20, String? gender}) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl?results=$results'));
+      String url = '$_baseUrl?results=$results';
+      if (gender != null) {
+        url += '&gender=$gender';
+      }
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);

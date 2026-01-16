@@ -7,7 +7,7 @@ class UserRepository {
   UserRepository({ApiService? apiService})
     : _apiService = apiService ?? ApiService();
 
-  Future<List<User>> getUsers() async {
-    return await _apiService.fetchUsers();
+  Future<List<User>> getUsers({String? gender}) async {
+    return await _apiService.fetchUsers(gender: gender);
   }
 }

@@ -18,12 +18,16 @@ class UserProvider extends ChangeNotifier {
   UserStatus get status => _status;
   String? get errorMessage => _errorMessage;
 
-  Future<void> loadUsers() async {
+  String? _selectedGender;
+
+  Future<void> loadUsers({String? gender}) async {
+    if (gender != null) _selectedGender = gender;
+
     _status = UserStatus.loading;
     notifyListeners();
 
     try {
-      final newUsers = await _userRepository.getUsers();
+      final newUsers = await _userRepository.getUsers(gender: _selectedGender);
       _users.addAll(newUsers);
       _status = UserStatus.loaded;
     } catch (e) {
