@@ -39,7 +39,6 @@ dependencies:
   flutter_card_swiper: ^7.2.0
   cached_network_image: ^3.4.1
   google_fonts: ^7.0.2
-  google_generative_ai: ^0.4.7
 
 dev_dependencies:
   flutter_test:
