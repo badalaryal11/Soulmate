@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/ai_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -23,6 +24,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<_ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  late final AiService _aiService;
+
+  @override
+  void initState() {
+    super.initState();
+    _aiService = AiService(userName: 'User', matchName: widget.user.firstName);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     )
                   : ListView.builder(
-                      reverse: true, // Start from bottom
+                      reverse: true,
                       controller: _scrollController,
                       itemCount: _messages.length,
                       padding: const EdgeInsets.symmetric(
@@ -162,17 +170,27 @@ class _ChatScreenState extends State<ChatScreen> {
       _controller.clear();
     });
 
-    // Simulate reply
-    Future.delayed(const Duration(seconds: 2), () {
+    _scrollToBottom();
+
+    // Call AI
+    _aiService.sendMessage(text.trim()).then((reply) {
       if (mounted) {
         setState(() {
-          _messages.add(
-            _ChatMessage(
-              text: 'That\'s interesting! Tell me more.',
-              isMe: false,
-            ),
-          );
+          _messages.add(_ChatMessage(text: reply, isMe: false));
         });
+        _scrollToBottom();
+      }
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
