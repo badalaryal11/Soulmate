@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'home_screen.dart';
-import '../providers/user_provider.dart';
+import 'gender_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -230,10 +228,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     // For now, load "Everyone" and go to Home
-    context.read<UserProvider>().loadUsers(gender: null);
-
+    // Navigate to Gender Selection Screen instead of Home directly
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
     );
   }
 }
