@@ -26,13 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Soulmate',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFFE3C72),
-          ),
-        ),
+        title: Image.asset('assets/images/logo.png', height: 40),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
