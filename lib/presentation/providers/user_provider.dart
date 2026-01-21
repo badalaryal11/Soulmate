@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/user_repository.dart';
+import '../../data/services/auth_service.dart';
+import '../../data/services/database_service.dart';
 
 enum UserStatus { initial, loading, loaded, error }
 
@@ -18,7 +20,28 @@ class UserProvider extends ChangeNotifier {
   UserStatus get status => _status;
   String? get errorMessage => _errorMessage;
 
+  List<String> _currentUserInterests = [];
   String? _selectedGender;
+  User? _currentUser;
+
+  List<String> get currentUserInterests => _currentUserInterests;
+  User? get currentUser => _currentUser;
+
+  void setInterests(List<String> interests) {
+    _currentUserInterests = interests;
+    notifyListeners();
+  }
+
+  Future<void> loadCurrentUser() async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      _currentUser = await DatabaseService().getUser(user.uid);
+      if (_currentUser != null) {
+        _currentUserInterests = _currentUser!.interests;
+      }
+      notifyListeners();
+    }
+  }
 
   Future<void> loadUsers({String? gender}) async {
     if (gender != null) _selectedGender = gender;

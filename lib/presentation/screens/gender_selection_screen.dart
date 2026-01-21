@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'home_screen.dart';
+import '../../data/services/auth_service.dart';
+import '../../data/services/database_service.dart';
+import 'interest_selection_screen.dart';
 import '../providers/user_provider.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
@@ -108,14 +110,24 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     );
   }
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     // Pass null for 'everyone' to load all users
     final genderToLoad = _selectedGender == 'everyone' ? null : _selectedGender;
 
-    context.read<UserProvider>().loadUsers(gender: genderToLoad);
+    final userProvider = context.read<UserProvider>();
+    userProvider.loadUsers(gender: genderToLoad);
 
+    // Update gender in Firestore if logged in
+    final currentUser = AuthService().currentUser;
+    if (currentUser != null && _selectedGender != null) {
+      await DatabaseService().updateUserField(currentUser.uid, {
+        'gender': _selectedGender,
+      });
+    }
+
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const InterestSelectionScreen()),
     );
   }
 }

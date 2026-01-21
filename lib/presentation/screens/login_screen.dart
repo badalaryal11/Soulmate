@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'gender_selection_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -172,7 +173,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.poppins(color: Colors.grey[600]),
                   ),
                   GestureDetector(
-                    onTap: () {}, // Navigate to register
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
                     child: Text(
                       'Register now',
                       style: GoogleFonts.poppins(

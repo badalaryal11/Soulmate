@@ -4,7 +4,12 @@ import 'package:provider/provider.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/providers/user_provider.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SoulmateApp());
 }
 

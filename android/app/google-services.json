@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "19231371655",
+    "project_id": "my-soulmate-app",
+    "storage_bucket": "my-soulmate-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19231371655:android:8c5539eb1eeec761bf6322",
+        "android_client_info": {
+          "package_name": "com.soulmate.soulmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

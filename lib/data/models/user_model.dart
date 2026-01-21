@@ -1,3 +1,6 @@
+import 'dart:math';
+import '../constants/interests.dart';
+
 class User {
   final String id;
   final String firstName;
@@ -7,6 +10,7 @@ class User {
   final String country;
   final String imageUrl;
   final String gender;
+  final List<String> interests;
 
   User({
     required this.id,
@@ -17,14 +21,22 @@ class User {
     required this.country,
     required this.imageUrl,
     required this.gender,
+    required this.interests,
   });
 
+  // Factory for RandomUser API (keep existing)
   factory User.fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final location = json['location'];
     final dob = json['dob'];
     final picture = json['picture'];
     final login = json['login'];
+
+    // Randomly assign 3-5 interests
+    final random = Random();
+    final allInterests = List<String>.from(AppInterests.list);
+    allInterests.shuffle(random);
+    final userInterests = allInterests.take(random.nextInt(3) + 3).toList();
 
     return User(
       id: login['uuid'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -35,6 +47,37 @@ class User {
       country: location['country'] ?? '',
       imageUrl: picture['large'] ?? '',
       gender: json['gender'] ?? '',
+      interests: userInterests,
+    );
+  }
+
+  // Convert to Map for Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'age': age,
+      'city': city,
+      'country': country,
+      'imageUrl': imageUrl,
+      'gender': gender,
+      'interests': interests,
+    };
+  }
+
+  // Factory from Firestore Map
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'] ?? '',
+      firstName: map['firstName'] ?? '',
+      lastName: map['lastName'] ?? '',
+      age: map['age'] ?? 0,
+      city: map['city'] ?? '',
+      country: map['country'] ?? '',
+      imageUrl: map['imageUrl'] ?? '',
+      gender: map['gender'] ?? '',
+      interests: List<String>.from(map['interests'] ?? []),
     );
   }
 
