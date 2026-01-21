@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
@@ -82,6 +83,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           );
         }
+      } on FirebaseAuthException catch (e) {
+        debugPrint("Registration error: ${e.code} - ${e.message}");
+        String errorMessage;
+
+        switch (e.code) {
+          case 'email-already-in-use':
+            errorMessage = 'The account already exists for that email.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'The email address is not valid.';
+            break;
+          case 'operation-not-allowed':
+            errorMessage = 'Email/password accounts are not enabled.';
+            break;
+          case 'weak-password':
+            errorMessage = 'The password is not strong enough.';
+            break;
+          default:
+            errorMessage = 'An error occurred. Please try again.';
+        }
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       } catch (e) {
         debugPrint("Registration error: $e");
         if (!mounted) return;
