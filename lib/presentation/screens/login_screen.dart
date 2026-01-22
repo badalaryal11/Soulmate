@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../data/services/auth_service.dart';
+import '../../data/services/database_service.dart';
+import '../../data/models/user_model.dart';
 import 'gender_selection_screen.dart';
 import 'register_screen.dart';
 
@@ -14,6 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +219,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: FontAwesomeIcons.google,
                     label: 'Sign In with Google',
                     color: Colors.red,
-                    onTap: () {},
+                    onTap: _isLoading ? () {} : _handleGoogleLogin,
+                    isLoading:
+                        _isLoading &&
+                        // Hacky way to know which button is loading?
+                        // Or just show global loading?
+                        // Let's simpler: just disable checking for now or show loading inside button.
+                        // Ideally we'd have state for "isGoogleLoading".
+                        // Given the context, _isLoading covers Google login.
+                        true,
                   ),
                   const SizedBox(height: 16),
                   _SocialButton(
@@ -233,6 +245,71 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final authService = AuthService();
+      final credential = await authService.signInWithGoogle();
+
+      if (credential != null && credential.user != null) {
+        final firebaseUser = credential.user!;
+
+        // Check if user exists in Firestore
+        final databaseService = DatabaseService();
+        User? existingUser = await databaseService.getUser(firebaseUser.uid);
+
+        if (existingUser == null) {
+          // Create new user if not exists
+          final names = firebaseUser.displayName?.split(' ') ?? ['User', ''];
+          final firstName = names.isNotEmpty ? names.first : 'User';
+          final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+          final newUser = User(
+            id: firebaseUser.uid,
+            firstName: firstName,
+            lastName: lastName,
+            age: 0,
+            city: '',
+            country: '',
+            imageUrl: firebaseUser.photoURL ?? '',
+            gender: '',
+            interests: [],
+          );
+
+          await databaseService.saveUser(newUser);
+        }
+
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const GenderSelectionScreen(),
+          ),
+        );
+      } else {
+        // User cancelled or error
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Sign in cancelled or configuration missing (Check SHA-1).',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Google Login Error: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   void _handleLogin() {
     // For now, load "Everyone" and go to Home
     // Navigate to Gender Selection Screen instead of Home directly
@@ -247,12 +324,14 @@ class _SocialButton extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool isLoading;
 
   const _SocialButton({
     required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
@@ -269,16 +348,24 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 24), // Colored icon
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+            if (isLoading)
+              const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else ...[
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
