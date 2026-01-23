@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/chat_service.dart';
+import '../../data/config/dating_persona.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -23,6 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<_ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  final ChatService _chatService = ChatService();
+  bool _isTyping = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +40,24 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 20,
             ),
             const SizedBox(width: 10),
-            Text(
-              widget.user.firstName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.user.firstName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (_isTyping)
+                    const Text(
+                      'typing...',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
@@ -143,41 +162,77 @@ class _ChatScreenState extends State<ChatScreen> {
             bottomRight: isMe ? Radius.zero : const Radius.circular(16),
           ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: isMe ? Colors.white : Colors.black87,
-            fontSize: 16,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.text,
+              style: TextStyle(
+                color: isMe ? Colors.white : Colors.black87,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _formatTime(message.timestamp),
+              style: TextStyle(
+                color: isMe ? Colors.white70 : Colors.black54,
+                fontSize: 10,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _sendMessage(String text) {
+  String _formatTime(DateTime time) {
+    String hour = time.hour.toString().padLeft(2, '0');
+    String minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
+    final userMessage = text.trim();
     setState(() {
-      _messages.add(_ChatMessage(text: text.trim(), isMe: true));
+      _messages.add(_ChatMessage(text: userMessage, isMe: true));
       _controller.clear();
+      _isTyping = true;
     });
 
     _scrollToBottom();
 
-    // Simulate reply
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            _ChatMessage(
-              text: 'That\'s interesting! Tell me more.',
-              isMe: false,
-            ),
-          );
-        });
-        _scrollToBottom();
-      }
-    });
+    // Construct the conversation history
+    List<Map<String, String>> apiMessages = [];
+
+    // 1. Add System Prompt (The Persona)
+    apiMessages.add(DatingPersona.generateFor(widget.user));
+
+    // 2. Add Chat History (Last 10 messages to keep context)
+    // We reverse the list to get chronological order (oldest first)
+    // Note: _messages is stored such that index 0 is the NEWEST (bottom).
+    // So we iterate backwards or take and reverse.
+    final recentMessages = _messages.take(10).toList().reversed;
+
+    for (var msg in recentMessages) {
+      apiMessages.add({
+        'role': msg.isMe ? 'user' : 'assistant',
+        'content': msg.text,
+      });
+    }
+
+    // Send to Chat Service
+    final response = await _chatService.sendMessage(apiMessages);
+
+    if (mounted) {
+      setState(() {
+        _isTyping = false;
+        _messages.add(_ChatMessage(text: response, isMe: false));
+      });
+      _scrollToBottom();
+    }
   }
 
   void _scrollToBottom() {

@@ -260,24 +260,16 @@ class _LoginScreenState extends State<LoginScreen> {
         User? existingUser = await databaseService.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
-          // Create new user if not exists
-          final names = firebaseUser.displayName?.split(' ') ?? ['User', ''];
-          final firstName = names.isNotEmpty ? names.first : 'User';
-          final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
-
-          final newUser = User(
-            id: firebaseUser.uid,
-            firstName: firstName,
-            lastName: lastName,
-            age: 0,
-            city: '',
-            country: '',
-            imageUrl: firebaseUser.photoURL ?? '',
-            gender: '',
-            interests: [],
+          // User does not exist, do not allow sign in
+          await authService.signOut();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account not found. Please register first.'),
+              backgroundColor: Colors.red,
+            ),
           );
-
-          await databaseService.saveUser(newUser);
+          return;
         }
 
         if (!mounted) return;

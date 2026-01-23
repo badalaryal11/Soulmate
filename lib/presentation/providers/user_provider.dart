@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/services/auth_service.dart';
@@ -26,6 +27,24 @@ class UserProvider extends ChangeNotifier {
 
   List<String> get currentUserInterests => _currentUserInterests;
   User? get currentUser => _currentUser;
+
+  double _minAge = 18;
+  double _maxAge = 100;
+
+  double get minAge => _minAge;
+  double get maxAge => _maxAge;
+
+  List<User> get filteredUsers {
+    return _users.where((user) {
+      return user.age >= _minAge && user.age <= _maxAge;
+    }).toList();
+  }
+
+  void updateAgeRange(double min, double max) {
+    _minAge = min;
+    _maxAge = max;
+    notifyListeners();
+  }
 
   void setInterests(List<String> interests) {
     _currentUserInterests = interests;
@@ -66,25 +85,28 @@ class UserProvider extends ChangeNotifier {
   // Use a simple callback for match event to keep it lightweight, or a Stream
   Function(User)? onMatchFound;
 
-  void userSwiped(int index) {
-    _swipeCount++;
+  void userSwiped(int index, CardSwiperDirection direction) {
+    // Only count as a potential match if the user swiped RIGHT (Like)
+    if (direction == CardSwiperDirection.right) {
+      _swipeCount++;
 
-    // Check for match
-    if (_swipeCount >= _nextMatchThreshold) {
-      _triggerMatch(index);
-      _swipeCount = 0;
-      _nextMatchThreshold =
-          5 + (DateTime.now().millisecond % 5); // Random threshold 5-9
+      // Check for match
+      if (_swipeCount >= _nextMatchThreshold) {
+        _triggerMatch(index);
+        _swipeCount = 0;
+        _nextMatchThreshold =
+            5 + (DateTime.now().millisecond % 5); // Random threshold 5-9
+      }
     }
 
-    if (index >= _users.length - 5) {
+    if (index >= filteredUsers.length - 5) {
       loadUsers(gender: _selectedGender);
     }
   }
 
   void _triggerMatch(int index) {
-    if (index < _users.length) {
-      final user = _users[index];
+    if (index < filteredUsers.length) {
+      final user = filteredUsers[index];
       onMatchFound?.call(user);
     }
   }

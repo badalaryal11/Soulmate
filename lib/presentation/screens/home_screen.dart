@@ -43,7 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Image.asset('assets/images/logo.png', height: 40),
         centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.black87),
+            onPressed: () => _showFilterDialog(context),
+          ),
+        ],
       ),
       body: Consumer<UserProvider>(
         builder: (context, provider, child) {
@@ -65,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: CardSwiper(
                     controller: controller,
-                    cardsCount: provider.users.length,
+                    cardsCount: provider.filteredUsers.length,
                     numberOfCardsDisplayed: 3,
                     backCardOffset: const Offset(0, 40),
                     padding: const EdgeInsets.all(24.0),
@@ -76,12 +81,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           horizontalOffsetPercentage,
                           verticalOffsetPercentage,
                         ) {
-                          return ProfileCard(user: provider.users[index]);
+                          return ProfileCard(
+                            user: provider.filteredUsers[index],
+                          );
                         },
                     onSwipe: (previousIndex, currentIndex, direction) {
                       provider.userSwiped(
                         currentIndex ?? previousIndex,
-                      ); // API might differ on version, handling safely
+                        direction,
+                      );
                       return true;
                     },
                   ),
@@ -111,6 +119,84 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer<UserProvider>(
+          builder: (context, provider, child) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Filter by Age',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${provider.minAge.round()} years',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        '${provider.maxAge.round()} years',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  RangeSlider(
+                    values: RangeValues(provider.minAge, provider.maxAge),
+                    min: 18,
+                    max: 100,
+                    divisions: 82,
+                    activeColor: const Color(0xFFFE3C72),
+                    labels: RangeLabels(
+                      provider.minAge.round().toString(),
+                      provider.maxAge.round().toString(),
+                    ),
+                    onChanged: (RangeValues values) {
+                      provider.updateAgeRange(values.start, values.end);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE3C72),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Apply',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

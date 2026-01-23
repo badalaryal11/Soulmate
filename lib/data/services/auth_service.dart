@@ -21,6 +21,8 @@ class AuthService {
         return await _auth.signInWithPopup(authProvider);
       } else {
         // Mobile handling
+        // Ensure account chooser appears by clearing previous session
+        await _googleSignIn.signOut();
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
         if (googleUser == null) {

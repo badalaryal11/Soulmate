@@ -12,7 +12,20 @@
           "package_name": "com.soulmate.soulmate"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "19231371655-c8fi8gatbt505tkfhl9f4stafhqt0dnn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.soulmate.soulmate",
+            "certificate_hash": "03ddcc6359e39c9718b5621dab1dac0a411015fe"
+          }
+        },
+        {
+          "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "19231371655-dbr1oksvq6dfg9i4917835ofvjjvre2v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.soulmate.soulmate"
+              }
+            }
+          ]
         }
       }
     }
