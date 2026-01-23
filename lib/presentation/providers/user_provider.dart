@@ -34,8 +34,11 @@ class UserProvider extends ChangeNotifier {
   double get minAge => _minAge;
   double get maxAge => _maxAge;
 
-  List<User> get filteredUsers {
-    return _users.where((user) {
+  List<User> _filteredUsers = [];
+  List<User> get filteredUsers => _filteredUsers;
+
+  void _updateFilteredUsers() {
+    _filteredUsers = _users.where((user) {
       return user.age >= _minAge && user.age <= _maxAge;
     }).toList();
   }
@@ -43,6 +46,7 @@ class UserProvider extends ChangeNotifier {
   void updateAgeRange(double min, double max) {
     _minAge = min;
     _maxAge = max;
+    _updateFilteredUsers();
     notifyListeners();
   }
 
@@ -71,6 +75,7 @@ class UserProvider extends ChangeNotifier {
     try {
       final newUsers = await _userRepository.getUsers(gender: _selectedGender);
       _users.addAll(newUsers);
+      _updateFilteredUsers();
       _status = UserStatus.loaded;
     } catch (e) {
       _status = UserStatus.error;
