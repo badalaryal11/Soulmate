@@ -46,6 +46,22 @@ class AuthService {
     }
   }
 
+  // Sign In with Email and Password
+  Future<UserCredential?> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (e) {
+      debugPrint("Error signing in with email and password: $e");
+      rethrow;
+    }
+  }
+
   // Register with Email and Password
   Future<UserCredential?> registerWithEmailAndPassword(
     String email,

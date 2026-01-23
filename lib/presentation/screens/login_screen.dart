@@ -15,9 +15,18 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Email Field
               TextFormField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: 'Email or Mobile Number',
                   hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
@@ -79,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Password Field
               TextFormField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -147,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _handleLogin,
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFE3C72), // Pink/Red
                     foregroundColor: Colors.white,
@@ -302,12 +313,58 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleLogin() {
-    // For now, load "Everyone" and go to Home
-    // Navigate to Gender Selection Screen instead of Home directly
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
-    );
+  Future<void> _handleLogin() async {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final authService = AuthService();
+      final credential = await authService.signInWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (credential != null && credential.user != null) {
+        final firebaseUser = credential.user!;
+        final databaseService = DatabaseService();
+        User? existingUser = await databaseService.getUser(firebaseUser.uid);
+
+        if (existingUser == null) {
+          await authService.signOut();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account not found. Please register first.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const GenderSelectionScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }
 
