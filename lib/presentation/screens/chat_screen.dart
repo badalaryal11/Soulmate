@@ -13,18 +13,18 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatMessage {
+class ChatMessage {
   final String text;
   final bool isMe;
   final DateTime timestamp;
 
-  _ChatMessage({required this.text, required this.isMe})
+  ChatMessage({required this.text, required this.isMe})
     : timestamp = DateTime.now();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<_ChatMessage> _messages = [];
+  final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
   bool _isTyping = false;
@@ -156,7 +156,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final userMessage = text.trim();
     setState(() {
-      _messages.add(_ChatMessage(text: userMessage, isMe: true));
+      _messages.add(ChatMessage(text: userMessage, isMe: true));
       _controller.clear();
       _isTyping = true;
     });
@@ -188,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (mounted) {
       setState(() {
         _isTyping = false;
-        _messages.add(_ChatMessage(text: response, isMe: false));
+        _messages.add(ChatMessage(text: response, isMe: false));
       });
       _scrollToBottom();
     }
@@ -208,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class MessageBubble extends StatelessWidget {
-  final _ChatMessage message;
+  final ChatMessage message;
 
   const MessageBubble({super.key, required this.message});
 
