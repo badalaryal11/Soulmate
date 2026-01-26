@@ -1,1 +1,45 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:android:8c5539eb1eeec761bf6322","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:ios:4151608326d5471fbf6322","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:ios:4151608326d5471fbf6322","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"my-soulmate-app","configurations":{"android":"1:19231371655:android:8c5539eb1eeec761bf6322","ios":"1:19231371655:ios:4151608326d5471fbf6322","macos":"1:19231371655:ios:4151608326d5471fbf6322","web":"1:19231371655:web:5c7223330f31196bbf6322","windows":"1:19231371655:web:6a78695b76955ba7bf6322"}}}}}}
+{
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "my-soulmate-app",
+                    "appId": "1:19231371655:android:8c5539eb1eeec761bf6322",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "my-soulmate-app",
+                    "appId": "1:19231371655:ios:4151608326d5471fbf6322",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "my-soulmate-app",
+                    "appId": "1:19231371655:ios:4151608326d5471fbf6322",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "my-soulmate-app",
+                    "configurations": {
+                        "android": "1:19231371655:android:8c5539eb1eeec761bf6322",
+                        "ios": "1:19231371655:ios:4151608326d5471fbf6322",
+                        "macos": "1:19231371655:ios:4151608326d5471fbf6322",
+                        "web": "1:19231371655:web:5c7223330f31196bbf6322",
+                        "windows": "1:19231371655:web:6a78695b76955ba7bf6322"
+                    }
+                }
+            }
+        }
+    }
+}

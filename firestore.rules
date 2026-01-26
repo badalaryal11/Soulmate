@@ -8,5 +8,14 @@ service cloud.firestore {
       // Allow writing only if the user is signed in AND matches the document ID
       allow write: if request.auth != null && request.auth.uid == userId;
     }
+    
+    // Allow access to chats
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null;
+      
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null;
+      }
+    }
   }
 }

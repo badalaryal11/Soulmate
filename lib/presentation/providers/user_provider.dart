@@ -124,4 +124,9 @@ class UserProvider extends ChangeNotifier {
       onMatchFound?.call(user);
     }
   }
+
+  void unmatchUser(String userId) {
+    _matches.removeWhere((user) => user.id == userId);
+    notifyListeners();
+  }
 }

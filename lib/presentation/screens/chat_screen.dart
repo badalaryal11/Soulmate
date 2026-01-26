@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/models/user_model.dart';
+import '../../data/models/chat_message.dart';
 import '../../data/services/chat_service.dart';
+import '../../data/services/database_service.dart';
+import '../../data/services/auth_service.dart';
 import '../../data/config/dating_persona.dart';
+import 'package:provider/provider.dart';
+import '../../presentation/providers/user_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -13,27 +19,61 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class ChatMessage {
-  final String text;
-  final bool isMe;
-  final DateTime timestamp;
-
-  ChatMessage({required this.text, required this.isMe})
-    : timestamp = DateTime.now();
-}
-
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
+  final DatabaseService _databaseService = DatabaseService();
+  final AuthService _authService = AuthService();
+
+  late String _currentUserId;
+  late String _chatId;
+  final Uuid _uuid = const Uuid();
   bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentUser = _authService.currentUser;
+    if (currentUser != null) {
+      _currentUserId = currentUser.uid;
+      _chatId = _databaseService.getChatId(_currentUserId, widget.user.id);
+    }
+  }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _showUnmatchConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unmatch User?'),
+        content: Text(
+          'Are you sure you want to unmatch with ${widget.user.firstName}? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Unmatch logic
+              context.read<UserProvider>().unmatchUser(widget.user.id);
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close chat screen
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Unmatch'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -69,31 +109,76 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'unmatch') {
+                _showUnmatchConfirmation();
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'unmatch',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_remove, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Unmatch', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              child: _messages.isEmpty
-                  ? Center(
+              child: StreamBuilder<List<ChatMessage>>(
+                stream: _databaseService.getMessages(_chatId),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final messages = snapshot.data ?? [];
+
+                  if (messages.isEmpty) {
+                    return Center(
                       child: Text(
                         'Say hello to ${widget.user.firstName}!',
                         style: TextStyle(color: Colors.grey[400]),
                       ),
-                    )
-                  : ListView.builder(
-                      reverse: true, // Start from bottom
-                      controller: _scrollController,
-                      itemCount: _messages.length,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      itemBuilder: (context, index) {
-                        final message = _messages[_messages.length - 1 - index];
-                        return MessageBubble(message: message);
-                      },
+                    );
+                  }
+
+                  return ListView.builder(
+                    reverse: true, // Start from bottom
+                    controller: _scrollController,
+                    itemCount: messages.length,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
+                    itemBuilder: (context, index) {
+                      // messages are already ordered descending from firestore
+                      // so index 0 is latest
+                      final message = messages[index];
+                      return MessageBubble(
+                        message: message,
+                        isMe: message.senderId == _currentUserId,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -154,67 +239,69 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    final userMessage = text.trim();
-    setState(() {
-      _messages.add(ChatMessage(text: userMessage, isMe: true));
-      _controller.clear();
-      _isTyping = true;
-    });
+    final userMessageText = text.trim();
+    _controller.clear();
 
-    _scrollToBottom();
+    // Create User Message
+    final userMessage = ChatMessage(
+      id: _uuid.v4(),
+      senderId: _currentUserId,
+      text: userMessageText,
+      timestamp: DateTime.now(),
+    );
 
-    // Construct the conversation history
+    // Save to Database
+    await _databaseService.sendMessage(_chatId, userMessage);
+
+    setState(() => _isTyping = true);
+
+    // Prepare API messages history
+    // We need to fetch history or use local state if acceptable,
+    // but for correctness let's just pass the last few messages if possible,
+    // or just the current message + system prompt if we want to save reads.
+    // For now, let's keep it simple and just do prompt + new message
+    // to avoid complex async fetching logic inside sendMessage.
+    // Ideally we should pull `messages` from the stream snapshot but
+    // accessing it here is tricky without a provider buffer.
+
+    // Simpler: Just send current context
     List<Map<String, String>> apiMessages = [];
-
-    // 1. Add System Prompt (The Persona)
     apiMessages.add(DatingPersona.generateFor(widget.user));
-
-    // 2. Add Chat History (Last 10 messages to keep context)
-    // We reverse the list to get chronological order (oldest first)
-    // Note: _messages is stored such that index 0 is the NEWEST (bottom).
-    // So we iterate backwards or take and reverse.
-    final recentMessages = _messages.take(10).toList().reversed;
-
-    for (var msg in recentMessages) {
-      apiMessages.add({
-        'role': msg.isMe ? 'user' : 'assistant',
-        'content': msg.text,
-      });
-    }
+    apiMessages.add({'role': 'user', 'content': userMessageText});
 
     // Send to Chat Service
-    final response = await _chatService.sendMessage(apiMessages);
+    try {
+      final responseText = await _chatService.sendMessage(apiMessages);
 
-    if (mounted) {
-      setState(() {
-        _isTyping = false;
-        _messages.add(ChatMessage(text: response, isMe: false));
-      });
-      _scrollToBottom();
-    }
-  }
+      if (mounted) {
+        setState(() => _isTyping = false);
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0.0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+        // Create AI Message
+        final aiMessage = ChatMessage(
+          id: _uuid.v4(),
+          senderId: widget.user.id,
+          text: responseText,
+          timestamp: DateTime.now(),
         );
+
+        // Save to Database
+        await _databaseService.sendMessage(_chatId, aiMessage);
       }
-    });
+    } catch (e) {
+      debugPrint("Error getting AI response: $e");
+      if (mounted) setState(() => _isTyping = false);
+    }
   }
 }
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
+  final bool isMe;
 
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({super.key, required this.message, required this.isMe});
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.isMe;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(

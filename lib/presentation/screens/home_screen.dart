@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../widgets/profile_card.dart';
 import 'match_screen.dart';
+import 'matches_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         backgroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.forum_rounded, color: Color(0xFFFE3C72)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MatchesScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.black87),
             onPressed: () => _showFilterDialog(context),
