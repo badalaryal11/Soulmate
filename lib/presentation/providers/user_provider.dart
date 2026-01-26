@@ -90,6 +90,10 @@ class UserProvider extends ChangeNotifier {
   // Use a simple callback for match event to keep it lightweight, or a Stream
   Function(User)? onMatchFound;
 
+  // Matches
+  final List<User> _matches = [];
+  List<User> get matches => _matches;
+
   void userSwiped(int index, CardSwiperDirection direction) {
     // Only count as a potential match if the user swiped RIGHT (Like)
     if (direction == CardSwiperDirection.right) {
@@ -112,6 +116,11 @@ class UserProvider extends ChangeNotifier {
   void _triggerMatch(int index) {
     if (index < filteredUsers.length) {
       final user = filteredUsers[index];
+      // Avoid duplicate matches
+      if (!_matches.any((m) => m.id == user.id)) {
+        _matches.add(user);
+        notifyListeners();
+      }
       onMatchFound?.call(user);
     }
   }

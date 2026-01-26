@@ -81,9 +81,33 @@ class AuthService {
   // Send Password Reset Email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _auth.sendPasswordResetEmail(
+        email: email,
+        actionCodeSettings: ActionCodeSettings(
+          url:
+              'https://soulmate.page.link/reset-password', // Placeholder, creates link
+          handleCodeInApp: true,
+          iOSBundleId: 'com.soulmate.soulmate',
+          androidPackageName: 'com.soulmate.soulmate',
+          androidInstallApp: true,
+          androidMinimumVersion: "1",
+        ),
+      );
     } catch (e) {
       debugPrint("Error sending password reset email: $e");
+      rethrow;
+    }
+  }
+
+  // Confirm Password Reset
+  Future<void> confirmPasswordReset({
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _auth.confirmPasswordReset(code: code, newPassword: newPassword);
+    } catch (e) {
+      debugPrint("Error confirming password reset: $e");
       rethrow;
     }
   }
