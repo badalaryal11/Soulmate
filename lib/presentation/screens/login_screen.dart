@@ -123,6 +123,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 10),
+              // Forgot Password Link
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _handleForgotPassword,
+                  child: Text(
+                    'Forgot Password?',
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFFFE3C72),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
 
               // Remember Me Checkbox
@@ -363,6 +378,81 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleForgotPassword() async {
+    String? email = _emailController.text.trim();
+    if (email.isEmpty) {
+      email = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          String inputEmail = '';
+          return AlertDialog(
+            title: Text('Reset Password', style: GoogleFonts.poppins()),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Enter your email address to receive a password reset link.',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  onChanged: (value) => inputEmail = value,
+                  decoration: InputDecoration(
+                    hintText: 'Email Address',
+                    hintStyle: GoogleFonts.poppins(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(color: Colors.grey),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, inputEmail),
+                child: Text(
+                  'Send Link',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFFFE3C72),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    if (email != null && email.isNotEmpty) {
+      try {
+        await AuthService().sendPasswordResetEmail(email);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password reset email sent to $email'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send reset email: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
