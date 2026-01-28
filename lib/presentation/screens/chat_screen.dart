@@ -305,16 +305,20 @@ class _ChatScreenState extends State<ChatScreen> {
     await _databaseService.sendMessage(_chatId, userMessage);
 
     // Schedule Proactive Notification (Retention Hook)
-    // Cancel any existing notification for this chat
-    await _notificationService.cancelNotification(_chatId.hashCode);
-    // Schedule a new one for 1 hour later (or 10s for demo if needed)
-    await _notificationService.scheduleNotification(
-      id: _chatId.hashCode,
-      title: '${widget.user.firstName} misses you! 🥺',
-      body:
-          'Come back and continue your conversation with ${widget.user.firstName}.',
-      delay: const Duration(hours: 6),
-    );
+    try {
+      // Cancel any existing notification for this chat
+      await _notificationService.cancelNotification(_chatId.hashCode);
+      // Schedule a new one for 1 hour later (or 10s for demo if needed)
+      await _notificationService.scheduleNotification(
+        id: _chatId.hashCode,
+        title: '${widget.user.firstName} misses you! 🥺',
+        body:
+            'Come back and continue your conversation with ${widget.user.firstName}.',
+        delay: const Duration(hours: 6),
+      );
+    } catch (e) {
+      debugPrint("Error scheduling notification: $e");
+    }
 
     setState(() => _isTyping = true);
 
@@ -338,6 +342,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (mounted) {
         setState(() => _isTyping = false);
+
+        if (responseText.startsWith("Error: No internet connection")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "No internet connection. Please check your network.",
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
 
         // Create AI Message
         final aiMessage = ChatMessage(
