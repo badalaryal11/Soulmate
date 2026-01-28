@@ -7,6 +7,7 @@ import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'data/services/notification_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -19,6 +20,7 @@ void main() async {
     debugPrint("Error loading .env file: $e");
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService().initialize();
   runApp(const SoulmateApp());
 }
 

@@ -10,6 +10,10 @@ import 'package:provider/provider.dart';
 import '../../presentation/providers/user_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../data/services/notification_service.dart';
+
 class ChatScreen extends StatefulWidget {
   final User user;
 
@@ -25,11 +29,16 @@ class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
   final DatabaseService _databaseService = DatabaseService();
   final AuthService _authService = AuthService();
+  final NotificationService _notificationService = NotificationService();
 
   late String _currentUserId;
   late String _chatId;
   final Uuid _uuid = const Uuid();
   bool _isTyping = false;
+
+  StreamSubscription<DocumentSnapshot>? _chatSubscription; // NEW
+  int _xp = 0; // NEW
+  String _relationshipLevel = "Stranger"; // NEW
 
   @override
   void initState() {
@@ -38,13 +47,38 @@ class _ChatScreenState extends State<ChatScreen> {
     if (currentUser != null) {
       _currentUserId = currentUser.uid;
       _chatId = _databaseService.getChatId(_currentUserId, widget.user.id);
+
+      // Cancel "Miss you" notification as user is here
+      _notificationService.cancelNotification(_chatId.hashCode);
+
+      // Listen to XP changes
+      _chatSubscription = _databaseService.getChatStream(_chatId).listen((
+        snapshot,
+      ) {
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          setState(() {
+            _xp = data['xp'] ?? 0;
+            _relationshipLevel = _calculateLevel(_xp);
+          });
+        }
+      });
     }
+  }
+
+  String _calculateLevel(int xp) {
+    if (xp < 10) return "Stranger";
+    if (xp < 30) return "Acquaintance";
+    if (xp < 60) return "Friend";
+    if (xp < 100) return "Crush";
+    return "Soulmate";
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _chatSubscription?.cancel(); // NEW
     super.dispose();
   }
 
@@ -99,10 +133,30 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        color: const Color(0xFFFE3C72),
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$_relationshipLevel (Lv.${(_xp / 10).floor()})',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                   if (_isTyping)
                     const Text(
                       'typing...',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: const Color(0xFFFE3C72),
+                      ),
                     ),
                 ],
               ),
@@ -252,6 +306,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Save to Database
     await _databaseService.sendMessage(_chatId, userMessage);
+
+    // Schedule Proactive Notification (Retention Hook)
+    // Cancel any existing notification for this chat
+    await _notificationService.cancelNotification(_chatId.hashCode);
+    // Schedule a new one for 1 hour later (or 10s for demo if needed)
+    await _notificationService.scheduleNotification(
+      id: _chatId.hashCode,
+      title: '${widget.user.firstName} misses you! 🥺',
+      body:
+          'Come back and continue your conversation with ${widget.user.firstName}.',
+      delay: const Duration(hours: 6),
+    );
 
     setState(() => _isTyping = true);
 

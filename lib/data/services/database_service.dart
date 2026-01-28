@@ -61,16 +61,21 @@ class DatabaseService {
           .collection('messages')
           .add(message.toMap());
 
-      // Update last message time in chat metadata if needed
+      // Update last message time in chat metadata AND increment XP
       await _firestore.collection('chats').doc(chatId).set({
         'lastMessage': message.text,
         'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
         'participants': chatId.split('_'),
+        'xp': FieldValue.increment(1), // Increment XP
       }, SetOptions(merge: true));
     } catch (e) {
       debugPrint("Error sending message: $e");
       rethrow;
     }
+  }
+
+  Stream<DocumentSnapshot> getChatStream(String chatId) {
+    return _firestore.collection('chats').doc(chatId).snapshots();
   }
 
   Stream<List<ChatMessage>> getMessages(String chatId) {
