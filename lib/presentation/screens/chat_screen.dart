@@ -153,10 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (_isTyping)
                     const Text(
                       'typing...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: const Color(0xFFFE3C72),
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFFFE3C72)),
                     ),
                 ],
               ),
