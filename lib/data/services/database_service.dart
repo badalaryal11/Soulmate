@@ -91,4 +91,27 @@ class DatabaseService {
           }).toList();
         });
   }
+
+  // Get recent messages for AI context
+  Future<List<ChatMessage>> getMessageHistory(
+    String chatId, {
+    int limit = 10,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        return ChatMessage.fromMap(doc.id, doc.data());
+      }).toList();
+    } catch (e) {
+      debugPrint("Error fetching message history: $e");
+      return [];
+    }
+  }
 }

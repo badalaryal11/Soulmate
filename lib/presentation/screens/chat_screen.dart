@@ -322,18 +322,46 @@ class _ChatScreenState extends State<ChatScreen> {
 
     setState(() => _isTyping = true);
 
-    // Prepare API messages history
-    // We need to fetch history or use local state if acceptable,
-    // but for correctness let's just pass the last few messages if possible,
-    // or just the current message + system prompt if we want to save reads.
-    // For now, let's keep it simple and just do prompt + new message
-    // to avoid complex async fetching logic inside sendMessage.
-    // Ideally we should pull `messages` from the stream snapshot but
-    // accessing it here is tricky without a provider buffer.
-
-    // Simpler: Just send current context
+    // Build Chat History for API
     List<Map<String, String>> apiMessages = [];
+
+    // 1. Add System Prompt
     apiMessages.add(DatingPersona.generateFor(widget.user));
+
+    // 2. Fetch recent context (last 20 messages)
+    try {
+      final history = await _databaseService.getMessageHistory(
+        _chatId,
+        limit: 20,
+      );
+      // History is descending (newest first), but API needs ascending (oldest first)
+      // Reverse it
+      for (var msg in history.reversed) {
+        apiMessages.add({
+          'role': msg.senderId == _currentUserId ? 'user' : 'assistant',
+          'content': msg.text,
+        });
+      }
+    } catch (e) {
+      debugPrint("Could not fetch history: $e");
+    }
+
+    // 3. Add Current Message (it might not be in the history fetch yet due to race/delay)
+    // Actually, we just sent it to DB, but Firestore event consistency might be strictly causal.
+    // It's safer to explicitly add it to be sure the AI sees it as the *latest* prompt.
+    // However, if it WAS fetched in history, we'd duplicate it.
+    // Given we just did `await _databaseService.sendMessage`, it IS in the DB.
+    // But `limit: 20` might or might not pick it up depending on index latency.
+    // Simplest robust way:
+    // Filter out the *current* message ID if it appears in history to avoid duplication, then append it.
+
+    // Removing potential duplicate of the message we just sent
+    // (We just generated userMessage.id)
+    apiMessages.removeWhere(
+      (m) => m['content'] == userMessageText && m['role'] == 'user',
+    );
+
+    // Re-add the current message at the very end to ensure it's the trigger
     apiMessages.add({'role': 'user', 'content': userMessageText});
 
     // Send to Chat Service

@@ -117,11 +117,11 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     final userProvider = context.read<UserProvider>();
     userProvider.loadUsers(gender: genderToLoad);
 
-    // Update gender in Firestore if logged in
+    // Update gender preference in Firestore if logged in
     final currentUser = AuthService().currentUser;
     if (currentUser != null && _selectedGender != null) {
       await DatabaseService().updateUserField(currentUser.uid, {
-        'gender': _selectedGender,
+        'genderPreference': _selectedGender,
       });
     }
 

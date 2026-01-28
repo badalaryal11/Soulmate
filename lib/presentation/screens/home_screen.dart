@@ -37,98 +37,128 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  int _selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Image.asset('assets/images/logo.png', height: 40),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.forum_rounded, color: Color(0xFFFE3C72)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MatchesScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.black87),
-            onPressed: () => _showFilterDialog(context),
-          ),
-        ],
-      ),
-      body: Consumer<UserProvider>(
-        builder: (context, provider, child) {
-          if (provider.status == UserStatus.loading && provider.users.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.status == UserStatus.error && provider.users.isEmpty) {
-            return Center(child: Text('Error: ${provider.errorMessage}'));
-          }
-
-          if (provider.users.isEmpty) {
-            return const Center(child: Text('No users found.'));
-          }
-
-          return SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: CardSwiper(
-                    controller: controller,
-                    cardsCount: provider.filteredUsers.length,
-                    numberOfCardsDisplayed: 3,
-                    backCardOffset: const Offset(0, 40),
-                    padding: const EdgeInsets.all(24.0),
-                    cardBuilder:
-                        (
-                          context,
-                          index,
-                          horizontalOffsetPercentage,
-                          verticalOffsetPercentage,
-                        ) {
-                          return ProfileCard(
-                            user: provider.filteredUsers[index],
-                          );
-                        },
-                    onSwipe: (previousIndex, currentIndex, direction) {
-                      provider.userSwiped(
-                        currentIndex ?? previousIndex,
-                        direction,
-                      );
-                      return true;
-                    },
-                  ),
-                ),
+      // Only show AppBar on Home Tab (Index 0)
+      // MatchesScreen (Index 1) has its own AppBar
+      appBar: _selectedIndex == 0
+          ? AppBar(
+              title: Image.asset('assets/images/logo.png', height: 40),
+              centerTitle: true,
+              backgroundColor: Colors.white,
+              actions: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _ActionButton(
-                        icon: Icons.close,
-                        color: Colors.red,
-                        onPressed: () =>
-                            controller.swipe(CardSwiperDirection.left),
-                      ),
-                      _ActionButton(
-                        icon: Icons.favorite,
-                        color: Colors.green,
-                        onPressed: () =>
-                            controller.swipe(CardSwiperDirection.right),
-                      ),
-                    ],
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.filter_list, color: Colors.black87),
+                    onPressed: () => _showFilterDialog(context),
                   ),
                 ),
               ],
-            ),
-          );
-        },
+            )
+          : null, // Hide AppBar when not on Home tab
+
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [_buildHomeTab(), const MatchesScreen()],
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.forum_rounded),
+            label: 'Matches',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFFFE3C72),
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildHomeTab() {
+    return Consumer<UserProvider>(
+      builder: (context, provider, child) {
+        if (provider.status == UserStatus.loading && provider.users.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.status == UserStatus.error && provider.users.isEmpty) {
+          return Center(child: Text('Error: ${provider.errorMessage}'));
+        }
+
+        if (provider.filteredUsers.isEmpty) {
+          return const Center(child: Text('No users match your filters.'));
+        }
+
+        return SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: CardSwiper(
+                  controller: controller,
+                  cardsCount: provider.filteredUsers.length,
+                  numberOfCardsDisplayed: provider.filteredUsers.length < 3
+                      ? provider.filteredUsers.length
+                      : 3,
+                  backCardOffset: const Offset(0, 40),
+                  padding: const EdgeInsets.all(24.0),
+                  cardBuilder:
+                      (
+                        context,
+                        index,
+                        horizontalOffsetPercentage,
+                        verticalOffsetPercentage,
+                      ) {
+                        if (index < 0 ||
+                            index >= provider.filteredUsers.length) {
+                          return const SizedBox();
+                        }
+                        return ProfileCard(user: provider.filteredUsers[index]);
+                      },
+                  onSwipe: (previousIndex, currentIndex, direction) {
+                    provider.userSwiped(
+                      currentIndex ?? previousIndex,
+                      direction,
+                    );
+                    return true;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _ActionButton(
+                      icon: Icons.close,
+                      color: Colors.red,
+                      onPressed: () =>
+                          controller.swipe(CardSwiperDirection.left),
+                    ),
+                    _ActionButton(
+                      icon: Icons.favorite,
+                      color: Colors.green,
+                      onPressed: () =>
+                          controller.swipe(CardSwiperDirection.right),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -148,10 +178,53 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
+                    'Filter by Gender',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _FilterChip(
+                        label: 'Male',
+                        isSelected: provider.selectedGender == 'male',
+                        onSelected: (bool selected) {
+                          if (selected)
+                            provider.loadUsers(gender: 'male', clearList: true);
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Female',
+                        isSelected: provider.selectedGender == 'female',
+                        onSelected: (bool selected) {
+                          if (selected)
+                            provider.loadUsers(
+                              gender: 'female',
+                              clearList: true,
+                            );
+                        },
+                      ),
+                      _FilterChip(
+                        label: 'Everyone',
+                        isSelected:
+                            provider.selectedGender == 'everyone' ||
+                            provider.selectedGender == null,
+                        onSelected: (bool selected) {
+                          if (selected)
+                            provider.loadUsers(
+                              gender: 'everyone',
+                              clearList: true,
+                            );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
                     'Filter by Age',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -241,6 +314,40 @@ class _ActionButton extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(icon, color: color, size: 30),
         padding: const EdgeInsets.all(15),
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Function(bool) onSelected;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: onSelected,
+      selectedColor: const Color(0xFFFE3C72).withValues(alpha: 0.2),
+      checkmarkColor: const Color(0xFFFE3C72),
+      labelStyle: TextStyle(
+        color: isSelected ? const Color(0xFFFE3C72) : Colors.black87,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      backgroundColor: Colors.grey[200],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? const Color(0xFFFE3C72) : Colors.transparent,
+        ),
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/auth_service.dart';
+import 'login_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
   const MatchesScreen({super.key});
@@ -24,6 +26,38 @@ class MatchesScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await AuthService().signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                    (route) => false,
+                  );
+                }
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.black54),
+                      SizedBox(width: 8),
+                      Text('Sign Out'),
+                    ],
+                  ),
+                ),
+              ];
+            },
+            icon: const Icon(Icons.more_vert, color: Colors.black87),
+          ),
+        ],
       ),
       body: Consumer<UserProvider>(
         builder: (context, provider, child) {

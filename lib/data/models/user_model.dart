@@ -11,6 +11,7 @@ class User {
   final String imageUrl;
   final String gender;
   final List<String> interests;
+  final String? genderPreference;
 
   User({
     required this.id,
@@ -22,6 +23,7 @@ class User {
     required this.imageUrl,
     required this.gender,
     required this.interests,
+    this.genderPreference,
   });
 
   // Factory for RandomUser API (keep existing)
@@ -63,6 +65,7 @@ class User {
       'imageUrl': imageUrl,
       'gender': gender,
       'interests': interests,
+      'genderPreference': genderPreference,
     };
   }
 
@@ -78,6 +81,7 @@ class User {
       imageUrl: map['imageUrl'] ?? '',
       gender: map['gender'] ?? '',
       interests: List<String>.from(map['interests'] ?? []),
+      genderPreference: map['genderPreference'],
     );
   }
 

@@ -27,6 +27,7 @@ class UserProvider extends ChangeNotifier {
 
   List<String> get currentUserInterests => _currentUserInterests;
   User? get currentUser => _currentUser;
+  String? get selectedGender => _selectedGender;
 
   double _minAge = 18;
   double _maxAge = 100;
@@ -39,7 +40,12 @@ class UserProvider extends ChangeNotifier {
 
   void _updateFilteredUsers() {
     _filteredUsers = _users.where((user) {
-      return user.age >= _minAge && user.age <= _maxAge;
+      final matchesAge = user.age >= _minAge && user.age <= _maxAge;
+      final matchesGender =
+          _selectedGender == null ||
+          _selectedGender == 'everyone' ||
+          user.gender.toLowerCase() == _selectedGender?.toLowerCase();
+      return matchesAge && matchesGender;
     }).toList();
   }
 
@@ -61,13 +67,29 @@ class UserProvider extends ChangeNotifier {
       _currentUser = await DatabaseService().getUser(user.uid);
       if (_currentUser != null) {
         _currentUserInterests = _currentUser!.interests;
+        // Load gender preference
+        if (_currentUser!.genderPreference != null) {
+          _selectedGender = _currentUser!.genderPreference;
+        }
       }
       notifyListeners();
     }
   }
 
-  Future<void> loadUsers({String? gender}) async {
-    if (gender != null) _selectedGender = gender;
+  Future<void> loadUsers({String? gender, bool clearList = false}) async {
+    // Priority: 1. Argument 2. stored preference 3. default (null/all)
+    if (gender != null) {
+      _selectedGender = gender;
+    } else if (_currentUser?.genderPreference != null) {
+      _selectedGender = _currentUser!.genderPreference;
+    } else {
+      // Fallback or keep existing _selectedGender
+    }
+
+    if (clearList) {
+      _users.clear();
+      _filteredUsers.clear();
+    }
 
     _status = UserStatus.loading;
     notifyListeners();

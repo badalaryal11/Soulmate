@@ -9,10 +9,10 @@ class ChatService {
   //https://huggingface.co/settings/tokens
   static String get _apiToken => dotenv.env['HF_API_TOKEN'] ?? '';
 
-  // Using Zephyr 7B Beta via standard Inference API (Text Generation)
-  static const String _modelId = 'HuggingFaceH4/zephyr-7b-beta';
+  // Using Qwen 2.5 72B Instruct (Ungated, widely supported on Router)
+  static const String _modelId = 'Qwen/Qwen2.5-72B-Instruct';
   static const String _modelUrl =
-      'https://api-inference.huggingface.co/models/$_modelId';
+      'https://router.huggingface.co/v1/chat/completions';
 
   Future<String> sendMessage(List<Map<String, String>> messages) async {
     // Check connectivity
@@ -22,24 +22,9 @@ class ChatService {
     }
 
     try {
-      // 1. Manually format prompt for Zephyr
-      final StringBuffer promptBuffer = StringBuffer();
-      for (final msg in messages) {
-        final role = msg['role'];
-        final content = msg['content'];
-        if (role == 'system') {
-          promptBuffer.write('<|system|>\n$content</s>\n');
-        } else if (role == 'user') {
-          promptBuffer.write('<|user|>\n$content</s>\n');
-        } else if (role == 'assistant') {
-          promptBuffer.write('<|assistant|>\n$content</s>\n');
-        }
-      }
-      promptBuffer.write('<|assistant|>\n'); // Prompt for completion
+      debugPrint("Sending request to $_modelUrl");
+      debugPrint("Token available: ${_apiToken.isNotEmpty}");
 
-      final prompt = promptBuffer.toString();
-
-      // 2. Send to raw generation endpoint
       final response = await http.post(
         Uri.parse(_modelUrl),
         headers: {
@@ -47,27 +32,33 @@ class ChatService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'inputs': prompt,
-          'parameters': {
-            'max_new_tokens': 250,
-            'temperature': 0.7,
-            'top_p': 0.95,
-            'return_full_text': false, // Only return the new part
-          },
+          // OpenAI compatible payload
+          'model': _modelId,
+          'messages': messages,
+          'max_tokens': 500,
+          'temperature': 0.7,
+          'stream': false,
         }),
       );
 
+      debugPrint("Response Status: ${response.statusCode}");
+      debugPrint("Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
-        // Response is a List: [{"generated_text": "..."}]
-        final List<dynamic> result = jsonDecode(response.body);
-        if (result.isNotEmpty && result[0]['generated_text'] != null) {
-          return result[0]['generated_text'].toString().trim();
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        if (result['choices'] != null &&
+            result['choices'].isNotEmpty &&
+            result['choices'][0]['message'] != null) {
+          return result['choices'][0]['message']['content'].toString().trim();
         }
         return "I'm not sure what to say.";
       } else if (response.statusCode == 503) {
         return "The model is warming up... please try again in 10s.";
+      } else if (response.statusCode == 401) {
+        return "Error: Unauthorized. Check API Token.";
+      } else if (response.statusCode == 410) {
+        return "Error: Model not available (410).";
       } else {
-        debugPrint('API Error: ${response.statusCode} - ${response.body}');
         return "Error: AI Service Error (${response.statusCode})";
       }
     } catch (e) {
