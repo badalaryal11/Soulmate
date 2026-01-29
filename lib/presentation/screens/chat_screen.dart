@@ -66,6 +66,14 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  double _calculateProgress(int xp) {
+    if (xp < 10) return xp / 10;
+    if (xp < 30) return (xp - 10) / (30 - 10);
+    if (xp < 60) return (xp - 30) / (60 - 30);
+    if (xp < 100) return (xp - 60) / (100 - 60);
+    return 1.0; // Soulmate (Maxed)
+  }
+
   String _calculateLevel(int xp) {
     if (xp < 10) return "Stranger";
     if (xp < 30) return "Acquaintance";
@@ -133,19 +141,40 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.favorite,
-                        color: const Color(0xFFFE3C72),
-                        size: 12,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: const Color(0xFFFE3C72),
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$_relationshipLevel (Lvl ${(_xp / 10).floor()})',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$_relationshipLevel (Lv.${(_xp / 10).floor()})',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: SizedBox(
+                          width: 120,
+                          height: 6,
+                          child: LinearProgressIndicator(
+                            value: _calculateProgress(_xp),
+                            backgroundColor: Colors.grey[200],
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFFFE3C72),
+                            ),
+                          ),
                         ),
                       ),
                     ],
