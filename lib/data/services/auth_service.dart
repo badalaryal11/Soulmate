@@ -99,6 +99,36 @@ class AuthService {
     }
   }
 
+  // Update Email
+  Future<void> updateEmail(String newEmail) async {
+    try {
+      await _auth.currentUser?.verifyBeforeUpdateEmail(newEmail);
+    } catch (e) {
+      debugPrint("Error updating email: $e");
+      rethrow;
+    }
+  }
+
+  // Update Password
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _auth.currentUser?.updatePassword(newPassword);
+    } catch (e) {
+      debugPrint("Error updating password: $e");
+      rethrow;
+    }
+  }
+
+  // Delete Account
+  Future<void> deleteAccount() async {
+    try {
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      debugPrint("Error deleting account: $e");
+      rethrow;
+    }
+  }
+
   // Confirm Password Reset
   Future<void> confirmPasswordReset({
     required String code,

@@ -5,6 +5,7 @@ import '../providers/user_provider.dart';
 import '../widgets/profile_card.dart';
 import 'match_screen.dart';
 import 'matches_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,12 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ? AppBar(
               title: Image.asset('assets/images/logo.png', height: 40),
               centerTitle: true,
-              backgroundColor: Colors.white,
+              // backgroundColor: Colors.white, // Removed for theme support
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
                   child: IconButton(
-                    icon: const Icon(Icons.filter_list, color: Colors.black87),
+                    icon: const Icon(
+                      Icons.filter_list,
+                    ), // Removed hardcoded color
                     onPressed: () => _showFilterDialog(context),
                   ),
                 ),
@@ -342,10 +355,14 @@ class _FilterChip extends StatelessWidget {
       selectedColor: const Color(0xFFFE3C72).withValues(alpha: 0.2),
       checkmarkColor: const Color(0xFFFE3C72),
       labelStyle: TextStyle(
-        color: isSelected ? const Color(0xFFFE3C72) : Colors.black87,
+        color: isSelected
+            ? const Color(0xFFFE3C72)
+            : Theme.of(context).textTheme.bodyMedium?.color,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.grey[800]
+          : Colors.grey[200],
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(

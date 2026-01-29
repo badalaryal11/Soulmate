@@ -6,6 +6,8 @@ import 'package:app_links/app_links.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/theme_provider.dart';
+import 'presentation/providers/notification_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'data/services/notification_service.dart';
 
@@ -106,17 +108,38 @@ class _SoulmateAppState extends State<SoulmateApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
-      child: MaterialApp(
-        navigatorKey: _navigatorKey,
-        title: 'Soulmate',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFE3C72)),
-          useMaterial3: true,
-          textTheme: GoogleFonts.poppinsTextTheme(),
-        ),
-        home: const SplashScreen(),
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: 'Soulmate',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFFFE3C72),
+              ),
+              useMaterial3: true,
+              textTheme: GoogleFonts.poppinsTextTheme(),
+            ),
+            darkTheme: ThemeData.dark().copyWith(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFFFE3C72),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+              textTheme: GoogleFonts.poppinsTextTheme(
+                ThemeData.dark().textTheme,
+              ),
+            ),
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

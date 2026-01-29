@@ -14,7 +14,7 @@ class MatchesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white, // Removed for theme support
       appBar: AppBar(
         title: Text(
           'Matches & Chats',
@@ -23,9 +23,9 @@ class MatchesScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        // backgroundColor: Colors.white, // Removed
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        // iconTheme: const IconThemeData(color: Colors.black87), // Removed
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) async {
@@ -47,7 +47,7 @@ class MatchesScreen extends StatelessWidget {
                   value: 'logout',
                   child: Row(
                     children: [
-                      Icon(Icons.logout, color: Colors.black54),
+                      Icon(Icons.logout), // Removed color
                       SizedBox(width: 8),
                       Text('Sign Out'),
                     ],
@@ -55,7 +55,7 @@ class MatchesScreen extends StatelessWidget {
                 ),
               ];
             },
-            icon: const Icon(Icons.more_vert, color: Colors.black87),
+            icon: const Icon(Icons.more_vert), // Removed color
           ),
         ],
       ),
@@ -198,7 +198,7 @@ class MatchesScreen extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
+                                      // color: Colors.black87, // Removed
                                     ),
                                   ),
                                   const SizedBox(height: 4),
