@@ -189,19 +189,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: 'Male',
                         isSelected: provider.selectedGender == 'male',
                         onSelected: (bool selected) {
-                          if (selected)
+                          if (selected) {
                             provider.loadUsers(gender: 'male', clearList: true);
+                          }
                         },
                       ),
                       _FilterChip(
                         label: 'Female',
                         isSelected: provider.selectedGender == 'female',
                         onSelected: (bool selected) {
-                          if (selected)
+                          if (selected) {
                             provider.loadUsers(
                               gender: 'female',
                               clearList: true,
                             );
+                          }
                         },
                       ),
                       _FilterChip(
@@ -210,11 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             provider.selectedGender == 'everyone' ||
                             provider.selectedGender == null,
                         onSelected: (bool selected) {
-                          if (selected)
+                          if (selected) {
                             provider.loadUsers(
                               gender: 'everyone',
                               clearList: true,
                             );
+                          }
                         },
                       ),
                     ],
