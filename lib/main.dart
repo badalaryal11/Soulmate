@@ -124,7 +124,6 @@ class _SoulmateAppState extends State<SoulmateApp> {
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFFFE3C72),
               ),
-              useMaterial3: true,
               textTheme: GoogleFonts.poppinsTextTheme(),
             ),
             darkTheme: ThemeData.dark().copyWith(
@@ -132,7 +131,6 @@ class _SoulmateAppState extends State<SoulmateApp> {
                 seedColor: const Color(0xFFFE3C72),
                 brightness: Brightness.dark,
               ),
-              useMaterial3: true,
               textTheme: GoogleFonts.poppinsTextTheme(
                 ThemeData.dark().textTheme,
               ),

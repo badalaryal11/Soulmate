@@ -68,7 +68,7 @@ class SettingsScreen extends StatelessWidget {
                   : Icons.notifications_off,
               color: const Color(0xFFFE3C72),
             ),
-            activeColor: const Color(0xFFFE3C72),
+            activeTrackColor: const Color(0xFFFE3C72),
           ),
           const Divider(),
 
@@ -90,7 +90,7 @@ class SettingsScreen extends StatelessWidget {
               themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
               color: const Color(0xFFFE3C72),
             ),
-            activeColor: const Color(0xFFFE3C72),
+            activeTrackColor: const Color(0xFFFE3C72),
           ),
           const Divider(),
 

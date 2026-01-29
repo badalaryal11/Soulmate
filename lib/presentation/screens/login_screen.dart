@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
@@ -48,9 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: const Color(
-                    0xFF004D40,
-                  ), // Dark Green/Teal from reference
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF80CBC4) // Lighter Teal for Dark Mode
+                      : const Color(0xFF004D40), // Dark Green/Teal
                 ),
               ),
               const SizedBox(height: 8),
@@ -70,14 +70,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Email or Mobile Number',
                   hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 16,
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[700]!
+                          : Colors.grey[300]!,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -95,14 +101,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Password',
                   hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 16,
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[700]!
+                          : Colors.grey[300]!,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -481,7 +493,11 @@ class _SocialButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[700]!
+                : Colors.grey[300]!,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -501,7 +517,9 @@ class _SocialButton extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black87,
                 ),
               ),
             ],

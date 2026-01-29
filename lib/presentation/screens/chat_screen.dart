@@ -263,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withValues(alpha: 0.1),
@@ -281,7 +281,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         filled: true,
-                        fillColor: Colors.grey[100],
+                        fillColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[800]
+                            : Colors.grey[100],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
@@ -447,7 +450,11 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isMe ? const Color(0xFFFE3C72) : Colors.grey[200],
+          color: isMe
+              ? const Color(0xFFFE3C72)
+              : (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[800]
+                    : Colors.grey[200]),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -461,7 +468,11 @@ class MessageBubble extends StatelessWidget {
             Text(
               message.text,
               style: TextStyle(
-                color: isMe ? Colors.white : Colors.black87,
+                color: isMe
+                    ? Colors.white
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black87),
                 fontSize: 16,
               ),
             ),
@@ -469,7 +480,11 @@ class MessageBubble extends StatelessWidget {
             Text(
               _formatTime(message.timestamp),
               style: TextStyle(
-                color: isMe ? Colors.white70 : Colors.black54,
+                color: isMe
+                    ? Colors.white70
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.black54),
                 fontSize: 10,
               ),
             ),
