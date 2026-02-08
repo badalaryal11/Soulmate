@@ -140,10 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return ProfileCard(user: provider.filteredUsers[index]);
                       },
                   onSwipe: (previousIndex, currentIndex, direction) {
-                    provider.userSwiped(
-                      currentIndex ?? previousIndex,
-                      direction,
-                    );
+                    provider.userSwiped(previousIndex, direction);
                     return true;
                   },
                 ),

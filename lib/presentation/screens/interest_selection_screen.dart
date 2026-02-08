@@ -47,8 +47,9 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
     }
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (route) => false,
     );
   }
 

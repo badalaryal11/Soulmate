@@ -82,6 +82,95 @@ class _ChatScreenState extends State<ChatScreen> {
     return "Soulmate";
   }
 
+  void _showGamificationDetails() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Relationship Journey',
+            textAlign: TextAlign.center,
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.favorite, color: Color(0xFFFE3C72), size: 48),
+                const SizedBox(height: 10),
+                Text(
+                  _relationshipLevel,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFE3C72),
+                  ),
+                ),
+                Text(
+                  'Level ${(_xp / 10).floor()} • $_xp XP',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 20),
+                const Divider(),
+                const SizedBox(height: 10),
+                _buildLevelRow('Stranger', 0, _xp >= 0),
+                _buildLevelRow('Acquaintance', 10, _xp >= 10),
+                _buildLevelRow('Friend', 30, _xp >= 30),
+                _buildLevelRow('Crush', 60, _xp >= 60),
+                _buildLevelRow('Soulmate', 100, _xp >= 100),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLevelRow(String level, int requiredXp, bool achieved) {
+    bool isCurrent = _relationshipLevel == level;
+    Color iconColor = Colors.grey;
+    if (achieved) iconColor = Colors.green;
+    if (isCurrent) iconColor = const Color(0xFFFE3C72);
+
+    Color textColor =
+        Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
+    if (isCurrent) textColor = const Color(0xFFFE3C72);
+    if (!achieved) textColor = Colors.grey;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(
+            achieved ? Icons.check_circle : Icons.lock_outline,
+            color: iconColor,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              level,
+              style: TextStyle(
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                color: textColor,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Text(
+            '$requiredXp XP',
+            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -141,43 +230,50 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.favorite,
-                            color: const Color(0xFFFE3C72),
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$_relationshipLevel (Lvl ${(_xp / 10).floor()})',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: _showGamificationDetails,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.favorite,
+                              color: Color(0xFFFE3C72),
+                              size: 14,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: SizedBox(
-                          width: 120,
-                          height: 6,
-                          child: LinearProgressIndicator(
-                            value: _calculateProgress(_xp),
-                            backgroundColor: Colors.grey[200],
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFE3C72),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$_relationshipLevel (Lvl ${(_xp / 10).floor()})',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            height: 6,
+                            child: LinearProgressIndicator(
+                              value: _calculateProgress(_xp),
+                              backgroundColor: Colors.grey[200],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFFFE3C72),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   if (_isTyping)
                     const Text(
