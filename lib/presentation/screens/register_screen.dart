@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/database_service.dart';
-import 'gender_selection_screen.dart';
+import 'user_gender_selection_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -72,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const GenderSelectionScreen(),
+              builder: (context) => const UserGenderSelectionScreen(),
             ),
           );
         } else {
