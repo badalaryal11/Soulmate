@@ -3,6 +3,7 @@ import '../constants/interests.dart';
 
 class User {
   final String id;
+  final String email;
   final String firstName;
   final String lastName;
   final int age;
@@ -15,6 +16,7 @@ class User {
 
   User({
     required this.id,
+    required this.email,
     required this.firstName,
     required this.lastName,
     required this.age,
@@ -28,6 +30,7 @@ class User {
 
   // Factory for RandomUser API (keep existing)
   factory User.fromJson(Map<String, dynamic> json) {
+    final email = json['email'] ?? '';
     final name = json['name'];
     final location = json['location'];
     final dob = json['dob'];
@@ -42,6 +45,7 @@ class User {
 
     return User(
       id: login['uuid'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      email: email,
       firstName: name['first'] ?? '',
       lastName: name['last'] ?? '',
       age: dob['age'] ?? 0,
@@ -57,6 +61,7 @@ class User {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'email': email,
       'firstName': firstName,
       'lastName': lastName,
       'age': age,
@@ -73,6 +78,7 @@ class User {
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: map['id'] ?? '',
+      email: map['email'] ?? '',
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
       age: map['age'] ?? 0,

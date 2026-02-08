@@ -50,6 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Create initial user model
           final newUser = User(
             id: credential.user!.uid,
+            email: _emailController.text.trim(),
             firstName: _firstNameController.text
                 .trim(), // Changed from _nameController to _firstNameController
             lastName:
