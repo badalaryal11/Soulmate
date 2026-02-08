@@ -47,27 +47,25 @@ class _HomeScreenState extends State<HomeScreen> {
       // MatchesScreen (Index 1) has its own AppBar
       appBar: _selectedIndex == 0
           ? AppBar(
-              title: Image.asset('assets/images/logo.png', height: 40),
-              centerTitle: true,
+              // title: Image.asset('assets/images/logo.png', height: 40),
+              // centerTitle: true,
               // backgroundColor: Colors.white, // Removed for theme support
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                  },
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: () => _showFilterDialog(context),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
                   child: IconButton(
-                    icon: const Icon(
-                      Icons.filter_list,
-                    ), // Removed hardcoded color
-                    onPressed: () => _showFilterDialog(context),
+                    icon: const Icon(Icons.settings),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
