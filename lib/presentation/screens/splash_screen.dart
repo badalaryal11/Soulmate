@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart'; // For SystemChrome
+import 'package:google_fonts/google_fonts.dart'; // For GoogleFonts
 import '../../data/services/auth_service.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
@@ -9,6 +10,17 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Enable edge-to-edge mode to remove system bar borders
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
+
     Future.delayed(const Duration(seconds: 3), () {
       if (context.mounted) {
         final user = AuthService().currentUser;
