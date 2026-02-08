@@ -322,7 +322,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const GenderSelectionScreen(),
+            builder: (context) => existingUser == null
+                ? const UserGenderSelectionScreen()
+                : const GenderSelectionScreen(),
           ),
         );
       } else {
