@@ -27,7 +27,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Who are you interested in?',
+                'Intered in',
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

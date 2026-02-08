@@ -254,18 +254,14 @@ class _LoginScreenState extends State<LoginScreen> {
               Column(
                 children: [
                   _SocialButton(
-                    icon: FontAwesomeIcons.google,
+                    iconWidget: Image.asset(
+                      'assets/images/google_logo.png',
+                      height: 24,
+                      width: 24,
+                    ),
                     label: 'Sign In with Google',
                     color: Colors.red,
                     onTap: _isLoading ? () {} : _handleGoogleLogin,
-                    isLoading:
-                        _isLoading &&
-                        // Hacky way to know which button is loading?
-                        // Or just show global loading?
-                        // Let's simpler: just disable checking for now or show loading inside button.
-                        // Ideally we'd have state for "isGoogleLoading".
-                        // Given the context, _isLoading covers Google login.
-                        true,
                   ),
                   const SizedBox(height: 16),
                   _SocialButton(
@@ -471,19 +467,22 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class _SocialButton extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final Color color;
   final VoidCallback onTap;
-  final bool isLoading;
 
   const _SocialButton({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     required this.color,
     required this.onTap,
-    this.isLoading = false,
-  });
+  }) : assert(
+         icon != null || iconWidget != null,
+         'Either icon or iconWidget must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -503,26 +502,21 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isLoading)
-              const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else ...[
+            if (iconWidget != null)
+              iconWidget!
+            else
               Icon(icon, color: color, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black87,
-                ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black87,
               ),
-            ],
+            ),
           ],
         ),
       ),
