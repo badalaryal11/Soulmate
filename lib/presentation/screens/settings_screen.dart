@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:soulmate/data/services/auth_service.dart';
+import '../../data/services/auth_service.dart';
+import '../../data/services/database_service.dart';
 import '../providers/theme_provider.dart';
 import '../providers/notification_provider.dart';
 import 'login_screen.dart';
@@ -91,6 +92,20 @@ class SettingsScreen extends StatelessWidget {
               color: const Color(0xFFFE3C72),
             ),
             activeTrackColor: const Color(0xFFFE3C72),
+          ),
+          const Divider(),
+
+          const Divider(),
+          _buildSectionHeader(context, 'About'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text('About Soulmate', style: GoogleFonts.poppins()),
+            onTap: () => _showAboutDialog(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.feedback_outlined),
+            title: Text('Contact Us', style: GoogleFonts.poppins()),
+            onTap: () => _showFeedbackDialog(context, authService),
           ),
           const Divider(),
 
@@ -260,6 +275,136 @@ class SettingsScreen extends StatelessWidget {
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Image.asset('assets/images/logo_transparent.png', height: 40),
+            const SizedBox(width: 10),
+            Text(
+              'Soulmate',
+              style: GoogleFonts.pacifico(
+                fontSize: 24,
+                color: const Color(0xFFFE3C72),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Version 1.0.0',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Soulmate is a dating app designed to help you find meaningful connections based on shared interests and personality compatibility.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Features:',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              Text('• Smart Matching Algorithm', style: GoogleFonts.poppins()),
+              const SizedBox(height: 5),
+              Text(
+                '• AI-Powered Conversations: Experience engaging conversations with our advanced AI models tailored to your personality.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                '• Gamified Chat Experience: Level up your connection just by chatting! Earn XP for every message and unlock new relationship status levels.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 5),
+              Text('• Personalized Profiles', style: GoogleFonts.poppins()),
+              Text('• Secure & Private', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog(BuildContext context, AuthService authService) {
+    final feedbackController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Contact Us'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'We value your feedback! Let us know what you think or report any issues.',
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: feedbackController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Enter your feedback here...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final message = feedbackController.text.trim();
+              if (message.isNotEmpty) {
+                try {
+                  final userId = authService.currentUser?.uid ?? 'anonymous';
+                  final dbService = DatabaseService();
+                  await dbService.saveFeedback(userId, message);
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Thank you for your feedback!'),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error saving feedback: $e')),
+                    );
+                  }
+                }
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Submit'),
           ),
         ],
       ),

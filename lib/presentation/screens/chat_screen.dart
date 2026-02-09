@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/services/notification_service.dart';
+import 'details_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final User user;
@@ -214,9 +215,20 @@ class _ChatScreenState extends State<ChatScreen> {
         titleSpacing: 0,
         title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider(widget.user.imageUrl),
-              radius: 20,
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => DetailsScreen(user: widget.user),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(
+                  widget.user.imageUrl,
+                ),
+                radius: 20,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(

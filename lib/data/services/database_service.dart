@@ -29,6 +29,20 @@ class DatabaseService {
     }
   }
 
+  // Save Feedback
+  Future<void> saveFeedback(String userId, String message) async {
+    try {
+      await _firestore.collection('feedback').add({
+        'userId': userId,
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint("Error saving feedback: $e");
+      rethrow;
+    }
+  }
+
   // Get User
   Future<User?> getUser(String uid) async {
     try {
