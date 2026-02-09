@@ -20,6 +20,7 @@ class DetailsScreen extends StatelessWidget {
               background: CachedNetworkImage(
                 imageUrl: user.imageUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 1000,
               ),
             ),
           ),

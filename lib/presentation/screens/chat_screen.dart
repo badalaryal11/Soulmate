@@ -226,6 +226,8 @@ class _ChatScreenState extends State<ChatScreen> {
               child: CircleAvatar(
                 backgroundImage: CachedNetworkImageProvider(
                   widget.user.imageUrl,
+                  maxHeight: 100, // Optimize memory usage
+                  maxWidth: 100,
                 ),
                 radius: 20,
               ),
