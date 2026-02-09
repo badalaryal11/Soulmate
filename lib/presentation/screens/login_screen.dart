@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
-import '../../data/models/user_model.dart';
-import 'gender_selection_screen.dart';
-import 'register_screen.dart';
-import 'user_gender_selection_screen.dart';
+import 'package:soulmate/data/services/auth_service.dart';
+import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/data/models/user_model.dart';
+import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
+import 'package:soulmate/presentation/screens/register_screen.dart';
+import 'package:soulmate/presentation/screens/user_gender_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -30,8 +30,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _authService = widget.authService ?? AuthService();
-    _databaseService = widget.databaseService ?? DatabaseService();
+    final injectedAuth = widget.authService;
+    if (injectedAuth != null) {
+      _authService = injectedAuth;
+    } else {
+      _authService = AuthService();
+    }
+
+    final injectedDb = widget.databaseService;
+    if (injectedDb != null) {
+      _databaseService = injectedDb;
+    } else {
+      _databaseService = DatabaseService();
+    }
   }
 
   @override

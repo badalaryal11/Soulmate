@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
-import '../providers/theme_provider.dart';
-import '../providers/notification_provider.dart';
-import 'login_screen.dart';
+import 'package:soulmate/data/services/auth_service.dart';
+import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/presentation/providers/theme_provider.dart';
+import 'package:soulmate/presentation/providers/notification_provider.dart';
+import 'package:soulmate/presentation/screens/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AuthService? authService;
@@ -122,7 +122,12 @@ class SettingsScreen extends StatelessWidget {
               await auth.signOut();
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => LoginScreen(
+                      authService: authService,
+                      databaseService: databaseService,
+                    ),
+                  ),
                   (route) => false,
                 );
               }

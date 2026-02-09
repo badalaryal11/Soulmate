@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
+import 'package:soulmate/data/models/user_model.dart';
 import '../models/chat_message.dart';
 import 'package:flutter/foundation.dart';
 

@@ -54,7 +54,7 @@ void main() {
       when(
         mockCollectionReference.doc('test_uid'),
       ).thenReturn(mockDocumentReference);
-      when(mockDocumentReference.set(any, any)).thenAnswer((_) async => null);
+      when(mockDocumentReference.set(any, any)).thenAnswer((_) async {});
 
       await databaseService.saveUser(user);
 
@@ -71,7 +71,7 @@ void main() {
       when(
         mockCollectionReference.doc('test_uid'),
       ).thenReturn(mockDocumentReference);
-      when(mockDocumentReference.update(any)).thenAnswer((_) async => null);
+      when(mockDocumentReference.update(any)).thenAnswer((_) async {});
 
       await databaseService.updateUserField('test_uid', {
         'firstName': 'Updated Name',

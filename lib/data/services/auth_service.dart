@@ -3,12 +3,24 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
+  static FirebaseAuth? _mockAuth;
+  static GoogleSignIn? _mockGoogleSignIn;
+
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-    : _auth = auth ?? FirebaseAuth.instance,
-      _googleSignIn = googleSignIn ?? GoogleSignIn();
+    : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
+      _googleSignIn = googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn();
+
+  @visibleForTesting
+  static void setMockInstances({
+    FirebaseAuth? auth,
+    GoogleSignIn? googleSignIn,
+  }) {
+    _mockAuth = auth;
+    _mockGoogleSignIn = googleSignIn;
+  }
 
   // Stream of auth changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();

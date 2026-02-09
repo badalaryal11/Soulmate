@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import '../widgets/profile_card.dart';
-import 'match_screen.dart';
-import 'matches_screen.dart';
-import 'settings_screen.dart';
+import 'package:soulmate/presentation/providers/user_provider.dart';
+import 'package:soulmate/presentation/widgets/profile_card.dart';
+import 'package:soulmate/presentation/screens/match_screen.dart';
+import 'package:soulmate/presentation/screens/matches_screen.dart';
+import 'package:soulmate/presentation/screens/settings_screen.dart';
+import 'package:soulmate/data/services/auth_service.dart';
+import 'package:soulmate/data/services/database_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final AuthService? authService;
+  final DatabaseService? databaseService;
+
+  const HomeScreen({super.key, this.authService, this.databaseService});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -71,7 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
+                          builder: (context) => SettingsScreen(
+                            authService: widget.authService,
+                            databaseService: widget.databaseService,
+                          ),
                         ),
                       );
                     },

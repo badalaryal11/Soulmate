@@ -1,0 +1,44 @@
+00:00 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:01 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:02 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:03 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:04 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:05 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:06 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:07 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:08 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:09 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:10 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:11 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:12 +0: loading /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart                                                                                                                        00:12 +0: LoginScreen renders correctly                                                                                                                                                                00:13 +0: LoginScreen renders correctly                                                                                                                                                                00:14 +0: LoginScreen renders correctly                                                                                                                                                                00:15 +0: LoginScreen renders correctly                                                                                                                                                                00:16 +0: LoginScreen renders correctly                                                                                                                                                                00:17 +0: LoginScreen renders correctly                                                                                                                                                                00:18 +0: LoginScreen renders correctly                                                                                                                                                                00:18 +0: LoginScreen renders correctly                                                                                                                                                                
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 2 widgets with type "Image": [
+            Image(image: AssetImage(bundle: null, name: "assets/images/logo_transparent.png"),
+frameBuilder: null, loadingBuilder: null, width: 80.0, height: 80.0, alignment: Alignment.center,
+this.excludeFromSemantics: false, filterQuality: medium, dependencies: [Directionality, MediaQuery,
+_EffectiveTickerMode, _LocalizationsScope-[GlobalKey#891b3], _ViewScope], state:
+_ImageState#2cd3f(stream: ImageStream#bc072(MultiFrameImageStreamCompleter#5c618, unresolved, 2
+listeners, 0 ephemeralErrorListeners), pixels: null, loadingProgress: null, frameNumber: null,
+wasSynchronouslyLoaded: false)),
+            Image(image: AssetImage(bundle: null, name: "assets/images/google_logo.png"),
+frameBuilder: null, loadingBuilder: null, width: 20.0, height: 20.0, alignment: Alignment.center,
+this.excludeFromSemantics: false, filterQuality: medium, dependencies: [Directionality, MediaQuery,
+_EffectiveTickerMode, _LocalizationsScope-[GlobalKey#891b3], _ViewScope], state:
+_ImageState#430d3(stream: ImageStream#ccf22(MultiFrameImageStreamCompleter#f7d25, unresolved, 2
+listeners, 0 ephemeralErrorListeners), pixels: null, loadingProgress: null, frameNumber: null,
+wasSynchronouslyLoaded: false)),
+          ]>
+   Which: is too many
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/login_screen_test.dart:35:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/badalaryal/Soulmate/test/widget/login_screen_test.dart line 35
+The test description was:
+  LoginScreen renders correctly
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:18 +0 -1: LoginScreen renders correctly [E]                                                                                                                                                         
+  Test failed. See exception logs above.
+  The test description was: LoginScreen renders correctly
+  
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/login_screen_test.dart -p vm --plain-name 'LoginScreen renders correctly'
+00:18 +0 -1: Shows error if fields are empty                                                                                                                                                           00:19 +0 -1: Shows error if fields are empty                                                                                                                                                           00:19 +1 -1: Shows error if fields are empty                                                                                                                                                           00:19 +1 -1: Calls signIn and shows error on failure                                                                                                                                                   00:20 +1 -1: Calls signIn and shows error on failure                                                                                                                                                   00:21 +1 -1: Calls signIn and shows error on failure                                                                                                                                                   00:21 +2 -1: Calls signIn and shows error on failure                                                                                                                                                   00:22 +2 -1: Some tests failed.                                                                                                                                                                        

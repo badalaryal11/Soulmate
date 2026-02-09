@@ -1,0 +1,103 @@
+00:00 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:01 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:02 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:03 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:04 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:05 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:06 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:07 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:08 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:09 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:10 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:11 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:12 +0: loading /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart                                                                                                                     00:12 +0: Sign Out button calls authService.signOut                                                                                                                                                    00:13 +0: Sign Out button calls authService.signOut                                                                                                                                                    00:14 +0: Sign Out button calls authService.signOut                                                                                                                                                    00:15 +0: Sign Out button calls authService.signOut                                                                                                                                                    00:16 +0: Sign Out button calls authService.signOut                                                                                                                                                    00:16 +0: Sign Out button calls authService.signOut                                                                                                                                                    
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+The following FirebaseException was thrown building Builder:
+[core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+
+The relevant error-causing widget was:
+  MaterialApp
+  MaterialApp:file:///Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart:46:14
+
+When the exception was thrown, this was the stack:
+#0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:190:5)
+#1      Firebase.app (package:firebase_core/src/firebase.dart:91:41)
+#2      FirebaseAuth.instance (package:firebase_auth/src/firebase_auth.dart:38:47)
+#3      new AuthService (package:soulmate/data/services/auth_service.dart:10:36)
+#4      _LoginScreenState.initState (package:soulmate/presentation/screens/login_screen.dart:33:42)
+#5      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5953:55)
+#6      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5796:5)
+...     Normal element mounting (260 frames)
+#266    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#267    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#268    Element.updateChild (package:flutter/src/widgets/framework.dart:4059:18)
+#269    Element.updateChildren (package:flutter/src/widgets/framework.dart:4258:32)
+#270    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7302:17)
+#271    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#272    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#273    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#274    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#275    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#276    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#277    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#278    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#279    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#280    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#281    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#282    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#283    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#284    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#285    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#286    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#287    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#288    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#289    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#290    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#291    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#292    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#293    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#294    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#295    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#296    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#297    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#298    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#299    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#300    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#301    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#302    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#303    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#304    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#305    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#306    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7125:14)
+#307    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#308    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7125:14)
+#309    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#310    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#311    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#312    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#313    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#314    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#315    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#316    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#317    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#318    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#319    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#320    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#321    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#322    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#323    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#324    AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:1506:19)
+#325    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#326    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#327    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#328    AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1335:9)
+#331    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#332    AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#333    WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:719:23)
+#336    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#337    WidgetTester.pumpAndSettle (package:flutter_test/src/widget_tester.dart:712:27)
+#338    main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart:88:18)
+<asynchronous suspension>
+#339    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#340    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:16 +0 -1: Sign Out button calls authService.signOut [E]                                                                                                                                             
+  Test failed. See exception logs above.
+  The test description was: Sign Out button calls authService.signOut
+  
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/settings_screen_test.dart -p vm --plain-name 'Sign Out button calls authService.signOut'
+00:17 +0 -1: Some tests failed.                                                                                                                                                                        

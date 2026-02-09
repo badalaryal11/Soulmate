@@ -28,8 +28,8 @@ void main() {
   testWidgets('LoginScreen renders correctly', (WidgetTester tester) async {
     await tester.pumpWidget(createLoginScreen());
 
-    // Check for Logo
-    expect(find.byType(Image), findsOneWidget);
+    // Check for Logo and Google logo
+    expect(find.byType(Image), findsNWidgets(2));
 
     // Check for Text
     expect(find.text('Welcome!'), findsOneWidget);

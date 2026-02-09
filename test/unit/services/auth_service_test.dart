@@ -96,7 +96,7 @@ void main() {
 
     test('signOut calls signOut on both auth and googleSignIn', () async {
       when(mockGoogleSignIn.signOut()).thenAnswer((_) async => null);
-      when(mockAuth.signOut()).thenAnswer((_) async => null);
+      when(mockAuth.signOut()).thenAnswer((_) async {});
 
       await authService.signOut();
 
