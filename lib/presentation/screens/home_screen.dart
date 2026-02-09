@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
@@ -47,9 +48,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // MatchesScreen (Index 1) has its own AppBar
       appBar: _selectedIndex == 0
           ? AppBar(
-              // title: Image.asset('assets/images/logo.png', height: 40),
-              // centerTitle: true,
-              // backgroundColor: Colors.white, // Removed for theme support
+              title: Text(
+                'Soulmate',
+                style: GoogleFonts.pacifico(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFE3C72),
+                ),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
               actions: [
                 IconButton(
                   icon: const Icon(Icons.filter_list),

@@ -30,7 +30,7 @@ class MatchScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _Avatar(
-                imageUrl: 'assets/images/logo.png',
+                imageUrl: 'assets/images/logo_transparent.png',
                 isAsset: true,
               ), // User (placeholder)
               const SizedBox(width: 20),
