@@ -9,7 +9,10 @@ import 'register_screen.dart';
 import 'user_gender_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+  final DatabaseService? databaseService;
+
+  const LoginScreen({super.key, this.authService, this.databaseService});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,9 +21,18 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  late final AuthService _authService;
+  late final DatabaseService _databaseService;
   bool _rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthService();
+    _databaseService = widget.databaseService ?? DatabaseService();
+  }
 
   @override
   void dispose() {
@@ -315,15 +327,13 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = AuthService();
-      final credential = await authService.signInWithGoogle();
+      final credential = await _authService.signInWithGoogle();
 
       if (credential != null && credential.user != null) {
         final firebaseUser = credential.user!;
 
         // Check if user exists in Firestore
-        final databaseService = DatabaseService();
-        User? existingUser = await databaseService.getUser(firebaseUser.uid);
+        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
           // User does not exist, create a new one
@@ -347,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
             genderPreference: null,
           );
 
-          await databaseService.saveUser(newUser);
+          await _databaseService.saveUser(newUser);
         }
 
         if (!mounted) return;
@@ -394,19 +404,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = AuthService();
-      final credential = await authService.signInWithEmailAndPassword(
+      final credential = await _authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
       if (credential != null && credential.user != null) {
         final firebaseUser = credential.user!;
-        final databaseService = DatabaseService();
-        User? existingUser = await databaseService.getUser(firebaseUser.uid);
+        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
-          await authService.signOut();
+          await _authService.signOut();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -491,7 +499,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email != null && email.isNotEmpty) {
       try {
-        await AuthService().sendPasswordResetEmail(email);
+        await _authService.sendPasswordResetEmail(email);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -4,8 +4,11 @@ import '../models/chat_message.dart';
 import 'package:flutter/foundation.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
   final String _usersCollection = 'users';
+
+  DatabaseService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Save or Update User
   Future<void> saveUser(User user) async {

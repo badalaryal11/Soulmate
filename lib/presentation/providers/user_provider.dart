@@ -9,9 +9,16 @@ enum UserStatus { initial, loading, loaded, error }
 
 class UserProvider extends ChangeNotifier {
   final UserRepository _userRepository;
+  final AuthService _authService;
+  final DatabaseService _databaseService;
 
-  UserProvider({UserRepository? userRepository})
-    : _userRepository = userRepository ?? UserRepository();
+  UserProvider({
+    UserRepository? userRepository,
+    AuthService? authService,
+    DatabaseService? databaseService,
+  }) : _userRepository = userRepository ?? UserRepository(),
+       _authService = authService ?? AuthService(),
+       _databaseService = databaseService ?? DatabaseService();
 
   final List<User> _users = [];
   UserStatus _status = UserStatus.initial;
@@ -62,9 +69,9 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> loadCurrentUser() async {
-    final user = AuthService().currentUser;
+    final user = _authService.currentUser;
     if (user != null) {
-      _currentUser = await DatabaseService().getUser(user.uid);
+      _currentUser = await _databaseService.getUser(user.uid);
       if (_currentUser != null) {
         _currentUserInterests = _currentUser!.interests;
         // Load gender preference

@@ -8,13 +8,17 @@ import '../providers/notification_provider.dart';
 import 'login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  final AuthService? authService;
+  final DatabaseService? databaseService;
+
+  const SettingsScreen({super.key, this.authService, this.databaseService});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
-    final authService = AuthService();
+    final auth = authService ?? AuthService();
+    final db = databaseService ?? DatabaseService();
 
     return Scaffold(
       appBar: AppBar(
@@ -31,13 +35,13 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.email_outlined),
             title: Text('Update Email', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showUpdateEmailDialog(context, authService),
+            onTap: () => _showUpdateEmailDialog(context, auth),
           ),
           ListTile(
             leading: const Icon(Icons.lock_outline),
             title: Text('Change Password', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showChangePasswordDialog(context, authService),
+            onTap: () => _showChangePasswordDialog(context, auth),
           ),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
@@ -45,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
               'Delete Account',
               style: GoogleFonts.poppins(color: Colors.red),
             ),
-            onTap: () => _showDeleteAccountDialog(context, authService),
+            onTap: () => _showDeleteAccountDialog(context, auth),
           ),
           const Divider(),
 
@@ -105,7 +109,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.feedback_outlined),
             title: Text('Contact Us', style: GoogleFonts.poppins()),
-            onTap: () => _showFeedbackDialog(context, authService),
+            onTap: () => _showFeedbackDialog(context, auth, db),
           ),
           const Divider(),
 
@@ -115,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.logout),
             title: Text('Sign Out', style: GoogleFonts.poppins()),
             onTap: () async {
-              await authService.signOut();
+              await auth.signOut();
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -345,7 +349,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showFeedbackDialog(BuildContext context, AuthService authService) {
+  void _showFeedbackDialog(
+    BuildContext context,
+    AuthService authService,
+    DatabaseService dbService,
+  ) {
     final feedbackController = TextEditingController();
     showDialog(
       context: context,
@@ -381,7 +389,6 @@ class SettingsScreen extends StatelessWidget {
               if (message.isNotEmpty) {
                 try {
                   final userId = authService.currentUser?.uid ?? 'anonymous';
-                  final dbService = DatabaseService();
                   await dbService.saveFeedback(userId, message);
 
                   if (context.mounted) {
