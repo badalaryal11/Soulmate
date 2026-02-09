@@ -64,11 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
               centerTitle: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.tune_rounded,
+                ), // Optimize UX with more modern icon
+                onPressed: () => _showFilterDialog(context),
+                tooltip: 'Filter Users', // Accessibility
+              ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: () => _showFilterDialog(context),
-                ),
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
                   child: IconButton(
@@ -83,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     },
+                    tooltip: 'Settings', // Accessibility
                   ),
                 ),
               ],
