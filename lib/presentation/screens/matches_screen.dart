@@ -14,7 +14,6 @@ class MatchesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.white, // Removed for theme support
       appBar: AppBar(
         title: Text(
           'Matches & Chats',
@@ -23,9 +22,7 @@ class MatchesScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // backgroundColor: Colors.white, // Removed
         elevation: 0,
-        // iconTheme: const IconThemeData(color: Colors.black87), // Removed
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) async {
@@ -47,7 +44,7 @@ class MatchesScreen extends StatelessWidget {
                   value: 'logout',
                   child: Row(
                     children: [
-                      Icon(Icons.logout), // Removed color
+                      Icon(Icons.logout),
                       SizedBox(width: 8),
                       Text('Sign Out'),
                     ],
@@ -55,7 +52,7 @@ class MatchesScreen extends StatelessWidget {
                 ),
               ];
             },
-            icon: const Icon(Icons.more_vert), // Removed color
+            icon: const Icon(Icons.more_vert),
           ),
         ],
       ),
@@ -95,14 +92,11 @@ class MatchesScreen extends StatelessWidget {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // New Matches Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                   child: Text(
                     'New Matches',
                     style: GoogleFonts.poppins(
@@ -112,8 +106,9 @@ class MatchesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(
                   height: 100,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -131,6 +126,8 @@ class MatchesScreen extends StatelessWidget {
                                 radius: 30,
                                 backgroundImage: CachedNetworkImageProvider(
                                   user.imageUrl,
+                                  maxHeight: 200, // Optimize memory usage
+                                  maxWidth: 200,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -148,11 +145,15 @@ class MatchesScreen extends StatelessWidget {
                     },
                   ),
                 ),
-
-                const Divider(height: 40),
-
-                // Messages Section
-                Padding(
+              ),
+              SliverToBoxAdapter(
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Divider(height: 1),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     'Messages',
@@ -163,64 +164,75 @@ class MatchesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                ListView.separated(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: matches.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final user = matches[index];
-                    return InkWell(
-                      onTap: () => _openChat(context, user),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 4,
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundImage: CachedNetworkImageProvider(
-                                user.imageUrl,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    user.firstName,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      // color: Colors.black87, // Removed
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Say hello!',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.chevron_right, color: Colors.grey[300]),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              ],
-            ),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final user = matches[index];
+                    return Column(
+                      children: [
+                        InkWell(
+                          onTap: () => _openChat(context, user),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 4,
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 28,
+                                  backgroundImage: CachedNetworkImageProvider(
+                                    user.imageUrl,
+                                    maxHeight: 200, // Optimize memory usage
+                                    maxWidth: 200,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        user.firstName,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Say hello!',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.grey[500],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.grey[300],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (index < matches.length - 1)
+                          const Divider(height: 1), // Separator
+                      ],
+                    );
+                  }, childCount: matches.length),
+                ),
+              ),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
+            ],
           );
         },
       ),

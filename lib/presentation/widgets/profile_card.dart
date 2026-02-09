@@ -27,6 +27,7 @@ class ProfileCard extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: user.imageUrl,
               fit: BoxFit.cover,
+              memCacheWidth: 1000, // Optimize memory usage
               placeholder: (context, url) =>
                   const Center(child: CircularProgressIndicator()),
               errorWidget: (context, url, error) =>
