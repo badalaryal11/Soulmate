@@ -194,11 +194,13 @@ class _ChatScreenState extends State<ChatScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               // Unmatch logic
-              context.read<UserProvider>().unmatchUser(widget.user.id);
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close chat screen
+              await context.read<UserProvider>().unmatchUser(widget.user.id);
+              if (context.mounted) {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Close chat screen
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Unmatch'),

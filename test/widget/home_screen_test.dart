@@ -63,7 +63,7 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
   void setInterests(List<String> interests) {}
 
   @override
-  void unmatchUser(String userId) {}
+  Future<void> unmatchUser(String userId) async {}
 }
 
 void main() {
@@ -97,7 +97,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Soulmate'), findsOneWidget);
-    expect(find.byIcon(Icons.filter_list), findsOneWidget);
+    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
     expect(find.byIcon(Icons.settings), findsOneWidget);
     expect(find.byIcon(Icons.home), findsOneWidget);
   });

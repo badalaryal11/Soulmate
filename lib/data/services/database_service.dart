@@ -131,4 +131,26 @@ class DatabaseService {
       return [];
     }
   }
+
+  // Delete Chat
+  Future<void> deleteChat(String chatId) async {
+    try {
+      // 1. Delete all messages in the subcollection
+      final messages = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .get();
+
+      for (var doc in messages.docs) {
+        await doc.reference.delete();
+      }
+
+      // 2. Delete the chat document itself
+      await _firestore.collection('chats').doc(chatId).delete();
+    } catch (e) {
+      debugPrint("Error deleting chat: $e");
+      rethrow;
+    }
+  }
 }

@@ -154,8 +154,13 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  void unmatchUser(String userId) {
+  Future<void> unmatchUser(String userId) async {
     _matches.removeWhere((user) => user.id == userId);
     notifyListeners();
+
+    if (_currentUser != null) {
+      final chatId = _databaseService.getChatId(_currentUser!.id, userId);
+      await _databaseService.deleteChat(chatId);
+    }
   }
 }

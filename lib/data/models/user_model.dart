@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:math';
 import '../constants/interests.dart';
 
@@ -30,31 +31,51 @@ class User {
 
   // Factory for RandomUser API (keep existing)
   factory User.fromJson(Map<String, dynamic> json) {
-    final email = json['email'] ?? '';
-    final name = json['name'];
-    final location = json['location'];
-    final dob = json['dob'];
-    final picture = json['picture'];
-    final login = json['login'];
+    try {
+      final email = json['email'] ?? '';
 
-    // Randomly assign 3-5 interests
-    final random = Random();
-    final allInterests = List<String>.from(AppInterests.list);
-    allInterests.shuffle(random);
-    final userInterests = allInterests.take(random.nextInt(3) + 3).toList();
+      final name = json['name'];
+      if (name == null) throw FormatException("Missing 'name' field");
 
-    return User(
-      id: login['uuid'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      firstName: name['first'] ?? '',
-      lastName: name['last'] ?? '',
-      age: dob['age'] ?? 0,
-      city: location['city'] ?? '',
-      country: location['country'] ?? '',
-      imageUrl: picture['large'] ?? '',
-      gender: json['gender'] ?? '',
-      interests: userInterests,
-    );
+      final location = json['location'];
+      if (location == null) throw FormatException("Missing 'location' field");
+
+      final dob = json['dob'];
+      if (dob == null) throw FormatException("Missing 'dob' field");
+
+      final picture = json['picture'];
+      if (picture == null) throw FormatException("Missing 'picture' field");
+
+      final login = json['login'];
+      if (login == null) throw FormatException("Missing 'login' field");
+
+      // Randomly assign 3-5 interests
+      final random = Random();
+      final allInterests = List<String>.from(AppInterests.list);
+      allInterests.shuffle(random);
+      final userInterests = allInterests.take(random.nextInt(3) + 3).toList();
+
+      return User(
+        id: login['uuid'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        email: email,
+        firstName: name['first'] ?? '',
+        lastName: name['last'] ?? '',
+        age: dob['age'] ?? 0,
+        city: location['city'] ?? '',
+        country: location['country'] ?? '',
+        imageUrl: picture['large'] ?? '',
+        gender: json['gender'] ?? '',
+        interests: userInterests,
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error parsing User JSON',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      developer.log('JSON content: $json');
+      rethrow;
+    }
   }
 
   // Convert to Map for Firestore
