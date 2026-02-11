@@ -32,44 +32,31 @@ class User {
   });
 
   // Factory for RandomUser API (keep existing)
-  factory User.fromJson(Map<String, dynamic> json) {
+  // Factory for DummyJSON API
+  factory User.fromDummyJson(Map<String, dynamic> json) {
     try {
-      final email = json['email'] ?? '';
-
-      final name = json['name'];
-      if (name == null) throw FormatException("Missing 'name' field");
-
-      final location = json['location'];
-      if (location == null) throw FormatException("Missing 'location' field");
-
-      final dob = json['dob'];
-      if (dob == null) throw FormatException("Missing 'dob' field");
-
-      final picture = json['picture'];
-      if (picture == null) throw FormatException("Missing 'picture' field");
-
-      final login = json['login'];
-      if (login == null) throw FormatException("Missing 'login' field");
-
-      // Randomly assign 3-5 interests
       final random = Random();
       final allInterests = List<String>.from(AppInterests.list);
       allInterests.shuffle(random);
       final userInterests = allInterests.take(random.nextInt(3) + 3).toList();
 
+      final address = json['address'] ?? {};
+
       return User(
-        id: login['uuid'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        firstName: name['first'] ?? '',
-        lastName: name['last'] ?? '',
-        age: dob['age'] ?? 0,
-        city: location['city'] ?? '',
-        country: location['country'] ?? '',
-        imageUrl: picture['large'] ?? '',
+        id: json['id'].toString(), // DummyJSON IDs are integers
+        email: json['email'] ?? '',
+        firstName: json['firstName'] ?? '',
+        lastName: json['lastName'] ?? '',
+        age: json['age'] ?? 0,
+        city: address['city'] ?? '',
+        country:
+            address['country'] ?? 'USA', // DummyJSON often uses US addresses
+        imageUrl: json['image'] ?? '',
         gender: json['gender'] ?? '',
         interests: userInterests,
-        bio:
-            "Start a conversation to know more!", // Default bio for random users
+        bio: json['company']?['title'] != null
+            ? '${json['company']['title']} at ${json['company']['name']}'
+            : "Here to find my soulmate!",
       );
     } catch (e, stackTrace) {
       developer.log(

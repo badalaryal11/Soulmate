@@ -17,11 +17,19 @@ class DetailsScreen extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(user.firstName),
-              background: CachedNetworkImage(
-                imageUrl: user.imageUrl,
-                fit: BoxFit.cover,
-                memCacheWidth: 1000,
-              ),
+              background: user.imageUrl.startsWith('assets/')
+                  ? Image.asset(
+                      user.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Icon(Icons.error));
+                      },
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: user.imageUrl,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 1000,
+                    ),
             ),
           ),
           SliverList(

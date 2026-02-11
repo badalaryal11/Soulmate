@@ -24,15 +24,23 @@ class ProfileCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CachedNetworkImage(
-              imageUrl: user.imageUrl,
-              fit: BoxFit.cover,
-              memCacheWidth: 1000, // Optimize memory usage
-              placeholder: (context, url) =>
-                  const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) =>
-                  const Center(child: Icon(Icons.error)),
-            ),
+            user.imageUrl.startsWith('assets/')
+                ? Image.asset(
+                    user.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Icon(Icons.error));
+                    },
+                  )
+                : CachedNetworkImage(
+                    imageUrl: user.imageUrl,
+                    fit: BoxFit.cover,
+                    memCacheWidth: 1000,
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) =>
+                        const Center(child: Icon(Icons.error)),
+                  ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
