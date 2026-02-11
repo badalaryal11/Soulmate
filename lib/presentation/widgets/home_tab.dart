@@ -18,11 +18,70 @@ class HomeTab extends StatelessWidget {
         }
 
         if (provider.status == UserStatus.error && provider.users.isEmpty) {
-          return Center(child: Text('Error: ${provider.errorMessage}'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Something went wrong',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.errorMessage ?? 'Unknown error',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => provider.loadUsers(clearList: true),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE3C72),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         if (provider.filteredUsers.isEmpty) {
-          return const Center(child: Text('No users match your filters.'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.person_off_outlined,
+                  size: 48,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No users found',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Try adjusting your filters or retrying.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => provider.loadUsers(clearList: true),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE3C72),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return SafeArea(
