@@ -102,7 +102,10 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newUsers = await _userRepository.getUsers(gender: _selectedGender);
+      final newUsers = await _userRepository.getUsers(
+        gender: _selectedGender,
+        currentUserId: _currentUser?.id,
+      );
       _users.addAll(newUsers);
       _updateFilteredUsers();
       _status = UserStatus.loaded;

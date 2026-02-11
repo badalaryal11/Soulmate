@@ -63,6 +63,41 @@ class DatabaseService {
     }
   }
 
+  // Get Multiple Users (Potential Matches)
+  Future<List<User>> getUsers({
+    String? gender,
+    String? currentUserId,
+    int limit = 10,
+  }) async {
+    try {
+      Query query = _firestore.collection(_usersCollection);
+
+      // Basic filtering
+      if (gender != null && gender != 'everyone') {
+        query = query.where('gender', isEqualTo: gender);
+      }
+
+      // Ensure we don't fetch the current user
+      if (currentUserId != null) {
+        // Firestore doesn't support 'not-equal' efficiently with other filters in all cases,
+        // so we might filter client-side or use a composite index.
+        // For simplicity and small user base, we'll filter client-side after fetch for now
+        // if the list is small, or use 'not-in' if supported and indices exist.
+        // Let's rely on client-side filtering for the 'currentUserId' to avoid complex index requirements for now.
+      }
+
+      QuerySnapshot snapshot = await query.limit(limit).get();
+
+      return snapshot.docs
+          .map((doc) => User.fromMap(doc.data() as Map<String, dynamic>))
+          .where((user) => user.id != currentUserId) // Client-side exclusion
+          .toList();
+    } catch (e) {
+      debugPrint("Error getting users: $e");
+      return [];
+    }
+  }
+
   // Chat methods
   String getChatId(String userId1, String userId2) {
     return userId1.hashCode <= userId2.hashCode
