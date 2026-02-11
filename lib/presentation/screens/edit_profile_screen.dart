@@ -36,16 +36,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadUserData();
   }
 
-  void _loadUserData() {
+  Future<void> _loadUserData() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (userProvider.currentUser == null) {
+      await userProvider.loadCurrentUser();
+    }
+
     _currentUser = userProvider.currentUser;
 
-    _firstNameController = TextEditingController(text: _currentUser?.firstName);
-    _lastNameController = TextEditingController(text: _currentUser?.lastName);
-    _bioController = TextEditingController(text: _currentUser?.bio);
-    _ageController = TextEditingController(text: _currentUser?.age.toString());
-    _cityController = TextEditingController(text: _currentUser?.city);
-    _countryController = TextEditingController(text: _currentUser?.country);
+    if (_currentUser != null) {
+      _firstNameController = TextEditingController(
+        text: _currentUser?.firstName,
+      );
+      _lastNameController = TextEditingController(text: _currentUser?.lastName);
+      _bioController = TextEditingController(text: _currentUser?.bio);
+      _ageController = TextEditingController(
+        text: _currentUser?.age.toString(),
+      );
+      _cityController = TextEditingController(text: _currentUser?.city);
+      _countryController = TextEditingController(text: _currentUser?.country);
+
+      if (mounted) setState(() {});
+    }
   }
 
   @override

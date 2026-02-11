@@ -41,6 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (provider.users.isEmpty) {
         provider.loadUsers();
       }
+      // Ensure current user profile is loaded for Edit Profile screen
+      provider.loadCurrentUser();
     });
   }
 
