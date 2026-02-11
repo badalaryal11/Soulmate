@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../data/models/user_model.dart';
+import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 
 class MatchScreen extends StatelessWidget {
@@ -26,15 +28,21 @@ class MatchScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _Avatar(
-                imageUrl: 'assets/images/logo_transparent.png',
-                isAsset: true,
-              ), // User (placeholder)
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  final currentUser = userProvider.currentUser;
+                  return _Avatar(
+                    imageUrl: currentUser?.imageUrl ?? '',
+                    isAsset: currentUser?.imageUrl.isEmpty ?? true,
+                  );
+                },
+              ),
               const SizedBox(width: 20),
-              _Avatar(imageUrl: user.imageUrl, isAsset: false), // Match
+              _Avatar(imageUrl: user.imageUrl, isAsset: false),
             ],
           ),
           const SizedBox(height: 40),
@@ -96,8 +104,16 @@ class _Avatar extends StatelessWidget {
       ),
       child: CircleAvatar(
         radius: 50,
-        backgroundImage: isAsset
-            ? AssetImage(imageUrl)
+        backgroundImage: (isAsset || imageUrl.isEmpty)
+            ? (imageUrl.isEmpty && !isAsset
+                  ? const AssetImage(
+                      'assets/images/logo_transparent.png',
+                    ) // Fallback if url empty
+                  : AssetImage(
+                      imageUrl == ''
+                          ? 'assets/images/logo_transparent.png'
+                          : imageUrl,
+                    ))
             : NetworkImage(imageUrl) as ImageProvider,
       ),
     );

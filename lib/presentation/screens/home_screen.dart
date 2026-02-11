@@ -9,6 +9,7 @@ import 'package:soulmate/presentation/screens/matches_screen.dart';
 import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/data/services/auth_service.dart';
 import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService? authService;
@@ -42,7 +43,24 @@ class _HomeScreenState extends State<HomeScreen> {
         provider.loadUsers();
       }
       // Ensure current user profile is loaded for Edit Profile screen
-      provider.loadCurrentUser();
+      provider.loadCurrentUser().then((_) {
+        if (mounted &&
+            provider.currentUser == null &&
+            provider.errorMessage == null) {
+          // User authenticated but no profile found (and no error occurred)
+          // Redirect to Create Profile
+          final authUser =
+              widget.authService?.currentUser ?? AuthService().currentUser;
+          if (authUser != null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) =>
+                    CreateProfileScreen(firebaseUser: authUser),
+              ),
+            );
+          }
+        }
+      });
     });
   }
 

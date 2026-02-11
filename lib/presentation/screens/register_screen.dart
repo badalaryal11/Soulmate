@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
-import 'user_gender_selection_screen.dart';
+import 'create_profile_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -47,32 +45,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
         debugPrint("Auth successful: ${credential?.user?.uid}");
 
         if (credential != null && credential.user != null) {
-          // Create initial user model
-          final newUser = User(
-            id: credential.user!.uid,
-            email: _emailController.text.trim(),
-            firstName: _firstNameController.text
-                .trim(), // Changed from _nameController to _firstNameController
-            lastName:
-                '', // Add last name field in UI if needed, or leave empty for now
-            age: 0, // Add DOB field in UI if needed
-            city: '',
-            country: '',
-            imageUrl: '', // Will update later
-            gender: '',
-            interests: [],
-          );
+          // Update Display Name if provided
+          if (_firstNameController.text.isNotEmpty) {
+            await credential.user!.updateDisplayName(
+              _firstNameController.text.trim(),
+            );
+            await credential.user!.reload(); // Reload to get updated profile
+          }
 
-          debugPrint("Saving user to Firestore...");
-          // Save to Firestore
-          await DatabaseService().saveUser(newUser);
-          debugPrint("User saved to Firestore");
+          debugPrint(
+            "Registration successful, redirecting to Create Profile...",
+          );
 
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const UserGenderSelectionScreen(),
+              builder: (context) => CreateProfileScreen(
+                firebaseUser: FirebaseAuth
+                    .instance
+                    .currentUser!, // Use instance or credential.user
+              ),
             ),
           );
         } else {

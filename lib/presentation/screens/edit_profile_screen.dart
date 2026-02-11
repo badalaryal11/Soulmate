@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
@@ -27,6 +26,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _countryController;
 
   File? _imageFile;
+  String? _generatedAvatarUrl;
   bool _isLoading = false;
   User? _currentUser;
 
@@ -72,15 +72,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
+  void _generateRandomAvatar() {
+    final randomSeed = DateTime.now().millisecondsSinceEpoch.toString();
+    setState(() {
+      _generatedAvatarUrl =
+          'https://api.dicebear.com/9.x/adventurer/png?seed=$randomSeed';
+      _imageFile = null; // Clear file if we are using random avatar
+    });
   }
 
   Future<void> _saveProfile() async {
@@ -91,8 +89,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       String imageUrl = _currentUser?.imageUrl ?? '';
 
-      // Upload image if changed
-      if (_imageFile != null && _currentUser != null) {
+      // Use generated avatar if set
+      if (_generatedAvatarUrl != null) {
+        imageUrl = _generatedAvatarUrl!;
+      }
+      // Keep existing logic for file upload just in case, or remove if fully replacing.
+      // For now, if _imageFile is null (which it is for random avatar), this block is skipped.
+      else if (_imageFile != null && _currentUser != null) {
+        // Fallback or legacy support if needed, mostly unused now
         imageUrl = await DatabaseService().uploadProfileImage(
           _currentUser!.id,
           _imageFile!,
@@ -131,11 +135,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
         }
       }
-    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+        setState(() => _isLoading = false);
+      }
+    } catch (e, stackTrace) {
+      debugPrint("Error updating profile (EditProfileScreen): $e");
+      debugPrint("Stack trace: $stackTrace");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Update failed: $e'),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Copy',
+              onPressed: () {
+                // Clipboard copy (optional, requires services)
+              },
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -175,22 +193,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               // Profile Image
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _generateRandomAvatar,
                 child: Stack(
                   children: [
                     CircleAvatar(
                       radius: 60,
                       backgroundColor: Colors.grey[200],
-                      backgroundImage: _imageFile != null
-                          ? FileImage(_imageFile!)
-                          : (_currentUser!.imageUrl.isNotEmpty
-                                    ? CachedNetworkImageProvider(
-                                        _currentUser!.imageUrl,
-                                      )
-                                    : null)
-                                as ImageProvider?,
+                      backgroundImage: _generatedAvatarUrl != null
+                          ? NetworkImage(_generatedAvatarUrl!)
+                          : (_imageFile != null
+                                ? FileImage(_imageFile!)
+                                : (_currentUser!.imageUrl.isNotEmpty
+                                          ? CachedNetworkImageProvider(
+                                              _currentUser!.imageUrl,
+                                            )
+                                          : null)
+                                      as ImageProvider?),
                       child:
-                          (_imageFile == null && _currentUser!.imageUrl.isEmpty)
+                          (_generatedAvatarUrl == null &&
+                              _imageFile == null &&
+                              _currentUser!.imageUrl.isEmpty)
                           ? const Icon(
                               Icons.person,
                               size: 60,
@@ -208,7 +230,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.camera_alt,
+                          Icons.shuffle,
                           color: Colors.white,
                           size: 20,
                         ),

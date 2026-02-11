@@ -17,16 +17,35 @@ class DatabaseService {
   // Upload Profile Image
   Future<String> uploadProfileImage(String userId, File imageFile) async {
     try {
-      final ref = _storage
-          .ref()
-          .child('user_images')
-          .child('$userId.jpg'); // Overwrite specific user image
-      // .child('${DateTime.now().millisecondsSinceEpoch}.jpg'); // Or usage timestamp for history
+      debugPrint("Starting image upload for user: $userId");
+      final ref = _storage.ref().child('user_images').child('$userId.jpg');
 
-      await ref.putFile(imageFile);
-      return await ref.getDownloadURL();
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {'picked-file-path': imageFile.path},
+      );
+
+      final uploadTask = ref.putFile(imageFile, metadata);
+      final snapshot = await uploadTask;
+
+      debugPrint("Upload finished. State: ${snapshot.state}");
+      debugPrint(
+        "Bytes transferred: ${snapshot.bytesTransferred} / ${snapshot.totalBytes}",
+      );
+
+      if (snapshot.state == TaskState.success) {
+        final url = await ref.getDownloadURL();
+        debugPrint("Download URL retrieved: $url");
+        return url;
+      } else {
+        throw FirebaseException(
+          plugin: 'firebase_storage',
+          code: 'upload-failed',
+          message: 'Upload task finished with state: ${snapshot.state}',
+        );
+      }
     } catch (e) {
-      debugPrint("Error uploading image: $e");
+      debugPrint("Error uploading image (DatabaseService): $e");
       rethrow;
     }
   }

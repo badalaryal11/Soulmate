@@ -6,7 +6,8 @@ import 'package:soulmate/data/services/database_service.dart';
 import 'package:soulmate/data/models/user_model.dart';
 import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
-import 'package:soulmate/presentation/screens/user_gender_selection_screen.dart';
+
+import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -347,38 +348,25 @@ class _LoginScreenState extends State<LoginScreen> {
         User? existingUser = await _databaseService.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
-          // User does not exist, create a new one
-          final nameParts = (firebaseUser.displayName ?? '').split(' ');
-          final String firstName = nameParts.isNotEmpty ? nameParts.first : '';
-          final String lastName = nameParts.length > 1
-              ? nameParts.sublist(1).join(' ')
-              : '';
-
-          final newUser = User(
-            id: firebaseUser.uid,
-            email: firebaseUser.email ?? '',
-            firstName: firstName,
-            lastName: lastName,
-            age: 18, // Default age
-            city: '',
-            country: '',
-            imageUrl: firebaseUser.photoURL ?? '',
-            gender: '',
-            interests: [],
-            genderPreference: null,
+          // User does not exist, redirect to Create Profile
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => CreateProfileScreen(
+                firebaseUser: firebaseUser,
+                databaseService: _databaseService,
+              ),
+            ),
           );
-
-          await _databaseService.saveUser(newUser);
+        } else {
+          // User exists, proceed to Gender Selection (which acts as Home/Filter setup)
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const GenderSelectionScreen(),
+            ),
+          );
         }
-
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => existingUser == null
-                ? const UserGenderSelectionScreen()
-                : const GenderSelectionScreen(),
-          ),
-        );
       } else {
         // User cancelled or error
         if (!mounted) return;
@@ -425,12 +413,15 @@ class _LoginScreenState extends State<LoginScreen> {
         User? existingUser = await _databaseService.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
-          await _authService.signOut();
+          // Account exists in Auth but not in Firestore (e.g. registration interrupted)
+          // Redirect to Create Profile to complete setup
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Account not found. Please register first.'),
-              backgroundColor: Colors.red,
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => CreateProfileScreen(
+                firebaseUser: firebaseUser,
+                databaseService: _databaseService,
+              ),
             ),
           );
           return;
