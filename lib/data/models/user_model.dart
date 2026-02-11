@@ -14,6 +14,7 @@ class User {
   final String gender;
   final List<String> interests;
   final String? genderPreference;
+  final String? bio;
 
   User({
     required this.id,
@@ -27,6 +28,7 @@ class User {
     required this.gender,
     required this.interests,
     this.genderPreference,
+    this.bio,
   });
 
   // Factory for RandomUser API (keep existing)
@@ -66,6 +68,8 @@ class User {
         imageUrl: picture['large'] ?? '',
         gender: json['gender'] ?? '',
         interests: userInterests,
+        bio:
+            "Start a conversation to know more!", // Default bio for random users
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -92,6 +96,7 @@ class User {
       'gender': gender,
       'interests': interests,
       'genderPreference': genderPreference,
+      'bio': bio,
     };
   }
 
@@ -109,6 +114,7 @@ class User {
       gender: map['gender'] ?? '',
       interests: List<String>.from(map['interests'] ?? []),
       genderPreference: map['genderPreference'],
+      bio: map['bio'],
     );
   }
 

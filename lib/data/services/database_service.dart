@@ -1,14 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:soulmate/data/models/user_model.dart';
 import '../models/chat_message.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 class DatabaseService {
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
   final String _usersCollection = 'users';
 
-  DatabaseService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _storage = storage ?? FirebaseStorage.instance;
+
+  // Upload Profile Image
+  Future<String> uploadProfileImage(String userId, File imageFile) async {
+    try {
+      final ref = _storage
+          .ref()
+          .child('user_images')
+          .child('$userId.jpg'); // Overwrite specific user image
+      // .child('${DateTime.now().millisecondsSinceEpoch}.jpg'); // Or usage timestamp for history
+
+      await ref.putFile(imageFile);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      debugPrint("Error uploading image: $e");
+      rethrow;
+    }
+  }
 
   // Save or Update User
   Future<void> saveUser(User user) async {
@@ -185,6 +206,34 @@ class DatabaseService {
       await _firestore.collection('chats').doc(chatId).delete();
     } catch (e) {
       debugPrint("Error deleting chat: $e");
+      rethrow;
+    }
+  }
+
+  // Wipe All Data (Debug/Admin only)
+  Future<void> wipeAllData() async {
+    try {
+      // 1. Delete all Users
+      final users = await _firestore.collection(_usersCollection).get();
+      for (var doc in users.docs) {
+        await doc.reference.delete();
+      }
+
+      // 2. Delete all Chats and Messages
+      final chats = await _firestore.collection('chats').get();
+      for (var doc in chats.docs) {
+        await deleteChat(doc.id);
+      }
+
+      // 3. Delete all Feedback
+      final feedback = await _firestore.collection('feedback').get();
+      for (var doc in feedback.docs) {
+        await doc.reference.delete();
+      }
+
+      debugPrint("All data wiped successfully.");
+    } catch (e) {
+      debugPrint("Error wiping data: $e");
       rethrow;
     }
   }

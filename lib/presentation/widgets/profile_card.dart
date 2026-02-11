@@ -78,6 +78,20 @@ class ProfileCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  // Bio
+                  if (user.bio != null && user.bio!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        user.bio!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
                   // Interests Chips
                   Wrap(
                     spacing: 8,

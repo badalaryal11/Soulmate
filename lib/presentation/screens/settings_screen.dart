@@ -6,6 +6,7 @@ import 'package:soulmate/data/services/database_service.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
+import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AuthService? authService;
@@ -31,6 +32,19 @@ class SettingsScreen extends StatelessWidget {
         children: [
           // Account Section
           _buildSectionHeader(context, 'Account'),
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text('Edit Profile', style: GoogleFonts.poppins()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.email_outlined),
             title: Text('Update Email', style: GoogleFonts.poppins()),
@@ -112,6 +126,32 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showFeedbackDialog(context, auth, db),
           ),
           const Divider(),
+
+          const SizedBox(height: 20),
+
+          // WIPE DATA BUTTON (DEBUG ONLY)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _showWipeDataDialog(context, auth),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[900],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'WIPE ALL DATA (DEBUG)',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
 
           // Actions Section
           _buildSectionHeader(context, 'Actions'),
@@ -417,6 +457,71 @@ class SettingsScreen extends StatelessWidget {
               }
             },
             child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWipeDataDialog(BuildContext context, AuthService authService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.red[50],
+        title: Text(
+          'WIPE ALL DATA?',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: Colors.red[900],
+          ),
+        ),
+        content: Text(
+          'This will delete ALL users, chats, and feedback from Firestore. \n\nTHIS ACTION CANNOT BE UNDONE.',
+          style: GoogleFonts.poppins(color: Colors.red[900]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'CANCEL',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              try {
+                await DatabaseService().wipeAllData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('All data wiped successfully.'),
+                    ),
+                  );
+                  // Logout user
+                  await authService.signOut();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error wiping data: $e')),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('WIPE EVERYTHING', style: GoogleFonts.poppins()),
           ),
         ],
       ),

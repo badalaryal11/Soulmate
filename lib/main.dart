@@ -1,21 +1,36 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:app_links/app_links.dart';
-import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'data/services/notification_service.dart';
+import 'data/services/auth_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Enable edge-to-edge mode (moved from SplashScreen)
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -135,7 +150,9 @@ class _SoulmateAppState extends State<SoulmateApp> {
                 ThemeData.dark().textTheme,
               ),
             ),
-            home: const SplashScreen(),
+            home: AuthService().currentUser != null
+                ? const HomeScreen()
+                : const LoginScreen(),
           );
         },
       ),
