@@ -434,6 +434,17 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
+    // Capture user data before async operations to avoid BuildContext across async gaps
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+
+    if (currentUser == null) {
+      debugPrint("Error: Current user data not available for AI context.");
+      return;
+    }
+
     final userMessageText = text.trim();
     _controller.clear();
 
@@ -470,21 +481,7 @@ class _ChatScreenState extends State<ChatScreen> {
     List<Map<String, String>> apiMessages = [];
 
     // 1. Add System Prompt
-    final currentUser = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    ).currentUser;
-    if (currentUser != null) {
-      apiMessages.add(DatingPersona.generateFor(widget.user, currentUser));
-    } else {
-      // Fallback if for some reason current user interaction is missing
-      // (Should not happen in authenticated state)
-      // We can create a dummy user or just skip personalization
-      // But generateFor now requires it. Let's make a temporary placeholder.
-      // Or better, just log error and return.
-      debugPrint("Error: Current user data not available for AI context.");
-      return;
-    }
+    apiMessages.add(DatingPersona.generateFor(widget.user, currentUser));
 
     // 2. Fetch recent context (last 20 messages)
     try {
