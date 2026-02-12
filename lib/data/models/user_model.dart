@@ -31,7 +31,45 @@ class User {
     this.bio,
   });
 
-  // Factory for RandomUser API (keep existing)
+  // Factory for RandomUser API
+  factory User.fromRandomUser(Map<String, dynamic> json) {
+    try {
+      final name = json['name'] ?? {};
+      final location = json['location'] ?? {};
+      final picture = json['picture'] ?? {};
+      final dob = json['dob'] ?? {};
+      final login = json['login'] ?? {};
+
+      // Random interests generation
+      final random = Random();
+      final allInterests = List<String>.from(AppInterests.list);
+      allInterests.shuffle(random);
+      final userInterests = allInterests.take(random.nextInt(3) + 3).toList();
+
+      return User(
+        id: login['uuid'] ?? login['username'] ?? '',
+        email: json['email'] ?? '',
+        firstName: name['first'] ?? '',
+        lastName: name['last'] ?? '',
+        age: dob['age'] ?? 0,
+        city: location['city'] ?? '',
+        country: location['country'] ?? '',
+        imageUrl: picture['large'] ?? '',
+        gender: json['gender'] ?? '',
+        interests: userInterests,
+        bio:
+            "Explorer of the world | Coffee enthusiast", // RandomUser doesn't have bio/company usually
+      );
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error parsing RandomUser JSON',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   // Factory for DummyJSON API
   factory User.fromDummyJson(Map<String, dynamic> json) {
     try {

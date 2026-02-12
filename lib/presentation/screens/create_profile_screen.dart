@@ -164,7 +164,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<int>(
-                      value: _age,
+                      initialValue: _age,
                       decoration: _buildInputDecoration('Age'),
                       items: List.generate(83, (index) => 18 + index)
                           .map(
@@ -180,7 +180,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedGender,
+                      initialValue: _selectedGender,
                       decoration: _buildInputDecoration('Gender'),
                       items: ['Male', 'Female', 'Non-binary']
                           .map(

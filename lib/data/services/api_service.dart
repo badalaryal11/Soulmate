@@ -5,28 +5,53 @@ import 'dart:developer' as developer;
 
 class ApiService {
   // Base URL is kept but unused in this local-only mode
-  static const String _baseUrl = 'https://dummyjson.com/users';
+  static const String _dummyJsonUrl = 'https://dummyjson.com/users';
+  static const String _randomUserUrl = 'https://randomuser.me/api/';
 
   Future<List<User>> fetchUsers({int results = 50, String? gender}) async {
-    // 1. Fetch from API (Random Users via DummyJSON)
+    // Split results between the two APIs
+    // Ensure at least 1 user from each if results is small, otherwise split roughly 50/50
+    int halfLimit = (results / 2).ceil();
+
+    // Fetch from both sources in parallel
+    final dummyJsonFuture = _fetchDummyJsonUsers(
+      results: halfLimit,
+      gender: gender,
+    );
+    final randomUserFuture = _fetchRandomUserMeUsers(
+      results: halfLimit,
+      gender: gender,
+    );
+
+    final resultsList = await Future.wait([dummyJsonFuture, randomUserFuture]);
+
+    final List<User> allUsers = [];
+    allUsers.addAll(resultsList[0]);
+    allUsers.addAll(resultsList[1]);
+
+    // Shuffle to mix them up
+    allUsers.shuffle();
+
+    developer.log('Total users fetched and shuffled: ${allUsers.length}');
+    return allUsers;
+  }
+
+  Future<List<User>> _fetchDummyJsonUsers({
+    required int results,
+    String? gender,
+  }) async {
     int attempts = 0;
     const int maxAttempts = 3;
 
     while (attempts < maxAttempts) {
       try {
         attempts++;
-        // DummyJSON uses 'limit' instead of 'results'
-        // https://dummyjson.com/users?limit=50
-
-        String url = '$_baseUrl?limit=$results';
+        String url = '$_dummyJsonUrl?limit=$results';
         if (gender != null && gender != 'everyone') {
-          // DummyJSON filtering: https://dummyjson.com/users/filter?key=gender&value=male
-          url = '$_baseUrl/filter?key=gender&value=$gender&limit=$results';
+          url = '$_dummyJsonUrl/filter?key=gender&value=$gender&limit=$results';
         }
 
-        developer.log(
-          'Fetching users from: $url (Attempt $attempts/$maxAttempts)',
-        );
+        developer.log('Fetching DummyJSON users: $url');
         final response = await http
             .get(Uri.parse(url))
             .timeout(const Duration(seconds: 10));
@@ -34,30 +59,60 @@ class ApiService {
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
           final List<dynamic> usersData = data['users'];
-
-          if (usersData.isEmpty) {
-            developer.log('API returned empty results.');
-            return [];
-          }
-
-          developer.log('Successfully fetched ${usersData.length} users.');
           return usersData.map((json) => User.fromDummyJson(json)).toList();
         } else {
-          developer.log(
-            'Failed to load users: ${response.statusCode} - ${response.reasonPhrase}',
-          );
-          // Don't retry immediately on client errors (4xx), but retry on 5xx or timeout
           if (response.statusCode >= 400 && response.statusCode < 500) {
             return [];
           }
         }
       } catch (e) {
-        developer.log('Error fetching users (Attempt $attempts): $e');
+        developer.log('Error fetching DummyJSON users (Attempt $attempts): $e');
         if (attempts >= maxAttempts) {
-          developer.log('Max retries reached. Giving up.');
           return [];
         }
-        // Wait before retrying
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+    return [];
+  }
+
+  Future<List<User>> _fetchRandomUserMeUsers({
+    required int results,
+    String? gender,
+  }) async {
+    int attempts = 0;
+    const int maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        // RandomUser parameters: ?results=X&gender=male
+        String url = '$_randomUserUrl?results=$results';
+        if (gender != null && gender != 'everyone') {
+          url += '&gender=$gender';
+        }
+
+        developer.log('Fetching RandomUser.me users: $url');
+        final response = await http
+            .get(Uri.parse(url))
+            .timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = json.decode(response.body);
+          final List<dynamic> usersData = data['results'];
+          return usersData.map((json) => User.fromRandomUser(json)).toList();
+        } else {
+          if (response.statusCode >= 400 && response.statusCode < 500) {
+            return [];
+          }
+        }
+      } catch (e) {
+        developer.log(
+          'Error fetching RandomUser users (Attempt $attempts): $e',
+        );
+        if (attempts >= maxAttempts) {
+          return [];
+        }
         await Future.delayed(const Duration(seconds: 2));
       }
     }
