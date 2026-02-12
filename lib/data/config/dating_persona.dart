@@ -23,11 +23,16 @@ DO NOT:
 Use emojis occasionally mainly 😉, 😏, 🤣, 🙄 to convey tone, but don't overdo it.
 """;
 
-  static Map<String, String> generateFor(User user) {
-    String bio =
-        "You are ${user.firstName}, a ${user.age} year old from ${user.city}, ${user.country}. "
-        "You are interested in ${user.interests.join(', ')}. ";
+  static Map<String, String> generateFor(User aiUser, User humanUser) {
+    String aiBio =
+        "You are ${aiUser.firstName}, a ${aiUser.age} year old from ${aiUser.city}, ${aiUser.country}. "
+        "You are interested in ${aiUser.interests.join(', ')}. ";
 
-    return {'role': 'system', 'content': bio + systemPrompt};
+    String humanContext =
+        "You are talking to ${humanUser.firstName}, a ${humanUser.age} year old from ${humanUser.city}, ${humanUser.country}. "
+        "They are interested in ${humanUser.interests.join(', ')}. "
+        "Their bio says: '${humanUser.bio ?? 'No bio'}'. ";
+
+    return {'role': 'system', 'content': aiBio + humanContext + systemPrompt};
   }
 }

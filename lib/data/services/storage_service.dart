@@ -18,14 +18,34 @@ class StorageService {
       // This overwrites previous images, saving space.
       final ref = _storage.ref().child('users/$userId/profile_image$extension');
 
-      final uploadTask = ref.putFile(imageFile);
-      final snapshot = await uploadTask;
+      final metadata = SettableMetadata(
+        contentType: 'image/${extension.replaceAll('.', '')}',
+        customMetadata: {'picked-file-path': imageFile.path},
+      );
 
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
+      // Retry logic for unstable connections
+      for (int i = 0; i < 3; i++) {
+        try {
+          final uploadTask = ref.putFile(imageFile, metadata);
+          final snapshot = await uploadTask;
+
+          if (snapshot.state == TaskState.success) {
+            final downloadUrl = await snapshot.ref.getDownloadURL();
+            return downloadUrl;
+          }
+        } catch (e) {
+          developer.log('Upload attempt ${i + 1} failed: $e');
+          if (i == 2) {
+            // If last attempt failed, return null (handled by UI)
+            return null;
+          }
+          await Future.delayed(Duration(seconds: (i + 1) * 2)); // 2s, 4s delay
+        }
+      }
+      return null;
     } catch (e) {
       // Log or handle error appropriately in a real app
-      developer.log('Error uploading profile image: $e');
+      developer.log('Error preparing profile image upload: $e');
       return null;
     }
   }

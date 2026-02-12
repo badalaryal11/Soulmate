@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../../data/models/user_model.dart';
 import '../../data/services/database_service.dart';
+import '../../data/services/storage_service.dart'; // Correctly placed import
 import '../providers/user_provider.dart';
 import 'interest_selection_screen.dart';
 
@@ -29,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _generatedAvatarUrl;
   bool _isLoading = false;
   User? _currentUser;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -72,6 +75,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _generatedAvatarUrl = null; // Clear generated avatar if file picked
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to pick image')));
+    }
+  }
+
   void _generateRandomAvatar() {
     final randomSeed = DateTime.now().millisecondsSinceEpoch.toString();
     setState(() {
@@ -81,30 +108,78 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.shuffle),
+                title: const Text('Generate Random Avatar'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _generateRandomAvatar();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      String imageUrl = _currentUser?.imageUrl ?? '';
+      // Save the new image URL to Firestore (User Requirement Update)
+      String firestoreImageUrl = _currentUser?.imageUrl ?? '';
+      String localDisplayImageUrl = firestoreImageUrl;
 
-      // Use generated avatar if set
-      if (_generatedAvatarUrl != null) {
-        imageUrl = _generatedAvatarUrl!;
-      }
-      // Keep existing logic for file upload just in case, or remove if fully replacing.
-      // For now, if _imageFile is null (which it is for random avatar), this block is skipped.
-      else if (_imageFile != null && _currentUser != null) {
-        // Fallback or legacy support if needed, mostly unused now
-        imageUrl = await DatabaseService().uploadProfileImage(
-          _currentUser!.id,
+      // Upload image if selected (to get a valid URL for local display)
+      if (_imageFile != null && _currentUser != null) {
+        final uploadedUrl = await StorageService().uploadProfileImage(
           _imageFile!,
+          _currentUser!.id,
         );
+        if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+          // Append timestamp to force cache refresh locally
+          localDisplayImageUrl =
+              '$uploadedUrl&v=${DateTime.now().millisecondsSinceEpoch}';
+        } else {
+          // Upload failed
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Image upload failed. Please check your connection.',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } else if (_generatedAvatarUrl != null) {
+        localDisplayImageUrl = _generatedAvatarUrl!;
       }
 
-      // Update User object
-      final updatedUser = User(
+      // Update User object for Firestore (using NEW image URL)
+      final userForFirestore = User(
         id: _currentUser!.id,
         email: _currentUser!.email,
         firstName: _firstNameController.text.trim(),
@@ -112,26 +187,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         age: int.tryParse(_ageController.text.trim()) ?? 0,
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
-        imageUrl: imageUrl,
+        imageUrl: localDisplayImageUrl, // Persist NEW URL
         gender: _currentUser!.gender,
-        interests: _currentUser!.interests, // Interests managed separately
+        interests: _currentUser!.interests,
         genderPreference: _currentUser!.genderPreference,
         bio: _bioController.text.trim(),
       );
 
       // Save to Firestore
-      await DatabaseService().saveUser(updatedUser);
+      await DatabaseService().saveUser(userForFirestore);
 
-      // Refresh Provider
+      // Update Provider locally (keeps UI in sync across screens instantly)
       if (mounted) {
-        await Provider.of<UserProvider>(
+        Provider.of<UserProvider>(
           context,
           listen: false,
-        ).loadCurrentUser();
+        ).updateLocalUser(userForFirestore);
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully!')),
+            const SnackBar(
+              content: Text('Profile details updated successfully!'),
+            ),
           );
         }
       }
@@ -193,7 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               // Profile Image
               GestureDetector(
-                onTap: _generateRandomAvatar,
+                onTap: _showImagePickerOptions,
                 child: Stack(
                   children: [
                     CircleAvatar(
@@ -230,7 +307,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.shuffle,
+                          Icons.camera_alt, // Changed to camera/edit icon
                           color: Colors.white,
                           size: 20,
                         ),

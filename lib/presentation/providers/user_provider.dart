@@ -83,6 +83,11 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  void updateLocalUser(User user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
   Future<void> loadUsers({String? gender, bool clearList = false}) async {
     // Priority: 1. Argument 2. stored preference 3. default (null/all)
     if (gender != null) {

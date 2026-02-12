@@ -64,6 +64,12 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   Future<void> unmatchUser(String userId) async {}
+
+  @override
+  void updateLocalUser(model.User user) {
+    currentUser = user;
+    notifyListeners();
+  }
 }
 
 void main() {
