@@ -49,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.email_outlined),
             title: Text('Update Email', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showUpdateEmailDialog(context, auth),
+            onTap: () => _showUpdateEmailDialog(context, auth, db),
           ),
           ListTile(
             leading: const Icon(Icons.lock_outline),
@@ -192,7 +192,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showUpdateEmailDialog(BuildContext context, AuthService authService) {
+  void _showUpdateEmailDialog(
+    BuildContext context,
+    AuthService authService,
+    DatabaseService dbService,
+  ) {
     final emailController = TextEditingController();
     showDialog(
       context: context,
@@ -210,14 +214,27 @@ class SettingsScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              final newEmail = emailController.text.trim();
+              if (newEmail.isEmpty) return;
+
               try {
-                await authService.updateEmail(emailController.text.trim());
+                // 1. Update Auth (sends verification)
+                await authService.updateEmail(newEmail);
+
+                // 2. Update Firestore immediately so UI reflects change
+                final user = authService.currentUser;
+                if (user != null) {
+                  await dbService.updateUserField(user.uid, {
+                    'email': newEmail,
+                  });
+                }
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                        'Verification email sent to new address. Please verify to update.',
+                        'Verification email sent. Profile updated.',
                       ),
                     ),
                   );
