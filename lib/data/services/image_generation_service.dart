@@ -4,38 +4,57 @@ import 'package:flutter/foundation.dart';
 class ImageGenerationService {
   /// Generates a dynamic image URL based on the user's profile.
   /// Uses a prompt-based image generation API (Pollinations.ai as a reliable, free, no-auth proxy for "Nanobanana").
+  /// Fast generation for feeds/cards (LoremFlickr)
   static String generateProfileImageUrl(User user) {
-    try {
-      // Switch to LoremFlickr for reliable, keyword-based images.
-      // Pollinations.ai is returning 530 errors (server overloaded/blocked).
-      // LoremFlickr matches keywords (Gender, Interests) to stock photos.
+    final List<String> keywords = [];
+    keywords.add(user.gender.toLowerCase());
+    keywords.add('portrait');
+    if (user.interests.isNotEmpty) {
+      keywords.add(user.interests.first.toLowerCase());
+    }
 
+    final String keywordString = keywords.join(',');
+    final int lock = user.id.hashCode.abs() % 10000;
+
+    return 'https://loremflickr.com/350/525/$keywordString?lock=$lock';
+  }
+
+  /// High-quality generation for user profile (LoremFlickr with specific keywords)
+  static String generateHighQualityPortrait(User user) {
+    try {
       final List<String> keywords = [];
-      keywords.add(
-        user.gender.toLowerCase(),
-      ); // 'male' or 'female' or 'man'/'woman'
-      keywords.add('portrait'); // Ensure it's a person
+
+      // Gender-specific keywords for better results
+      if (user.gender.toLowerCase() == 'male' ||
+          user.gender.toLowerCase() == 'man') {
+        keywords.add('handsome');
+        keywords.add('boy');
+        keywords.add('man');
+      } else if (user.gender.toLowerCase() == 'female' ||
+          user.gender.toLowerCase() == 'woman') {
+        keywords.add('beautiful');
+        keywords.add('girl');
+        keywords.add('woman');
+      } else {
+        keywords.add('portrait');
+        keywords.add('person');
+      }
+
+      // Add interests for variety
       if (user.interests.isNotEmpty) {
         keywords.add(user.interests.first.toLowerCase());
       }
 
       final String keywordString = keywords.join(',');
 
-      // Use a random cache buster lock (based on ID) to keep the image consistent for the user
-      // LoremFlickr uses ?lock= to persist the image for the same ID.
-      final int lock = user.id.hashCode.abs() % 10000;
+      // Use timestamp as lock to ensure a NEW image on every click
+      final int lock = DateTime.now().millisecondsSinceEpoch % 10000;
 
-      // optimization: Request 350x525 images.
-      // Reduced further for maximum speed as requested.
-      // 350px width is sufficient for most phone screens (density adds up).
-      return 'https://loremflickr.com/350/525/$keywordString?lock=$lock';
-
-      // Fallback to Picsum for immediate verification (Pollinations might be slow/blocked)
-      // This ensures we see SOMETHING.
-      // return 'https://picsum.photos/seed/${user.id}/800/1200';
+      // Request a high-quality resolution
+      return 'https://loremflickr.com/800/1200/$keywordString?lock=$lock';
     } catch (e) {
-      debugPrint('Error generating image URL: $e');
-      return 'https://via.placeholder.com/1024x1024.png?text=Error+Generating+Image';
+      debugPrint('Error generating HQ image URL: $e');
+      return generateProfileImageUrl(user); // Fallback to fast
     }
   }
 }

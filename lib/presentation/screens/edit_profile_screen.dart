@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'dart:io';
 
 import '../../data/models/user_model.dart';
@@ -38,7 +38,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<String?>? _pendingUploadFuture;
 
   User? _currentUser;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -82,70 +81,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          _generatedAvatarUrl = null;
-          _isUploadingImage = true; // Start spinner
-          _uploadedImageUrl = null; // Reset previous upload
-        });
-
-        // START BACKGROUND UPLOAD IMMEDIATELY
-        _startBackgroundUpload(File(pickedFile.path));
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to pick image')));
-    }
-  }
-
-  void _startBackgroundUpload(File imageFile) {
-    if (_currentUser == null) return;
-
-    _pendingUploadFuture = StorageService()
-        .uploadProfileImage(imageFile, _currentUser!.id)
-        .then((url) {
-          if (mounted) {
-            setState(() {
-              _isUploadingImage = false;
-              _uploadedImageUrl = url;
-            });
-            if (url != null) {
-              debugPrint("Background upload complete: $url");
-            }
-          }
-          return url;
-        })
-        .catchError((e) {
-          if (mounted) {
-            setState(() {
-              _isUploadingImage = false;
-              _uploadedImageUrl = null;
-            });
-            debugPrint("Background upload error: $e");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Upload Error: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return null;
-        });
-  }
-
   void _generateAIPortrait() {
     if (_currentUser == null) return;
 
@@ -165,7 +100,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Simulate a short "thinking" delay for UX
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
-      final url = ImageGenerationService.generateProfileImageUrl(tempUser);
+      final url = ImageGenerationService.generateHighQualityPortrait(tempUser);
       setState(() {
         _generatedAvatarUrl = url;
         _imageFile = null;
@@ -174,6 +109,96 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = false;
       });
     });
+  }
+
+  void _showAvatarSelectionSheet() {
+    // Generate 30 random seeds for the grid
+    final List<String> avatarSeeds = List.generate(
+      30,
+      (index) => 'seed_${DateTime.now().millisecondsSinceEpoch}_$index',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allow full height
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Choose an Avatar',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    controller: controller,
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                    itemCount: avatarSeeds.length,
+                    itemBuilder: (context, index) {
+                      final seed = avatarSeeds[index];
+                      final url =
+                          'https://api.dicebear.com/9.x/adventurer/png?seed=$seed';
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _generatedAvatarUrl = url;
+                            _imageFile = null;
+                            _uploadedImageUrl = null;
+                            _isUploadingImage = false;
+                          });
+                          Navigator.pop(context); // Close sheet
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey[300]!),
+                            color: Colors.grey[100],
+                          ),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: url,
+                              placeholder: (context, url) => const Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showImagePickerOptions() {
@@ -187,16 +212,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Wrap(
             children: <Widget>[
               ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from Gallery'),
+                leading: const Icon(Icons.grid_view),
+                title: const Text('Choose Avatar'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage();
+                  _showAvatarSelectionSheet();
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.auto_awesome), // Magic icon
-                title: const Text('Generate AI Portrait'), // Corrected title
+                leading: const Icon(Icons.auto_awesome),
+                title: const Text('Generate AI Portrait'),
                 onTap: () {
                   Navigator.pop(context);
                   _generateAIPortrait();
