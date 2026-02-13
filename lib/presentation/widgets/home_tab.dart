@@ -2,12 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../../data/services/image_generation_service.dart';
 import 'profile_card.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   final CardSwiperController controller;
 
   const HomeTab({super.key, required this.controller});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  @override
+  void initState() {
+    super.initState();
+    // Aggressive Initial Pre-caching
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<UserProvider>(context, listen: false);
+      if (provider.filteredUsers.isNotEmpty) {
+        // Pre-cache the first 5 images immediately
+        for (int i = 0; i < 5 && i < provider.filteredUsers.length; i++) {
+          _precacheUserImage(context, provider.filteredUsers[i]);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +110,7 @@ class HomeTab extends StatelessWidget {
             children: [
               Expanded(
                 child: CardSwiper(
-                  controller: controller,
+                  controller: widget.controller,
                   cardsCount: provider.filteredUsers.length,
                   numberOfCardsDisplayed: provider.filteredUsers.length < 3
                       ? provider.filteredUsers.length
@@ -103,13 +124,36 @@ class HomeTab extends StatelessWidget {
                         horizontalOffsetPercentage,
                         verticalOffsetPercentage,
                       ) {
-                        if (index < 0 ||
-                            index >= provider.filteredUsers.length) {
-                          return const SizedBox();
-                        }
                         return ProfileCard(user: provider.filteredUsers[index]);
                       },
                   onSwipe: (previousIndex, currentIndex, direction) {
+                    // ---------------------------------------------------------
+                    // OPTIMIZATION: PRE-CACHE NEXT IMAGES
+                    // ---------------------------------------------------------
+                    // When we swipe to 'currentIndex', the card at 'currentIndex' is now top.
+                    // The card at 'currentIndex + 1' becomes visible behind it.
+                    // We should look ahead and cache 'currentIndex + 2' and 'currentIndex + 3'.
+
+                    // We check the next 2 cards ahead of what is currently visible
+                    // CardSwiper displays 3 cards. If we are at index `i`, visible are `i`, `i+1`, `i+2`.
+                    // The next one to load is `i+3`.
+
+                    // Let's precache `currentIndex + 1` (next visible), `currentIndex + 2` (behind that)
+                    // and `currentIndex + 3` (just in case).
+
+                    if (currentIndex != null) {
+                      // Aggressive Pre-caching: Look ahead 5 cards
+                      for (int i = 1; i <= 5; i++) {
+                        final nextIndex = currentIndex + i;
+                        if (nextIndex < provider.filteredUsers.length) {
+                          _precacheUserImage(
+                            context,
+                            provider.filteredUsers[nextIndex],
+                          );
+                        }
+                      }
+                    }
+
                     provider.userSwiped(previousIndex, direction);
                     return true;
                   },
@@ -124,13 +168,13 @@ class HomeTab extends StatelessWidget {
                       icon: Icons.close,
                       color: Colors.red,
                       onPressed: () =>
-                          controller.swipe(CardSwiperDirection.left),
+                          widget.controller.swipe(CardSwiperDirection.left),
                     ),
                     _ActionButton(
                       icon: Icons.favorite,
                       color: Colors.green,
                       onPressed: () =>
-                          controller.swipe(CardSwiperDirection.right),
+                          widget.controller.swipe(CardSwiperDirection.right),
                     ),
                   ],
                 ),
@@ -140,6 +184,21 @@ class HomeTab extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _precacheUserImage(BuildContext context, dynamic user) {
+    if (user == null) return;
+
+    String? url;
+    if (user.imageUrl.isNotEmpty && !user.imageUrl.startsWith('assets/')) {
+      url = user.imageUrl;
+    } else if (user.imageUrl.isEmpty || !user.imageUrl.startsWith('assets/')) {
+      url = ImageGenerationService.generateProfileImageUrl(user);
+    }
+
+    if (url != null && url.isNotEmpty) {
+      precacheImage(NetworkImage(url), context);
+    }
   }
 }
 

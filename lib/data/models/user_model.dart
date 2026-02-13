@@ -145,4 +145,34 @@ class User {
 
   String get fullName => '$firstName $lastName';
   String get locationString => '$city, $country';
+
+  User copyWith({
+    String? id,
+    String? email,
+    String? firstName,
+    String? lastName,
+    int? age,
+    String? city,
+    String? country,
+    String? imageUrl,
+    String? gender,
+    List<String>? interests,
+    String? genderPreference,
+    String? bio,
+  }) {
+    return User(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      age: age ?? this.age,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      imageUrl: imageUrl ?? this.imageUrl,
+      gender: gender ?? this.gender,
+      interests: interests ?? this.interests,
+      genderPreference: genderPreference ?? this.genderPreference,
+      bio: bio ?? this.bio,
+    );
+  }
 }

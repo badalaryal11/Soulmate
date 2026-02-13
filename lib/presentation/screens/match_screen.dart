@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 
@@ -35,14 +37,23 @@ class MatchScreen extends StatelessWidget {
               Consumer<UserProvider>(
                 builder: (context, userProvider, child) {
                   final currentUser = userProvider.currentUser;
+                  final isAsset =
+                      currentUser == null ||
+                      currentUser.imageUrl.isEmpty ||
+                      currentUser.imageUrl.startsWith('assets/');
                   return _Avatar(
                     imageUrl: currentUser?.imageUrl ?? '',
-                    isAsset: currentUser?.imageUrl.isEmpty ?? true,
+                    isAsset: isAsset,
                   );
                 },
               ),
               const SizedBox(width: 20),
-              _Avatar(imageUrl: user.imageUrl, isAsset: false),
+              _Avatar(
+                imageUrl: user.imageUrl.startsWith('assets/')
+                    ? user.imageUrl
+                    : ImageGenerationService.generateProfileImageUrl(user),
+                isAsset: user.imageUrl.startsWith('assets/'),
+              ),
             ],
           ),
           const SizedBox(height: 40),
@@ -104,17 +115,29 @@ class _Avatar extends StatelessWidget {
       ),
       child: CircleAvatar(
         radius: 50,
-        backgroundImage: (isAsset || imageUrl.isEmpty)
-            ? (imageUrl.isEmpty && !isAsset
-                  ? const AssetImage(
-                      'assets/images/logo_transparent.png',
-                    ) // Fallback if url empty
-                  : AssetImage(
-                      imageUrl == ''
-                          ? 'assets/images/logo_transparent.png'
-                          : imageUrl,
-                    ))
-            : NetworkImage(imageUrl) as ImageProvider,
+        backgroundColor: Colors.grey[200],
+        child: ClipOval(
+          child: isAsset
+              ? Image.asset(
+                  imageUrl.isEmpty
+                      ? 'assets/images/logo_transparent.png'
+                      : imageUrl,
+                  fit: BoxFit.cover,
+                  width: 100,
+                  height: 100,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Image.asset('assets/images/logo_transparent.png'),
+                )
+              : CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  width: 100,
+                  height: 100,
+                  placeholder: (context, url) =>
+                      const CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+        ),
       ),
     );
   }

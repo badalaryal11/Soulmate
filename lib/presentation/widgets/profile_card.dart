@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/image_generation_service.dart';
 import '../screens/details_screen.dart';
 
 class ProfileCard extends StatelessWidget {
@@ -24,6 +25,8 @@ class ProfileCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Use AI Generated Image for Cards to match description
+            // Handle local assets
             user.imageUrl.startsWith('assets/')
                 ? Image.asset(
                     user.imageUrl,
@@ -33,13 +36,45 @@ class ProfileCard extends StatelessWidget {
                     },
                   )
                 : CachedNetworkImage(
-                    imageUrl: user.imageUrl,
+                    // Use AI Generated Image if it's a network image (to replace placeholders/random content)
+                    // or if the URL is empty.
+                    imageUrl: _generateAndLogUrl(user),
                     fit: BoxFit.cover,
-                    memCacheWidth: 1000,
-                    placeholder: (context, url) =>
-                        const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) =>
-                        const Center(child: Icon(Icons.error)),
+                    // Optimization: Match cache width to requested image width (350).
+                    memCacheWidth: 350,
+                    // Optimization: Instant appearance (no fade-in) for faster "feel"
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFFFE3C72),
+                          ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[300],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.broken_image, color: Colors.grey),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              error.toString(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.red,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
             Container(
               decoration: BoxDecoration(
@@ -134,5 +169,11 @@ class ProfileCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _generateAndLogUrl(User user) {
+    final url = ImageGenerationService.generateProfileImageUrl(user);
+    debugPrint('Generated Image URL for ${user.firstName}: $url');
+    return url;
   }
 }

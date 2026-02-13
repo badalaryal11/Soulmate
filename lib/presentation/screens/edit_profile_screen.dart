@@ -7,7 +7,8 @@ import 'dart:io';
 
 import '../../data/models/user_model.dart';
 import '../../data/services/database_service.dart';
-import '../../data/services/storage_service.dart'; // Correctly placed import
+import '../../data/services/storage_service.dart';
+import '../../data/services/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'interest_selection_screen.dart';
 
@@ -30,6 +31,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _imageFile;
   String? _generatedAvatarUrl;
   bool _isLoading = false;
+
+  // Background Upload State
+  bool _isUploadingImage = false;
+  String? _uploadedImageUrl;
+  Future<String?>? _pendingUploadFuture;
+
   User? _currentUser;
   final ImagePicker _picker = ImagePicker();
 
@@ -87,8 +94,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (pickedFile != null) {
         setState(() {
           _imageFile = File(pickedFile.path);
-          _generatedAvatarUrl = null; // Clear generated avatar if file picked
+          _generatedAvatarUrl = null;
+          _isUploadingImage = true; // Start spinner
+          _uploadedImageUrl = null; // Reset previous upload
         });
+
+        // START BACKGROUND UPLOAD IMMEDIATELY
+        _startBackgroundUpload(File(pickedFile.path));
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -99,12 +111,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  void _generateRandomAvatar() {
-    final randomSeed = DateTime.now().millisecondsSinceEpoch.toString();
+  void _startBackgroundUpload(File imageFile) {
+    if (_currentUser == null) return;
+
+    _pendingUploadFuture = StorageService()
+        .uploadProfileImage(imageFile, _currentUser!.id)
+        .then((url) {
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+              _uploadedImageUrl = url;
+            });
+            if (url != null) {
+              debugPrint("Background upload complete: $url");
+            }
+          }
+          return url;
+        })
+        .catchError((e) {
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+              _uploadedImageUrl = null;
+            });
+            debugPrint("Background upload error: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Upload Error: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return null;
+        });
+  }
+
+  void _generateAIPortrait() {
+    if (_currentUser == null) return;
+
+    // Create a temporary user with current controller values to ensure prompt is up-to-date
+    final tempUser = _currentUser!.copyWith(
+      age: int.tryParse(_ageController.text) ?? _currentUser!.age,
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      bio: _bioController.text,
+    );
+
     setState(() {
-      _generatedAvatarUrl =
-          'https://api.dicebear.com/9.x/adventurer/png?seed=$randomSeed';
-      _imageFile = null; // Clear file if we are using random avatar
+      _isLoading = true;
+      _isUploadingImage = true; // Reuse spinner for generation
+    });
+
+    // Simulate a short "thinking" delay for UX
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      final url = ImageGenerationService.generateProfileImageUrl(tempUser);
+      setState(() {
+        _generatedAvatarUrl = url;
+        _imageFile = null;
+        _uploadedImageUrl = null;
+        _isUploadingImage = false; // Stop spinner
+        _isLoading = false;
+      });
     });
   }
 
@@ -127,11 +195,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.shuffle),
-                title: const Text('Generate Random Avatar'),
+                leading: const Icon(Icons.auto_awesome), // Magic icon
+                title: const Text('Generate AI Portrait'), // Corrected title
                 onTap: () {
                   Navigator.pop(context);
-                  _generateRandomAvatar();
+                  _generateAIPortrait();
                 },
               ),
             ],
@@ -147,38 +215,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Save the new image URL to Firestore (User Requirement Update)
       String firestoreImageUrl = _currentUser?.imageUrl ?? '';
       String localDisplayImageUrl = firestoreImageUrl;
 
-      // Upload image if selected (to get a valid URL for local display)
-      if (_imageFile != null && _currentUser != null) {
-        final uploadedUrl = await StorageService().uploadProfileImage(
-          _imageFile!,
-          _currentUser!.id,
-        );
-        if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
-          // Append timestamp to force cache refresh locally
+      // OPTIMIZED: Check if background upload is already done, or wait for it.
+      if (_imageFile != null) {
+        if (_uploadedImageUrl != null) {
+          // Upload already finished successfully
+          String rawUrl = _uploadedImageUrl!;
+          // Append timestamp for cache busting locally
           localDisplayImageUrl =
-              '$uploadedUrl&v=${DateTime.now().millisecondsSinceEpoch}';
+              '$rawUrl&v=${DateTime.now().millisecondsSinceEpoch}';
+        } else if (_pendingUploadFuture != null) {
+          // Upload still in progress, await it
+          final url = await _pendingUploadFuture;
+          if (url != null) {
+            String rawUrl = url;
+            localDisplayImageUrl =
+                '$rawUrl&v=${DateTime.now().millisecondsSinceEpoch}';
+          } else {
+            throw Exception("Image upload failed");
+          }
         } else {
-          // Upload failed
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Image upload failed. Please check your connection.',
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
+          // Fallback: Upload wasn't started for some reason (shouldn't happen with correct flow)
+          final url = await StorageService().uploadProfileImage(
+            _imageFile!,
+            _currentUser!.id,
+          );
+          if (url != null) {
+            localDisplayImageUrl =
+                '$url&v=${DateTime.now().millisecondsSinceEpoch}';
           }
         }
       } else if (_generatedAvatarUrl != null) {
         localDisplayImageUrl = _generatedAvatarUrl!;
       }
 
-      // Update User object for Firestore (using NEW image URL)
+      // Update User object
       final userForFirestore = User(
         id: _currentUser!.id,
         email: _currentUser!.email,
@@ -187,7 +260,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         age: int.tryParse(_ageController.text.trim()) ?? 0,
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
-        imageUrl: localDisplayImageUrl, // Persist NEW URL
+        imageUrl: localDisplayImageUrl,
         gender: _currentUser!.gender,
         interests: _currentUser!.interests,
         genderPreference: _currentUser!.genderPreference,
@@ -197,7 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // Save to Firestore
       await DatabaseService().saveUser(userForFirestore);
 
-      // Update Provider locally (keeps UI in sync across screens instantly)
+      // Update Provider
       if (mounted) {
         Provider.of<UserProvider>(
           context,
@@ -212,25 +285,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
         }
       }
+    } catch (e) {
+      debugPrint("Error updating profile: $e");
       if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    } catch (e, stackTrace) {
-      debugPrint("Error updating profile (EditProfileScreen): $e");
-      debugPrint("Stack trace: $stackTrace");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Update failed: $e'),
-            duration: const Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'Copy',
-              onPressed: () {
-                // Clipboard copy (optional, requires services)
-              },
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Update failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -286,10 +346,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             )
                                           : null)
                                       as ImageProvider?),
-                      child:
-                          (_generatedAvatarUrl == null &&
-                              _imageFile == null &&
-                              _currentUser!.imageUrl.isEmpty)
+                      child: _isUploadingImage
+                          ? const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFFE3C72),
+                              ),
+                            )
+                          : (_generatedAvatarUrl == null &&
+                                _imageFile == null &&
+                                _currentUser!.imageUrl.isEmpty)
                           ? const Icon(
                               Icons.person,
                               size: 60,

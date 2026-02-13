@@ -4,6 +4,7 @@ import '../../data/models/user_model.dart';
 import '../../data/models/chat_message.dart';
 import '../../data/services/chat_service.dart';
 import '../../data/services/database_service.dart';
+import '../../data/services/image_generation_service.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/config/dating_persona.dart';
 import 'package:provider/provider.dart';
@@ -226,11 +227,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
               child: CircleAvatar(
-                backgroundImage: CachedNetworkImageProvider(
-                  widget.user.imageUrl,
-                  maxHeight: 100, // Optimize memory usage
-                  maxWidth: 100,
-                ),
+                backgroundImage: widget.user.imageUrl.startsWith('assets/')
+                    ? AssetImage(widget.user.imageUrl) as ImageProvider
+                    : CachedNetworkImageProvider(
+                        ImageGenerationService.generateProfileImageUrl(
+                          widget.user,
+                        ),
+                        maxHeight: 100, // Optimize memory usage
+                        maxWidth: 100,
+                      ),
                 radius: 20,
               ),
             ),

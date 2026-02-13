@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../data/models/user_model.dart';
+import '../../data/services/image_generation_service.dart';
 
 class DetailsScreen extends StatelessWidget {
   final User user;
@@ -26,7 +27,9 @@ class DetailsScreen extends StatelessWidget {
                       },
                     )
                   : CachedNetworkImage(
-                      imageUrl: user.imageUrl,
+                      imageUrl: ImageGenerationService.generateProfileImageUrl(
+                        user,
+                      ),
                       fit: BoxFit.cover,
                       memCacheWidth: 1000,
                     ),
