@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/image_generation_service.dart';
 import 'login_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
@@ -125,7 +126,11 @@ class MatchesScreen extends StatelessWidget {
                               CircleAvatar(
                                 radius: 30,
                                 backgroundImage: CachedNetworkImageProvider(
-                                  user.imageUrl,
+                                  user.imageUrl.startsWith('assets/')
+                                      ? user.imageUrl
+                                      : ImageGenerationService.generateProfileImageUrl(
+                                          user,
+                                        ),
                                   maxHeight: 200, // Optimize memory usage
                                   maxWidth: 200,
                                 ),
@@ -187,7 +192,11 @@ class MatchesScreen extends StatelessWidget {
                                 CircleAvatar(
                                   radius: 28,
                                   backgroundImage: CachedNetworkImageProvider(
-                                    user.imageUrl,
+                                    user.imageUrl.startsWith('assets/')
+                                        ? user.imageUrl
+                                        : ImageGenerationService.generateProfileImageUrl(
+                                            user,
+                                          ),
                                     maxHeight: 200, // Optimize memory usage
                                     maxWidth: 200,
                                   ),
