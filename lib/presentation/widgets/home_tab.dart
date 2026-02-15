@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../../data/services/image_generation_service.dart';
@@ -197,7 +198,7 @@ class _HomeTabState extends State<HomeTab> {
     }
 
     if (url != null && url.isNotEmpty) {
-      precacheImage(NetworkImage(url), context);
+      precacheImage(CachedNetworkImageProvider(url), context);
     }
   }
 }

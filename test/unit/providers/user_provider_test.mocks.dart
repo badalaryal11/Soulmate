@@ -71,9 +71,15 @@ class MockUserRepository extends _i1.Mock implements _i3.UserRepository {
   }
 
   @override
-  _i4.Future<List<_i5.User>> getUsers({String? gender}) =>
+  _i4.Future<List<_i5.User>> getUsers({
+    String? gender,
+    String? currentUserId,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getUsers, [], {#gender: gender}),
+            Invocation.method(#getUsers, [], {
+              #gender: gender,
+              #currentUserId: currentUserId,
+            }),
             returnValue: _i4.Future<List<_i5.User>>.value(<_i5.User>[]),
           )
           as _i4.Future<List<_i5.User>>);

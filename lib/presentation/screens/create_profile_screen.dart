@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:image_picker/image_picker.dart';
-import 'package:soulmate/data/services/storage_service.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/database_service.dart';
 import 'gender_selection_screen.dart';
@@ -11,13 +8,11 @@ import 'gender_selection_screen.dart';
 class CreateProfileScreen extends StatefulWidget {
   final firebase_auth.User firebaseUser;
   final DatabaseService? databaseService;
-  final StorageService? storageService;
 
   const CreateProfileScreen({
     super.key,
     required this.firebaseUser,
     this.databaseService,
-    this.storageService,
   });
 
   @override
@@ -26,9 +21,7 @@ class CreateProfileScreen extends StatefulWidget {
 
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
   late final DatabaseService _databaseService;
-  late final StorageService _storageService;
   final _formKey = GlobalKey<FormState>();
-  final ImagePicker _picker = ImagePicker();
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -38,13 +31,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   String _selectedGender = 'Male';
   int _age = 18;
   bool _isLoading = false;
-  File? _imageFile;
 
   @override
   void initState() {
     super.initState();
     _databaseService = widget.databaseService ?? DatabaseService();
-    _storageService = widget.storageService ?? StorageService();
 
     // Pre-fill from Firebase User if available
     final nameParts = (widget.firebaseUser.displayName ?? '').split(' ');
@@ -65,29 +56,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to pick image')));
-    }
-  }
-
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -96,18 +64,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     try {
       String imageUrl = widget.firebaseUser.photoURL ?? '';
 
-      // Upload image if selected
-      if (_imageFile != null) {
-        final uploadedUrl = await _storageService.uploadProfileImage(
-          _imageFile!,
-          widget.firebaseUser.uid,
-        );
-        if (uploadedUrl != null) {
-          imageUrl = uploadedUrl;
-        }
-      }
-
-      // Fallback if no image selected/uploaded and no existing photoURL
+      // Fallback if no image available
       if (imageUrl.isEmpty) {
         imageUrl =
             'https://ui-avatars.com/api/?name=${_firstNameController.text}+${_lastNameController.text}&background=random';
@@ -175,49 +132,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             children: [
               // Avatar Placeholder
               Center(
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.grey[200],
-                        backgroundImage: _imageFile != null
-                            ? FileImage(_imageFile!)
-                            : (widget.firebaseUser.photoURL != null
-                                      ? NetworkImage(
-                                          widget.firebaseUser.photoURL!,
-                                        )
-                                      : null)
-                                  as ImageProvider?,
-                        child:
-                            _imageFile == null &&
-                                widget.firebaseUser.photoURL == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.grey,
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFE3C72),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.grey[200],
+                  backgroundImage: widget.firebaseUser.photoURL != null
+                      ? NetworkImage(widget.firebaseUser.photoURL!)
+                      : null,
+                  child: widget.firebaseUser.photoURL == null
+                      ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                      : null,
                 ),
               ),
               const SizedBox(height: 32),

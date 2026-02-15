@@ -18,7 +18,7 @@ class UserRepository {
     );
 
     // 2. Fetch from API (Random Users + DummyJSON)
-    final apiUsers = await _apiService.fetchUsers(gender: gender);
+    final apiUsers = await _apiService.fetchUsers(results: 100, gender: gender);
 
     // 3. Combine (Prioritize Firestore)
     final allUsers = [...firestoreUsers, ...apiUsers];

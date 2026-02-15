@@ -36,9 +36,12 @@ class ProfileCard extends StatelessWidget {
                     },
                   )
                 : CachedNetworkImage(
-                    // Use AI Generated Image if it's a network image (to replace placeholders/random content)
-                    // or if the URL is empty.
-                    imageUrl: _generateAndLogUrl(user),
+                    // Use original image if valid, otherwise generate one
+                    imageUrl:
+                        (user.imageUrl.isNotEmpty &&
+                            !user.imageUrl.startsWith('assets/'))
+                        ? user.imageUrl
+                        : _generateAndLogUrl(user),
                     fit: BoxFit.cover,
                     // Optimization: Match cache width to requested image width (350).
                     memCacheWidth: 350,

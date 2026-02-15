@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http; // Kept to avoid breaking imports
 import '../models/user_model.dart';
+import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 
 class ApiService {
@@ -59,7 +60,13 @@ class ApiService {
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
           final List<dynamic> usersData = data['users'];
-          return usersData.map((json) => User.fromDummyJson(json)).toList();
+          return usersData.map((json) {
+            final user = User.fromDummyJson(json);
+            // Replace DummyJSON image with high-quality generated one
+            return user.copyWith(
+              imageUrl: ImageGenerationService.generateProfileImageUrl(user),
+            );
+          }).toList();
         } else {
           if (response.statusCode >= 400 && response.statusCode < 500) {
             return [];

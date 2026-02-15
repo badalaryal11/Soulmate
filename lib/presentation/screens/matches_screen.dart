@@ -123,16 +123,31 @@ class MatchesScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Column(
                             children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundImage: CachedNetworkImageProvider(
-                                  user.imageUrl.startsWith('assets/')
+                              ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                      (user.imageUrl.isNotEmpty &&
+                                          !user.imageUrl.startsWith('assets/'))
                                       ? user.imageUrl
                                       : ImageGenerationService.generateProfileImageUrl(
                                           user,
                                         ),
-                                  maxHeight: 200, // Optimize memory usage
-                                  maxWidth: 200,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  memCacheWidth: 350, // Match ProfileCard cache
+                                  fadeInDuration:
+                                      Duration.zero, // Instant appear
+                                  fadeOutDuration: Duration.zero,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.grey[200],
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -189,16 +204,26 @@ class MatchesScreen extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundImage: CachedNetworkImageProvider(
-                                    user.imageUrl.startsWith('assets/')
+                                ClipOval(
+                                  child: CachedNetworkImage(
+                                    imageUrl:
+                                        (user.imageUrl.isNotEmpty &&
+                                            !user.imageUrl.startsWith(
+                                              'assets/',
+                                            ))
                                         ? user.imageUrl
                                         : ImageGenerationService.generateProfileImageUrl(
                                             user,
                                           ),
-                                    maxHeight: 200, // Optimize memory usage
-                                    maxWidth: 200,
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                    memCacheWidth:
+                                        350, // Match ProfileCard cache
+                                    placeholder: (context, url) =>
+                                        Container(color: Colors.grey[200]),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
                                   ),
                                 ),
                                 const SizedBox(width: 16),

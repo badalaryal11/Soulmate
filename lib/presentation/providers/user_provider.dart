@@ -4,6 +4,7 @@ import '../../data/models/user_model.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/database_service.dart';
+import '../../data/services/image_generation_service.dart';
 
 enum UserStatus { initial, loading, loaded, error }
 
@@ -21,6 +22,8 @@ class UserProvider extends ChangeNotifier {
        _databaseService = databaseService ?? DatabaseService();
 
   final List<User> _users = [];
+  final Set<String> _usedImageUrls =
+      {}; // Track displayed images to prevent duplicates
   UserStatus _status = UserStatus.initial;
   String? _errorMessage;
 
@@ -103,20 +106,85 @@ class UserProvider extends ChangeNotifier {
       _filteredUsers.clear();
     }
 
-    _status = UserStatus.loading;
-    notifyListeners();
+    // Optimization: Silent loading
+    // Only set loading status if it's the initial load or a full refresh (users empty)
+    // If we have users and are just fetching more, don't show loading state
+    if (_users.isEmpty && !clearList) {
+      _status = UserStatus.loading;
+      notifyListeners();
+    }
 
     try {
       final newUsers = await _userRepository.getUsers(
         gender: _selectedGender,
         currentUserId: _currentUser?.id,
       );
-      _users.addAll(newUsers);
+
+      // Strict Deduplication Logic
+      final List<User> uniqueUsers = [];
+      for (var user in newUsers) {
+        String finalUrl = user.imageUrl;
+
+        // Ensure URL is valid (fallback to generated if empty/invalid)
+        if (finalUrl.isEmpty ||
+            (!finalUrl.startsWith('http') && !finalUrl.startsWith('assets/'))) {
+          finalUrl = ImageGenerationService.generateProfileImageUrl(user);
+        }
+
+        // Check for duplicates
+        int retryCount = 0;
+        while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
+          // Regeneration strategy:
+          // 1. If it's a loremflickr URL with a lock, increment the lock.
+          // 2. Otherwise, use ImageGenerationService with a salt (simulated by appending/modifying lock).
+
+          if (finalUrl.contains('loremflickr.com') &&
+              finalUrl.contains('lock=')) {
+            final uri = Uri.parse(finalUrl);
+            final queryParams = Map<String, String>.from(uri.queryParameters);
+            int lock = int.tryParse(queryParams['lock'] ?? '0') ?? 0;
+            lock = (lock + 1) % 10000;
+            queryParams['lock'] = lock.toString();
+            finalUrl = uri.replace(queryParameters: queryParams).toString();
+          } else {
+            // Force a generated image with a random lock if the original (e.g. static RandomUser) is a dupe
+            // This converts a duplicate real photo into a unique generated one.
+            // We simply append a random lock or generate one.
+            // Let's use ImageGenerationService logic but inject a random modifier?
+            // Actually easier to just manually construct a loremflickr url with a random lock.
+            final int lock = DateTime.now().microsecondsSinceEpoch % 10000;
+            // We need keywords. simpler to just call the service and modify the result.
+            String tempUrl = ImageGenerationService.generateProfileImageUrl(
+              user,
+            );
+            if (tempUrl.contains('lock=')) {
+              finalUrl = tempUrl.replaceAll(RegExp(r'lock=\d+'), 'lock=$lock');
+            } else {
+              finalUrl = '$tempUrl?lock=$lock';
+            }
+          }
+          retryCount++;
+        }
+
+        _usedImageUrls.add(finalUrl);
+        uniqueUsers.add(user.copyWith(imageUrl: finalUrl));
+      }
+
+      _users.addAll(uniqueUsers);
       _updateFilteredUsers();
-      _status = UserStatus.loaded;
+
+      // If we were in a loading state, mark as loaded
+      // If we were silently loading, we stay 'loaded' but have new data
+      if (_status == UserStatus.loading || _status == UserStatus.initial) {
+        _status = UserStatus.loaded;
+      }
     } catch (e) {
-      _status = UserStatus.error;
-      _errorMessage = e.toString();
+      // Only show error screen if we have no users
+      if (_users.isEmpty) {
+        _status = UserStatus.error;
+        _errorMessage = e.toString();
+      }
+      // If we have users, maybe show a snackbar (omitted for now to keep flow smooth)
     }
     notifyListeners();
   }
