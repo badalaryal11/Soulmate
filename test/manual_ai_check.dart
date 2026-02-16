@@ -17,17 +17,17 @@ Future<void> main() async {
   }
 
   if (token == null || token.isEmpty) {
-    print('Error: HF_API_TOKEN not found in .env');
+    stderr.writeln('Error: HF_API_TOKEN not found in .env');
     return; // Cannot test without token
   }
 
-  print('Using Token: ${token.substring(0, 4)}...');
+  stdout.writeln('Using Token: ${token.substring(0, 4)}...');
 
   const modelId = 'microsoft/Phi-3.5-mini-instruct';
   const modelUrl = 'https://router.huggingface.co/v1/chat/completions';
 
-  print('Testing Model: $modelId');
-  print('URL: $modelUrl');
+  stdout.writeln('Testing Model: $modelId');
+  stdout.writeln('URL: $modelUrl');
 
   final messages = [
     {'role': 'system', 'content': 'You are a helpful assistant.'},
@@ -53,9 +53,9 @@ Future<void> main() async {
         )
         .timeout(const Duration(seconds: 10));
 
-    print('Response Status: ${response.statusCode}');
-    print('Response Body: ${response.body}');
+    stdout.writeln('Response Status: ${response.statusCode}');
+    stdout.writeln('Response Body: ${response.body}');
   } catch (e) {
-    print('Error: $e');
+    stderr.writeln('Error: $e');
   }
 }
