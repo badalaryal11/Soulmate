@@ -23,8 +23,8 @@ class _HomeTabState extends State<HomeTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<UserProvider>(context, listen: false);
       if (provider.filteredUsers.isNotEmpty) {
-        // Pre-cache the first 5 images immediately
-        for (int i = 0; i < 5 && i < provider.filteredUsers.length; i++) {
+        // Pre-cache the first 8 images immediately
+        for (int i = 0; i < 8 && i < provider.filteredUsers.length; i++) {
           _precacheUserImage(context, provider.filteredUsers[i]);
         }
       }
@@ -144,8 +144,8 @@ class _HomeTabState extends State<HomeTab> {
                     // and `currentIndex + 3` (just in case).
 
                     if (currentIndex != null) {
-                      // Aggressive Pre-caching: Look ahead 5 cards
-                      for (int i = 1; i <= 5; i++) {
+                      // Aggressive Pre-caching: Look ahead 8 cards
+                      for (int i = 1; i <= 8; i++) {
                         final nextIndex = currentIndex + i;
                         if (nextIndex < provider.filteredUsers.length) {
                           _precacheUserImage(
@@ -205,7 +205,10 @@ class _HomeTabState extends State<HomeTab> {
       // 1. `ResizeImage` handles the `memCacheWidth` (Memory Cache).
       // 2. `CachedNetworkImageProvider` props handle `maxWidthDiskCache` (Disk Cache).
       precacheImage(
-        ResizeImage(CachedNetworkImageProvider(url, maxWidth: 350), width: 350),
+        ResizeImage(
+          CachedNetworkImageProvider(url, maxWidth: 300, maxHeight: 450),
+          width: 300,
+        ),
         context,
       );
     }

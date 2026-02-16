@@ -320,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: FontAwesomeIcons.apple,
                           label: 'Sign In with Apple',
                           color: Colors.black,
-                          onTap: () {},
+                          onTap: _isLoading ? () {} : _handleAppleLogin,
                         ),
                       ],
                     ),
@@ -384,6 +384,57 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleAppleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await _authService.signInWithApple();
+
+      if (credential != null && credential.user != null) {
+        final firebaseUser = credential.user!;
+
+        // Check if user exists in Firestore
+        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
+
+        if (existingUser == null) {
+          // New user — redirect to Create Profile
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => CreateProfileScreen(
+                firebaseUser: firebaseUser,
+                databaseService: _databaseService,
+              ),
+            ),
+          );
+        } else {
+          // Existing user — proceed to Gender Selection
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const GenderSelectionScreen(),
+            ),
+          );
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Apple Sign-In was cancelled.')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Apple Login Error: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Apple Sign-In failed: $e')));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

@@ -54,6 +54,7 @@ dependencies:
   image_picker: ^1.2.1
   firebase_storage: ^13.0.6
   path: ^1.9.0
+  sign_in_with_apple: ^7.0.1
 
 dev_dependencies:
   flutter_test:

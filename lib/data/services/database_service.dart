@@ -273,19 +273,29 @@ class DatabaseService {
   // Delete Chat
   Future<void> deleteChat(String chatId) async {
     try {
-      // 1. Delete all messages in the subcollection
+      // 1. Batch delete all messages in the subcollection
       final messages = await _firestore
           .collection('chats')
           .doc(chatId)
           .collection('messages')
           .get();
 
+      // Firestore batches support up to 500 operations
+      WriteBatch batch = _firestore.batch();
+      int count = 0;
       for (var doc in messages.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
+        count++;
+        if (count >= 500) {
+          await batch.commit();
+          batch = _firestore.batch();
+          count = 0;
+        }
       }
 
-      // 2. Delete the chat document itself
-      await _firestore.collection('chats').doc(chatId).delete();
+      // 2. Also delete the chat document itself
+      batch.delete(_firestore.collection('chats').doc(chatId));
+      await batch.commit();
     } catch (e) {
       debugPrint("Error deleting chat: $e");
       rethrow;
@@ -295,23 +305,41 @@ class DatabaseService {
   // Wipe All Data (Debug/Admin only)
   Future<void> wipeAllData() async {
     try {
-      // 1. Delete all Users
+      // 1. Batch delete all Users
       final users = await _firestore.collection(_usersCollection).get();
+      WriteBatch batch = _firestore.batch();
+      int count = 0;
       for (var doc in users.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
+        count++;
+        if (count >= 500) {
+          await batch.commit();
+          batch = _firestore.batch();
+          count = 0;
+        }
       }
+      await batch.commit();
 
-      // 2. Delete all Chats and Messages
+      // 2. Delete all Chats and Messages (uses batched deleteChat)
       final chats = await _firestore.collection('chats').get();
       for (var doc in chats.docs) {
         await deleteChat(doc.id);
       }
 
-      // 3. Delete all Feedback
+      // 3. Batch delete all Feedback
       final feedback = await _firestore.collection('feedback').get();
+      batch = _firestore.batch();
+      count = 0;
       for (var doc in feedback.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
+        count++;
+        if (count >= 500) {
+          await batch.commit();
+          batch = _firestore.batch();
+          count = 0;
+        }
       }
+      await batch.commit();
 
       debugPrint("All data wiped successfully.");
     } catch (e) {

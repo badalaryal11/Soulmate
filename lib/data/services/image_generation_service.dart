@@ -1,60 +1,73 @@
-import '../models/user_model.dart';
 import 'package:flutter/foundation.dart';
+import '../models/user_model.dart';
 
 class ImageGenerationService {
-  /// Generates a dynamic image URL based on the user's profile.
-  /// Uses a prompt-based image generation API (Pollinations.ai as a reliable, free, no-auth proxy for "Nanobanana").
-  /// Fast generation for feeds/cards (LoremFlickr)
+  // Source 1: xsgames.co (High quality, ~50KB per image, 500x500+)
+  static const String _xsgamesBase =
+      'https://xsgames.co/randomusers/assets/avatars';
+
+  // Source 2: randomuser.me (Low res 128x128 but reliable)
+  static const String _randomUserBase = 'https://randomuser.me/api/portraits';
+
+  /// Generates a profile image URL.
+  /// Randomly distributes users between xsgames (50%) and randomuser.me (50%)
+  /// using the user ID hash for deterministic results (so it doesn't flicker on scroll).
   static String generateProfileImageUrl(User user) {
-    final List<String> keywords = [];
-    keywords.add(user.gender.toLowerCase());
-    keywords.add('portrait');
-    if (user.interests.isNotEmpty) {
-      keywords.add(user.interests.first.toLowerCase());
-    }
-
-    final String keywordString = keywords.join(',');
-    final int lock = user.id.hashCode.abs() % 10000;
-
-    return 'https://loremflickr.com/350/525/$keywordString?lock=$lock';
+    // 50/50 split based on ID
+    final bool useXsGames = user.id.hashCode.abs() % 2 == 0;
+    return useXsGames
+        ? _generateXsGamesUrl(user)
+        : _generateRandomUserUrl(user);
   }
 
-  /// High-quality generation for user profile (LoremFlickr with specific keywords)
+  /// Returns the alternate URL validation source in case the primary fails.
+  static String getFallbackUrl(User user, String failedUrl) {
+    if (failedUrl.contains('xsgames.co')) {
+      return _generateRandomUserUrl(user);
+    } else {
+      return _generateXsGamesUrl(user);
+    }
+  }
+
+  static String _generateXsGamesUrl(User user) {
+    final String genderFolder = _getXsGamesGenderFolder(user.gender);
+    // xsgames 0-75 safe range
+    final int index = user.id.hashCode.abs() % 76;
+    return '$_xsgamesBase/$genderFolder/$index.jpg';
+  }
+
+  static String _generateRandomUserUrl(User user) {
+    final String genderFolder = _getRandomUserGenderFolder(user.gender);
+    // randomuser 0-99 range
+    final int index = user.id.hashCode.abs() % 100;
+    return '$_randomUserBase/$genderFolder/$index.jpg';
+  }
+
+  // --- Helpers ---
+
+  static String _getXsGamesGenderFolder(String gender) {
+    final g = gender.toLowerCase();
+    if (g == 'male' || g == 'man') return 'male';
+    if (g == 'female' || g == 'woman') return 'female';
+    return 'male';
+  }
+
+  static String _getRandomUserGenderFolder(String gender) {
+    final g = gender.toLowerCase();
+    if (g == 'male' || g == 'man') return 'men';
+    if (g == 'female' || g == 'woman') return 'women';
+    return 'men';
+  }
+
+  /// High-quality portrait — picks a different image for variety (using xsgames).
   static String generateHighQualityPortrait(User user) {
     try {
-      final List<String> keywords = [];
-
-      // Gender-specific keywords for better results
-      if (user.gender.toLowerCase() == 'male' ||
-          user.gender.toLowerCase() == 'man') {
-        keywords.add('handsome');
-        keywords.add('boy');
-        keywords.add('man');
-      } else if (user.gender.toLowerCase() == 'female' ||
-          user.gender.toLowerCase() == 'woman') {
-        keywords.add('beautiful');
-        keywords.add('girl');
-        keywords.add('woman');
-      } else {
-        keywords.add('portrait');
-        keywords.add('person');
-      }
-
-      // Add interests for variety
-      if (user.interests.isNotEmpty) {
-        keywords.add(user.interests.first.toLowerCase());
-      }
-
-      final String keywordString = keywords.join(',');
-
-      // Use timestamp as lock to ensure a NEW image on every click
-      final int lock = DateTime.now().millisecondsSinceEpoch % 10000;
-
-      // Request a high-quality resolution
-      return 'https://loremflickr.com/800/1200/$keywordString?lock=$lock';
+      final String genderFolder = _getXsGamesGenderFolder(user.gender);
+      final int index = DateTime.now().millisecondsSinceEpoch % 76;
+      return '$_xsgamesBase/$genderFolder/$index.jpg';
     } catch (e) {
       debugPrint('Error generating HQ image URL: $e');
-      return generateProfileImageUrl(user); // Fallback to fast
+      return generateProfileImageUrl(user);
     }
   }
 }

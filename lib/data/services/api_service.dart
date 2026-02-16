@@ -1,10 +1,34 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http; // Kept to avoid breaking imports
+import 'package:flutter/foundation.dart'; // For compute
+import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 
+// Top-level function for compute
+List<User> parseDummyJsonUsers(String responseBody) {
+  final Map<String, dynamic> data = json.decode(responseBody);
+  final List<dynamic> usersData = data['users'];
+  return usersData.map((json) {
+    final user = User.fromDummyJson(json);
+    // Replace DummyJSON image with high-quality generated one
+    return user.copyWith(
+      imageUrl: ImageGenerationService.generateProfileImageUrl(user),
+    );
+  }).toList();
+}
+
+// Top-level function for compute
+List<User> parseRandomUserMeUsers(String responseBody) {
+  final Map<String, dynamic> data = json.decode(responseBody);
+  final List<dynamic> usersData = data['results'];
+  return usersData.map((json) => User.fromRandomUser(json)).toList();
+}
+
 class ApiService {
+  // Shared HTTP client for connection reuse
+  static final http.Client _client = http.Client();
+
   // Base URL is kept but unused in this local-only mode
   static const String _dummyJsonUrl = 'https://dummyjson.com/users';
   static const String _randomUserUrl = 'https://randomuser.me/api/';
@@ -53,20 +77,13 @@ class ApiService {
         }
 
         developer.log('Fetching DummyJSON users: $url');
-        final response = await http
+        final response = await _client
             .get(Uri.parse(url))
             .timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {
-          final Map<String, dynamic> data = json.decode(response.body);
-          final List<dynamic> usersData = data['users'];
-          return usersData.map((json) {
-            final user = User.fromDummyJson(json);
-            // Replace DummyJSON image with high-quality generated one
-            return user.copyWith(
-              imageUrl: ImageGenerationService.generateProfileImageUrl(user),
-            );
-          }).toList();
+          // Offload parsing to background isolate
+          return await compute(parseDummyJsonUsers, response.body);
         } else {
           if (response.statusCode >= 400 && response.statusCode < 500) {
             return [];
@@ -100,14 +117,13 @@ class ApiService {
         }
 
         developer.log('Fetching RandomUser.me users: $url');
-        final response = await http
+        final response = await _client
             .get(Uri.parse(url))
             .timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {
-          final Map<String, dynamic> data = json.decode(response.body);
-          final List<dynamic> usersData = data['results'];
-          return usersData.map((json) => User.fromRandomUser(json)).toList();
+          // Offload parsing to background isolate
+          return await compute(parseRandomUserMeUsers, response.body);
         } else {
           if (response.statusCode >= 400 && response.statusCode < 500) {
             return [];

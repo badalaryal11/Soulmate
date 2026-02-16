@@ -9,6 +9,10 @@ import '../../data/services/image_generation_service.dart';
 enum UserStatus { initial, loading, loaded, error }
 
 class UserProvider extends ChangeNotifier {
+  // Memory caps to prevent unbounded growth
+  static const int _maxUsers = 200;
+  static const int _maxImageUrls = 300;
+
   final UserRepository _userRepository;
   final AuthService _authService;
   final DatabaseService _databaseService;
@@ -140,34 +144,8 @@ class UserProvider extends ChangeNotifier {
         int retryCount = 0;
         while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
           // Regeneration strategy:
-          // 1. If it's a loremflickr URL with a lock, increment the lock.
-          // 2. Otherwise, use ImageGenerationService with a salt (simulated by appending/modifying lock).
-
-          if (finalUrl.contains('loremflickr.com') &&
-              finalUrl.contains('lock=')) {
-            final uri = Uri.parse(finalUrl);
-            final queryParams = Map<String, String>.from(uri.queryParameters);
-            int lock = int.tryParse(queryParams['lock'] ?? '0') ?? 0;
-            lock = (lock + 1) % 10000;
-            queryParams['lock'] = lock.toString();
-            finalUrl = uri.replace(queryParameters: queryParams).toString();
-          } else {
-            // Force a generated image with a random lock if the original (e.g. static RandomUser) is a dupe
-            // This converts a duplicate real photo into a unique generated one.
-            // We simply append a random lock or generate one.
-            // Let's use ImageGenerationService logic but inject a random modifier?
-            // Actually easier to just manually construct a loremflickr url with a random lock.
-            final int lock = DateTime.now().microsecondsSinceEpoch % 10000;
-            // We need keywords. simpler to just call the service and modify the result.
-            String tempUrl = ImageGenerationService.generateProfileImageUrl(
-              user,
-            );
-            if (tempUrl.contains('lock=')) {
-              finalUrl = tempUrl.replaceAll(RegExp(r'lock=\d+'), 'lock=$lock');
-            } else {
-              finalUrl = '$tempUrl?lock=$lock';
-            }
-          }
+          // Use ImageGenerationService fallback to get an alternative URL
+          finalUrl = ImageGenerationService.getFallbackUrl(user, finalUrl);
           retryCount++;
         }
 
@@ -176,6 +154,17 @@ class UserProvider extends ChangeNotifier {
       }
 
       _users.addAll(uniqueUsers);
+
+      // Trim old entries if exceeding memory cap
+      if (_users.length > _maxUsers) {
+        _users.removeRange(0, _users.length - _maxUsers);
+      }
+      if (_usedImageUrls.length > _maxImageUrls) {
+        final urlList = _usedImageUrls.toList();
+        _usedImageUrls.clear();
+        _usedImageUrls.addAll(urlList.skip(urlList.length - _maxImageUrls));
+      }
+
       _updateFilteredUsers();
 
       // If we were in a loading state, mark as loaded

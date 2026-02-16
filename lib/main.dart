@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,13 @@ void main() async {
     debugPrint("Error loading .env file: $e");
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Configure Firestore cache to prevent unbounded local storage growth
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
+  );
+
   await NotificationService().initialize();
   runApp(const SoulmateApp());
 }
@@ -48,7 +56,7 @@ class SoulmateApp extends StatefulWidget {
   State<SoulmateApp> createState() => _SoulmateAppState();
 }
 
-class _SoulmateAppState extends State<SoulmateApp> {
+class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
@@ -56,13 +64,35 @@ class _SoulmateAppState extends State<SoulmateApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initDeepLinks();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        // App is backgrounded — Firestore listeners auto-pause,
+        // image cache is managed by CachedNetworkImage
+        debugPrint('App lifecycle: $state — resources paused');
+        break;
+      case AppLifecycleState.resumed:
+        debugPrint('App lifecycle: resumed — resources active');
+        break;
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        debugPrint('App lifecycle: $state');
+        break;
+    }
   }
 
   Future<void> _initDeepLinks() async {
