@@ -45,6 +45,7 @@ class ProfileCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     // Optimization: Match cache width to requested image width (350).
                     memCacheWidth: 350,
+                    maxWidthDiskCache: 350,
                     // Optimization: Instant appearance (no fade-in) for faster "feel"
                     fadeInDuration: Duration.zero,
                     fadeOutDuration: Duration.zero,

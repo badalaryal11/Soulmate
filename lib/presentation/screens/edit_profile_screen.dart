@@ -177,6 +177,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: url,
+                              memCacheWidth: 200, // Optimize for grid item
+                              maxWidthDiskCache: 200,
                               placeholder: (context, url) => const Padding(
                                 padding: EdgeInsets.all(20.0),
                                 child: CircularProgressIndicator(
@@ -368,6 +370,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 : (_currentUser!.imageUrl.isNotEmpty
                                           ? CachedNetworkImageProvider(
                                               _currentUser!.imageUrl,
+                                              maxWidth:
+                                                  300, // Optimize for 120px display (Radius 60 * 2)
                                             )
                                           : null)
                                       as ImageProvider?),

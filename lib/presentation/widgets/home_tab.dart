@@ -199,7 +199,15 @@ class _HomeTabState extends State<HomeTab> {
     }
 
     if (url != null && url.isNotEmpty) {
-      precacheImage(CachedNetworkImageProvider(url), context);
+      // PROPER OPTIMIZATION:
+      // Match the `ProfileCard` cache configuration EXACTLY.
+      // ProfileCard uses `memCacheWidth: 350` and (now) `maxWidthDiskCache: 350`.
+      // 1. `ResizeImage` handles the `memCacheWidth` (Memory Cache).
+      // 2. `CachedNetworkImageProvider` props handle `maxWidthDiskCache` (Disk Cache).
+      precacheImage(
+        ResizeImage(CachedNetworkImageProvider(url, maxWidth: 350), width: 350),
+        context,
+      );
     }
   }
 }
