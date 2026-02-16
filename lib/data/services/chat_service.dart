@@ -9,8 +9,14 @@ class ChatService {
   //https://huggingface.co/settings/tokens
   static String get _apiToken => dotenv.env['HF_API_TOKEN'] ?? '';
 
-  // Using Llama 3.2 3B Instruct (Free, Fast, Reliable)
-  static const String _modelId = 'meta-llama/Llama-3.2-3B-Instruct';
+  // List of models to try in order (Fallback mechanism)
+  static const List<String> _models = [
+    'meta-llama/Llama-3.2-3B-Instruct', // Primary: Fast, reliable
+    'microsoft/Phi-3.5-mini-instruct', // Backup 1: Very fast
+    'HuggingFaceH4/zephyr-7b-beta', // Backup 2: Good quality
+    'google/gemma-2-9b-it', // Backup 3: High quality
+  ];
+
   static const String _modelUrl =
       'https://router.huggingface.co/v1/chat/completions';
 
@@ -21,49 +27,63 @@ class ChatService {
       return "Error: No internet connection.";
     }
 
-    try {
-      debugPrint("Sending request to $_modelUrl");
-      debugPrint("Token available: ${_apiToken.isNotEmpty}");
+    String lastError = "Unknown Error";
 
-      final response = await http.post(
-        Uri.parse(_modelUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          // OpenAI compatible payload
-          'model': _modelId,
-          'messages': messages,
-          'max_tokens': 500,
-          'temperature': 0.7,
-          'stream': false,
-        }),
-      );
+    // Try each model in order
+    for (final modelId in _models) {
+      try {
+        debugPrint(
+          "Attempting to send request to $_modelUrl using model: $modelId",
+        );
 
-      debugPrint("Response Status: ${response.statusCode}");
-      debugPrint("Response Body: ${response.body}");
+        final response = await http.post(
+          Uri.parse(_modelUrl),
+          headers: {
+            'Authorization': 'Bearer $_apiToken',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'model': modelId,
+            'messages': messages,
+            'max_tokens': 500,
+            'temperature': 0.7,
+            'stream': false,
+          }),
+        );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> result = jsonDecode(response.body);
-        if (result['choices'] != null &&
-            result['choices'].isNotEmpty &&
-            result['choices'][0]['message'] != null) {
-          return result['choices'][0]['message']['content'].toString().trim();
+        debugPrint("Response Status ($modelId): ${response.statusCode}");
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> result = jsonDecode(response.body);
+          if (result['choices'] != null &&
+              result['choices'].isNotEmpty &&
+              result['choices'][0]['message'] != null) {
+            return result['choices'][0]['message']['content'].toString().trim();
+          }
         }
-        return "I'm not sure what to say.";
-      } else if (response.statusCode == 503) {
-        return "The model is warming up... please try again in 10s.";
-      } else if (response.statusCode == 401) {
-        return "Error: Unauthorized. Check API Token.";
-      } else if (response.statusCode == 410) {
-        return "Error: Model not available (410).";
-      } else {
-        return "Error: AI Service Error (${response.statusCode}): ${response.body}";
+
+        // If we get here, this model failed (non-200 or bad format).
+        // Capture error and continue to next model.
+        if (response.statusCode == 503) {
+          lastError = "Model $modelId is loading (503)";
+        } else if (response.statusCode == 401) {
+          // If unauthorized, valid for all models likely, but let's try others just in case
+          // usually token issue though.
+          lastError = "Unauthorized (401)";
+          break; // Don't retry if token is bad
+        } else {
+          lastError =
+              "Error ($modelId): ${response.statusCode} - ${response.body}";
+        }
+
+        debugPrint("Model $modelId failed: $lastError. Trying next...");
+      } catch (e) {
+        debugPrint('Chat Service Error ($modelId): $e');
+        lastError = "Exception: $e";
       }
-    } catch (e) {
-      debugPrint('Chat Service Error: $e');
-      return "Error: $e";
     }
+
+    // If we exhausted all models
+    return "AI Service Unavailable. Last error: $lastError";
   }
 }

@@ -23,7 +23,7 @@ Future<void> main() async {
 
   print('Using Token: ${token.substring(0, 4)}...');
 
-  const modelId = 'meta-llama/Llama-3.2-3B-Instruct';
+  const modelId = 'microsoft/Phi-3.5-mini-instruct';
   const modelUrl = 'https://router.huggingface.co/v1/chat/completions';
 
   print('Testing Model: $modelId');
