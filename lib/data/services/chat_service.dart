@@ -9,8 +9,8 @@ class ChatService {
   //https://huggingface.co/settings/tokens
   static String get _apiToken => dotenv.env['HF_API_TOKEN'] ?? '';
 
-  // Using Qwen 2.5 72B Instruct (Ungated, widely supported on Router)
-  static const String _modelId = 'Qwen/Qwen2.5-72B-Instruct';
+  // Using Llama 3.2 3B Instruct (Free, Fast, Reliable)
+  static const String _modelId = 'meta-llama/Llama-3.2-3B-Instruct';
   static const String _modelUrl =
       'https://router.huggingface.co/v1/chat/completions';
 
@@ -59,7 +59,7 @@ class ChatService {
       } else if (response.statusCode == 410) {
         return "Error: Model not available (410).";
       } else {
-        return "Error: AI Service Error (${response.statusCode})";
+        return "Error: AI Service Error (${response.statusCode}): ${response.body}";
       }
     } catch (e) {
       debugPrint('Chat Service Error: $e');
