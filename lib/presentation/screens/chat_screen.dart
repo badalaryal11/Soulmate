@@ -511,6 +511,9 @@ class _ChatScreenState extends State<ChatScreen> {
       // History is descending (newest first), but API needs ascending (oldest first)
       // Reverse it
       for (var msg in history.reversed) {
+        // Exclude the message we just sent if it appears in history (to avoid duplication)
+        if (msg.id == userMessage.id) continue;
+
         apiMessages.add({
           'role': msg.senderId == _currentUserId ? 'user' : 'assistant',
           'content': msg.text,
@@ -521,21 +524,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     // 3. Add Current Message (it might not be in the history fetch yet due to race/delay)
-    // Actually, we just sent it to DB, but Firestore event consistency might be strictly causal.
-    // It's safer to explicitly add it to be sure the AI sees it as the *latest* prompt.
-    // However, if it WAS fetched in history, we'd duplicate it.
-    // Given we just did `await _databaseService.sendMessage`, it IS in the DB.
-    // But `limit: 20` might or might not pick it up depending on index latency.
-    // Simplest robust way:
-    // Filter out the *current* message ID if it appears in history to avoid duplication, then append it.
-
-    // Removing potential duplicate of the message we just sent
-    // (We just generated userMessage.id)
-    apiMessages.removeWhere(
-      (m) => m['content'] == userMessageText && m['role'] == 'user',
-    );
-
-    // Re-add the current message at the very end to ensure it's the trigger
+    // 3. Add Current Message (it might not be in the history fetch yet due to race/delay)
+    // We explicitly add it to ensure the AI sees it as the *latest* prompt.
     apiMessages.add({'role': 'user', 'content': userMessageText});
 
     // Send to Chat Service
