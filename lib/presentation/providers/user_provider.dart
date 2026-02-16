@@ -31,6 +31,9 @@ class UserProvider extends ChangeNotifier {
   UserStatus get status => _status;
   String? get errorMessage => _errorMessage;
 
+  int _filterRevision = 0;
+  int get filterRevision => _filterRevision;
+
   List<String> _currentUserInterests = [];
   String? _selectedGender;
   User? _currentUser;
@@ -63,6 +66,7 @@ class UserProvider extends ChangeNotifier {
     _minAge = min;
     _maxAge = max;
     _updateFilteredUsers();
+    _filterRevision++; // Force swiper reset
     notifyListeners();
   }
 
@@ -104,6 +108,7 @@ class UserProvider extends ChangeNotifier {
     if (clearList) {
       _users.clear();
       _filteredUsers.clear();
+      _filterRevision++; // Force swiper reset on full reload/filter change
     }
 
     // Optimization: Silent loading

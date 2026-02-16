@@ -10,17 +10,59 @@ import '../unit/providers/user_provider_test.mocks.dart';
 
 // Manual Mock for UserProvider
 class MockUserProvider extends ChangeNotifier implements UserProvider {
-  @override
-  UserStatus status = UserStatus.loaded;
+  UserStatus _status = UserStatus.initial;
+  String? _errorMessage;
+  List<model.User> _users = [];
+  List<model.User> _filteredUsers = [];
+  List<model.User> _matches = [];
 
   @override
-  List<model.User> users = [];
+  UserStatus get status => _status;
+
+  set status(UserStatus value) {
+    _status = value;
+    notifyListeners();
+  }
 
   @override
-  List<model.User> filteredUsers = [];
+  String? get errorMessage => _errorMessage;
+
+  set errorMessage(String? value) {
+    _errorMessage = value;
+    notifyListeners();
+  }
 
   @override
-  List<model.User> matches = [];
+  List<model.User> get users => _users;
+
+  set users(List<model.User> value) {
+    _users = value;
+    notifyListeners();
+  }
+
+  @override
+  List<model.User> get filteredUsers => _filteredUsers;
+
+  set filteredUsers(List<model.User> value) {
+    _filteredUsers = value;
+    notifyListeners();
+  }
+
+  @override
+  List<model.User> get matches => _matches;
+
+  set matches(List<model.User> value) {
+    _matches = value;
+    notifyListeners();
+  }
+
+  @override
+  int get filterRevision => 0;
+
+  void setStatus(UserStatus status) {
+    _status = status;
+    notifyListeners();
+  }
 
   @override
   double minAge = 18;
@@ -30,9 +72,6 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   String? selectedGender = 'everyone';
-
-  @override
-  String? errorMessage;
 
   @override
   List<String> currentUserInterests = [];

@@ -111,6 +111,7 @@ class _HomeTabState extends State<HomeTab> {
             children: [
               Expanded(
                 child: CardSwiper(
+                  key: ValueKey(provider.filterRevision),
                   controller: widget.controller,
                   cardsCount: provider.filteredUsers.length,
                   numberOfCardsDisplayed: provider.filteredUsers.length < 3
