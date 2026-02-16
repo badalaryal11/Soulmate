@@ -226,17 +226,31 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 );
               },
-              child: CircleAvatar(
-                backgroundImage: widget.user.imageUrl.startsWith('assets/')
-                    ? AssetImage(widget.user.imageUrl) as ImageProvider
-                    : CachedNetworkImageProvider(
-                        ImageGenerationService.generateProfileImageUrl(
-                          widget.user,
-                        ),
-                        maxHeight: 100, // Optimize memory usage
-                        maxWidth: 100,
+              child: ClipOval(
+                child: widget.user.imageUrl.startsWith('assets/')
+                    ? Image.asset(
+                        widget.user.imageUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      )
+                    : CachedNetworkImage(
+                        imageUrl:
+                            (widget.user.imageUrl.isNotEmpty &&
+                                !widget.user.imageUrl.startsWith('assets/'))
+                            ? widget.user.imageUrl
+                            : ImageGenerationService.generateProfileImageUrl(
+                                widget.user,
+                              ),
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 100,
+                        placeholder: (context, url) =>
+                            Container(color: Colors.grey[200]),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
-                radius: 20,
               ),
             ),
             const SizedBox(width: 10),

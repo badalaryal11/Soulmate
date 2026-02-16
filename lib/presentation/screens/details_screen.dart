@@ -27,11 +27,28 @@ class DetailsScreen extends StatelessWidget {
                       },
                     )
                   : CachedNetworkImage(
-                      imageUrl: ImageGenerationService.generateProfileImageUrl(
-                        user,
-                      ),
+                      imageUrl:
+                          (user.imageUrl.isNotEmpty &&
+                              !user.imageUrl.startsWith('assets/'))
+                          ? user.imageUrl
+                          : ImageGenerationService.generateProfileImageUrl(
+                              user,
+                            ),
                       fit: BoxFit.cover,
-                      memCacheWidth: 1000,
+                      memCacheWidth:
+                          1000, // Keep high res for details, but use same URL
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFFFE3C72),
+                            ),
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                     ),
             ),
           ),
