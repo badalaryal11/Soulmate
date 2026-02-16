@@ -10,6 +10,9 @@ import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/data/services/auth_service.dart';
 import 'package:soulmate/data/services/database_service.dart';
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
+import 'package:soulmate/data/services/daily_picks_service.dart';
+import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
+import 'package:soulmate/data/models/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService? authService;
@@ -27,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<UserProvider>();
 
       // Set up match listener
@@ -40,8 +43,14 @@ class _HomeScreenState extends State<HomeScreen> {
       };
 
       if (provider.users.isEmpty) {
-        provider.loadUsers();
+        await provider.loadUsers();
       }
+
+      // DAILY PICKS FEATURE
+      if (mounted && provider.users.isNotEmpty) {
+        _checkDailyPicks(provider.users);
+      }
+
       // Ensure current user profile is loaded for Edit Profile screen
       provider.loadCurrentUser().then((_) {
         if (mounted &&
@@ -62,6 +71,30 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     });
+  }
+
+  Future<void> _checkDailyPicks(List<dynamic> users) async {
+    // Cast to List<User> safely
+    final userList = users.whereType<User>().toList();
+    if (userList.isEmpty) return;
+
+    final picks = await DailyPicksService().getDailyPicks(userList);
+    if (picks.isNotEmpty && mounted) {
+      // Using a small delay to ensure the UI is ready and it feels natural
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (context) => DailyPicksWidget(
+              users: picks,
+              onClose: () => Navigator.pop(context),
+            ),
+          );
+        }
+      });
+    }
   }
 
   int _selectedIndex = 0;

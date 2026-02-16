@@ -239,12 +239,33 @@ class MatchesScreen extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        user.firstName,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            user.firstName,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          if (user.streak > 0) ...[
+                                            const SizedBox(width: 6),
+                                            const Icon(
+                                              Icons.local_fire_department,
+                                              color: Colors.orange,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${user.streak}',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.orange,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                       const SizedBox(height: 4),
                                       Text(

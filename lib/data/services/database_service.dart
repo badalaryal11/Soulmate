@@ -145,6 +145,27 @@ class DatabaseService {
         : '${userId2}_$userId1';
   }
 
+  // Get Active Chats for User
+  Future<List<Map<String, dynamic>>> getActiveChats(String userId) async {
+    try {
+      // Use array-contains to find chats where userId is in participants
+      final snapshot = await _firestore
+          .collection('chats')
+          .where('participants', arrayContains: userId)
+          .orderBy('lastMessageTime', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      debugPrint("Error fetching active chats: $e");
+      return [];
+    }
+  }
+
   Future<void> sendMessage(String chatId, ChatMessage message) async {
     try {
       await _firestore
@@ -154,11 +175,53 @@ class DatabaseService {
           .add(message.toMap());
 
       // Update last message time in chat metadata AND increment XP
+      // STREAK LOGIC:
+      // 1. Fetch current chat data to check lastMessageTime
+      // 2. Calculate if streak should increment (if last message was yesterday)
+      // 3. Update fields
+
+      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+      int currentStreak = 0;
+      int lastTime = 0;
+
+      if (chatDoc.exists && chatDoc.data() != null) {
+        final data = chatDoc.data() as Map<String, dynamic>;
+        currentStreak = data['streak'] ?? 0;
+        lastTime = data['lastMessageTime'] ?? 0;
+      }
+
+      final now = DateTime.now();
+      final lastMsgDate = DateTime.fromMillisecondsSinceEpoch(lastTime);
+      final difference = now.difference(lastMsgDate).inHours;
+
+      // Simple streak logic:
+      // If last message was > 24h ago and < 48h ago, increment.
+      // If > 48h, reset to 1.
+      // If < 24h, keep same (unless it's a new day? Let's stick to 24h window for simplicity or just check calendar day)
+
+      // Calendar day check is better for users.
+      final isSameDay =
+          now.year == lastMsgDate.year &&
+          now.month == lastMsgDate.month &&
+          now.day == lastMsgDate.day;
+      final isYesterday =
+          now.difference(lastMsgDate).inDays == 1 ||
+          (now.day != lastMsgDate.day && difference < 48);
+
+      if (!isSameDay) {
+        if (isYesterday || currentStreak == 0) {
+          currentStreak++;
+        } else if (difference >= 48) {
+          currentStreak = 1; // Reset
+        }
+      }
+
       await _firestore.collection('chats').doc(chatId).set({
         'lastMessage': message.text,
         'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
         'participants': chatId.split('_'),
-        'xp': FieldValue.increment(1), // Increment XP
+        'xp': FieldValue.increment(1),
+        'streak': currentStreak,
       }, SetOptions(merge: true));
     } catch (e) {
       debugPrint("Error sending message: $e");

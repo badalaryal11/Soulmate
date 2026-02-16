@@ -81,10 +81,10 @@ class UserProvider extends ChangeNotifier {
       _currentUser = await _databaseService.getUser(user.uid);
       if (_currentUser != null) {
         _currentUserInterests = _currentUser!.interests;
-        // Load gender preference
         if (_currentUser!.genderPreference != null) {
           _selectedGender = _currentUser!.genderPreference;
         }
+        loadMatches(); // Load chats/matches
       }
       notifyListeners();
     }
@@ -194,6 +194,49 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadMatches() async {
+    if (_currentUser == null) return;
+
+    try {
+      final chatDocs = await _databaseService.getActiveChats(_currentUser!.id);
+      final List<User> loadedMatches = [];
+
+      for (var chat in chatDocs) {
+        final participants = List<String>.from(chat['participants'] ?? []);
+        final otherUserId = participants.firstWhere(
+          (id) => id != _currentUser!.id,
+          orElse: () => '',
+        );
+
+        if (otherUserId.isNotEmpty) {
+          // Fetch user profile
+          // Optimization: Check if we have it in _users first?
+          // Check _users list?
+          User? user;
+          try {
+            user = _users.firstWhere((u) => u.id == otherUserId);
+          } catch (e) {
+            // Not found locally
+          }
+
+          user ??= await _databaseService.getUser(otherUserId);
+
+          if (user != null) {
+            // Inject streak
+            final streak = chat['streak'] ?? 0;
+            loadedMatches.add(user.copyWith(streak: streak));
+          }
+        }
+      }
+
+      _matches.clear();
+      _matches.addAll(loadedMatches);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error loading matches: $e");
+    }
+  }
+
   int _swipeCount = 0;
   int _nextMatchThreshold = 3; // Initial low threshold for demo
 
@@ -229,6 +272,11 @@ class UserProvider extends ChangeNotifier {
       // Avoid duplicate matches
       if (!_matches.any((m) => m.id == user.id)) {
         _matches.add(user);
+
+        // Also simpler: verify if we should save this "match" to the DB so it persists?
+        // For now, let's just rely on them SENDING a message to start the persistence (chat creation).
+        // The implementation plan mainly focused on CHAT streaks, implying active chats.
+
         notifyListeners();
       }
       onMatchFound?.call(user);

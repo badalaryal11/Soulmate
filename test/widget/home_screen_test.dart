@@ -109,6 +109,9 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
     currentUser = user;
     notifyListeners();
   }
+
+  @override
+  Future<void> loadMatches() async {}
 }
 
 void main() {

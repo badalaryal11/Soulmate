@@ -11,10 +11,10 @@ class ChatService {
 
   // List of models to try in order (Fallback mechanism)
   static const List<String> _models = [
-    'meta-llama/Llama-3.2-3B-Instruct', // Primary: Fast, reliable
-    'microsoft/Phi-3.5-mini-instruct', // Backup 1: Very fast
-    'HuggingFaceH4/zephyr-7b-beta', // Backup 2: Good quality
-    'google/gemma-2-9b-it', // Backup 3: High quality
+    'microsoft/Phi-3.5-mini-instruct', // Primary: Very fast & reliable free provider
+    'meta-llama/Llama-3.2-1B-Instruct', // Backup 1: Extremely fast lighter model
+    'meta-llama/Llama-3.2-3B-Instruct', // Backup 2: Good balance
+    'google/gemma-1.1-7b-it', // Backup 3: Older but stable free model
   ];
 
   static const String _modelUrl =

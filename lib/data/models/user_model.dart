@@ -15,6 +15,7 @@ class User {
   final List<String> interests;
   final String? genderPreference;
   final String? bio;
+  final int streak;
 
   User({
     required this.id,
@@ -29,6 +30,7 @@ class User {
     required this.interests,
     this.genderPreference,
     this.bio,
+    this.streak = 0,
   });
 
   // Factory for RandomUser API
@@ -59,6 +61,7 @@ class User {
         interests: userInterests,
         bio:
             "Explorer of the world | Coffee enthusiast", // RandomUser doesn't have bio/company usually
+        streak: 0,
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -95,6 +98,7 @@ class User {
         bio: json['company']?['title'] != null
             ? '${json['company']['title']} at ${json['company']['name']}'
             : "Here to find my soulmate!",
+        streak: 0,
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -122,6 +126,7 @@ class User {
       'interests': interests,
       'genderPreference': genderPreference,
       'bio': bio,
+      'streak': streak,
     };
   }
 
@@ -140,6 +145,7 @@ class User {
       interests: List<String>.from(map['interests'] ?? []),
       genderPreference: map['genderPreference'],
       bio: map['bio'],
+      streak: map['streak'] ?? 0,
     );
   }
 
@@ -159,6 +165,7 @@ class User {
     List<String>? interests,
     String? genderPreference,
     String? bio,
+    int? streak,
   }) {
     return User(
       id: id ?? this.id,
@@ -173,6 +180,7 @@ class User {
       interests: interests ?? this.interests,
       genderPreference: genderPreference ?? this.genderPreference,
       bio: bio ?? this.bio,
+      streak: streak ?? this.streak,
     );
   }
 }
