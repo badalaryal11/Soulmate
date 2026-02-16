@@ -135,7 +135,11 @@ class MatchesScreen extends StatelessWidget {
                                   width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,
-                                  memCacheWidth: 350, // Match ProfileCard cache
+                                  memCacheWidth:
+                                      200, // Optimized for 60px display
+                                  memCacheHeight: 200,
+                                  maxWidthDiskCache: 200,
+                                  maxHeightDiskCache: 200,
                                   fadeInDuration:
                                       Duration.zero, // Instant appear
                                   fadeOutDuration: Duration.zero,
@@ -219,7 +223,10 @@ class MatchesScreen extends StatelessWidget {
                                     height: 56,
                                     fit: BoxFit.cover,
                                     memCacheWidth:
-                                        350, // Match ProfileCard cache
+                                        200, // Optimized for 56px display
+                                    memCacheHeight: 200,
+                                    maxWidthDiskCache: 200,
+                                    maxHeightDiskCache: 200,
                                     placeholder: (context, url) =>
                                         Container(color: Colors.grey[200]),
                                     errorWidget: (context, url, error) =>
