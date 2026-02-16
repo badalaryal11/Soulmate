@@ -9,16 +9,12 @@ class ChatService {
   //https://huggingface.co/settings/tokens
   static String get _apiToken => dotenv.env['HF_API_TOKEN'] ?? '';
 
-  // List of models to try in order (Fallback mechanism)
   static const List<String> _models = [
-    'microsoft/Phi-3.5-mini-instruct', // Primary: Very fast & reliable free provider
-    'meta-llama/Llama-3.2-1B-Instruct', // Backup 1: Extremely fast lighter model
-    'meta-llama/Llama-3.2-3B-Instruct', // Backup 2: Good balance
-    'google/gemma-1.1-7b-it', // Backup 3: Older but stable free model
+    'mistralai/Mistral-7B-Instruct-v0.2', // Backup 1: Older v0.2 (often more compatible than v0.3)
+    'microsoft/Phi-3-mini-4k-instruct', // Backup 2: Non-3.5 version
+    'HuggingFaceH4/zephyr-7b-beta', // Primary: The standard free tier chat model
+    'meta-llama/Llama-3.2-1B-Instruct', // Backup 3: Ultimate fallback (Tiny, almost always avail)
   ];
-
-  static const String _modelUrl =
-      'https://router.huggingface.co/v1/chat/completions';
 
   Future<String> sendMessage(List<Map<String, String>> messages) async {
     // Check connectivity
@@ -27,23 +23,24 @@ class ChatService {
       return "Error: No internet connection.";
     }
 
-    String lastError = "Unknown Error";
+    final StringBuffer errorLog = StringBuffer();
 
     // Try each model in order
     for (final modelId in _models) {
       try {
-        debugPrint(
-          "Attempting to send request to $_modelUrl using model: $modelId",
+        final url = Uri.parse(
+          'https://router.huggingface.co/models/$modelId/v1/chat/completions',
         );
 
+        debugPrint("Attempting to send request to $url using model: $modelId");
+
         final response = await http.post(
-          Uri.parse(_modelUrl),
+          url,
           headers: {
             'Authorization': 'Bearer $_apiToken',
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
-            'model': modelId,
             'messages': messages,
             'max_tokens': 500,
             'temperature': 0.7,
@@ -62,28 +59,36 @@ class ChatService {
           }
         }
 
-        // If we get here, this model failed (non-200 or bad format).
-        // Capture error and continue to next model.
+        // Error handling
+        String errorMsg;
         if (response.statusCode == 503) {
-          lastError = "Model $modelId is loading (503)";
+          errorMsg = "503 Loading";
         } else if (response.statusCode == 401) {
-          // If unauthorized, valid for all models likely, but let's try others just in case
-          // usually token issue though.
-          lastError = "Unauthorized (401)";
-          break; // Don't retry if token is bad
+          errorMsg = "401 Unauthorized (Check API Token)";
+          // If token is bad, no point trying other models (likely)
+          // But sometimes specific models typically fail with auth issues while others don't if they are public?
+          // The router usually enforces token for all.
+          errorLog.writeln("$modelId: $errorMsg");
+          break;
         } else {
-          lastError =
-              "Error ($modelId): ${response.statusCode} - ${response.body}";
+          try {
+            final errorJson = jsonDecode(response.body);
+            errorMsg =
+                "${response.statusCode} - ${errorJson['error']?['message'] ?? response.body}";
+          } catch (_) {
+            errorMsg = "${response.statusCode} - ${response.body}";
+          }
         }
 
-        debugPrint("Model $modelId failed: $lastError. Trying next...");
+        errorLog.writeln("$modelId: $errorMsg");
+        debugPrint("Model $modelId failed: $errorMsg. Trying next...");
       } catch (e) {
         debugPrint('Chat Service Error ($modelId): $e');
-        lastError = "Exception: $e";
+        errorLog.writeln("$modelId: Exception($e)");
       }
     }
 
     // If we exhausted all models
-    return "AI Service Unavailable. Last error: $lastError";
+    return "AI Service Unavailable. Errors:\n$errorLog";
   }
 }
