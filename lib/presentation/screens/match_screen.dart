@@ -49,7 +49,7 @@ class MatchScreen extends StatelessWidget {
               ),
               const SizedBox(width: 20),
               _Avatar(
-                imageUrl: user.imageUrl.startsWith('assets/')
+                imageUrl: user.imageUrl.isNotEmpty
                     ? user.imageUrl
                     : ImageGenerationService.generateProfileImageUrl(user),
                 isAsset: user.imageUrl.startsWith('assets/'),

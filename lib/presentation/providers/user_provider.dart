@@ -58,10 +58,11 @@ class UserProvider extends ChangeNotifier {
   void _updateFilteredUsers() {
     _filteredUsers = _users.where((user) {
       final matchesAge = user.age >= _minAge && user.age <= _maxAge;
+      final userGender = user.gender.trim().toLowerCase();
+      final selected = _selectedGender?.trim().toLowerCase();
+
       final matchesGender =
-          _selectedGender == null ||
-          _selectedGender == 'everyone' ||
-          user.gender.toLowerCase() == _selectedGender?.toLowerCase();
+          selected == null || selected == 'everyone' || userGender == selected;
       return matchesAge && matchesGender;
     }).toList();
   }

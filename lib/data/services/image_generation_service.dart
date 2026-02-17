@@ -15,6 +15,7 @@ class ImageGenerationService {
   static String generateProfileImageUrl(User user) {
     // 50/50 split based on ID
     final bool useXsGames = user.id.hashCode.abs() % 2 == 0;
+    // Ensure the index is also deterministic based on the ID for the specific service
     return useXsGames
         ? _generateXsGamesUrl(user)
         : _generateRandomUserUrl(user);
@@ -60,10 +61,14 @@ class ImageGenerationService {
   }
 
   /// High-quality portrait — picks a different image for variety (using xsgames).
+  /// High-quality portrait — picks a different image for variety (using xsgames).
+  /// NOW DETERMINISTIC: Uses a different offset from the main profile image to ensure variety but consistency.
   static String generateHighQualityPortrait(User user) {
     try {
       final String genderFolder = _getXsGamesGenderFolder(user.gender);
-      final int index = DateTime.now().millisecondsSinceEpoch % 76;
+      // Use a different seed/offset for the "high quality" variant so it's consistent for the same user
+      // but different from their main profile pic if possible.
+      final int index = (user.id.hashCode.abs() + 7) % 76;
       return '$_xsgamesBase/$genderFolder/$index.jpg';
     } catch (e) {
       debugPrint('Error generating HQ image URL: $e');

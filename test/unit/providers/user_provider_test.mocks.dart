@@ -4,12 +4,13 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
+import 'dart:io' as _i8;
 
-import 'package:cloud_firestore/cloud_firestore.dart' as _i10;
+import 'package:cloud_firestore/cloud_firestore.dart' as _i11;
 import 'package:firebase_auth/firebase_auth.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
-import 'package:soulmate/data/models/chat_message.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:soulmate/data/models/chat_message.dart' as _i10;
 import 'package:soulmate/data/models/user_model.dart' as _i5;
 import 'package:soulmate/data/repositories/user_repository.dart' as _i3;
 import 'package:soulmate/data/services/auth_service.dart' as _i6;
@@ -110,6 +111,14 @@ class MockAuthService extends _i1.Mock implements _i6.AuthService {
           as _i4.Future<_i2.UserCredential?>);
 
   @override
+  _i4.Future<_i2.UserCredential?> signInWithApple() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithApple, []),
+            returnValue: _i4.Future<_i2.UserCredential?>.value(),
+          )
+          as _i4.Future<_i2.UserCredential?>);
+
+  @override
   _i4.Future<_i2.UserCredential?> signInWithEmailAndPassword(
     String? email,
     String? password,
@@ -201,6 +210,19 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
   }
 
   @override
+  _i4.Future<String> uploadProfileImage(String? userId, _i8.File? imageFile) =>
+      (super.noSuchMethod(
+            Invocation.method(#uploadProfileImage, [userId, imageFile]),
+            returnValue: _i4.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#uploadProfileImage, [userId, imageFile]),
+              ),
+            ),
+          )
+          as _i4.Future<String>);
+
+  @override
   _i4.Future<void> saveUser(_i5.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#saveUser, [user]),
@@ -236,10 +258,26 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as _i4.Future<_i5.User?>);
 
   @override
+  _i4.Future<List<_i5.User>> getUsers({
+    String? gender,
+    String? currentUserId,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getUsers, [], {
+              #gender: gender,
+              #currentUserId: currentUserId,
+              #limit: limit,
+            }),
+            returnValue: _i4.Future<List<_i5.User>>.value(<_i5.User>[]),
+          )
+          as _i4.Future<List<_i5.User>>);
+
+  @override
   String getChatId(String? userId1, String? userId2) =>
       (super.noSuchMethod(
             Invocation.method(#getChatId, [userId1, userId2]),
-            returnValue: _i8.dummyValue<String>(
+            returnValue: _i9.dummyValue<String>(
               this,
               Invocation.method(#getChatId, [userId1, userId2]),
             ),
@@ -247,7 +285,17 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as String);
 
   @override
-  _i4.Future<void> sendMessage(String? chatId, _i9.ChatMessage? message) =>
+  _i4.Future<List<Map<String, dynamic>>> getActiveChats(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getActiveChats, [userId]),
+            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i4.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i4.Future<void> sendMessage(String? chatId, _i10.ChatMessage? message) =>
       (super.noSuchMethod(
             Invocation.method(#sendMessage, [chatId, message]),
             returnValue: _i4.Future<void>.value(),
@@ -256,33 +304,51 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as _i4.Future<void>);
 
   @override
-  _i4.Stream<_i10.DocumentSnapshot<Object?>> getChatStream(String? chatId) =>
+  _i4.Stream<_i11.DocumentSnapshot<Object?>> getChatStream(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getChatStream, [chatId]),
-            returnValue: _i4.Stream<_i10.DocumentSnapshot<Object?>>.empty(),
+            returnValue: _i4.Stream<_i11.DocumentSnapshot<Object?>>.empty(),
           )
-          as _i4.Stream<_i10.DocumentSnapshot<Object?>>);
+          as _i4.Stream<_i11.DocumentSnapshot<Object?>>);
 
   @override
-  _i4.Stream<List<_i9.ChatMessage>> getMessages(String? chatId) =>
+  _i4.Stream<List<_i10.ChatMessage>> getMessages(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getMessages, [chatId]),
-            returnValue: _i4.Stream<List<_i9.ChatMessage>>.empty(),
+            returnValue: _i4.Stream<List<_i10.ChatMessage>>.empty(),
           )
-          as _i4.Stream<List<_i9.ChatMessage>>);
+          as _i4.Stream<List<_i10.ChatMessage>>);
 
   @override
-  _i4.Future<List<_i9.ChatMessage>> getMessageHistory(
+  _i4.Future<List<_i10.ChatMessage>> getMessageHistory(
     String? chatId, {
     int? limit = 10,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getMessageHistory, [chatId], {#limit: limit}),
-            returnValue: _i4.Future<List<_i9.ChatMessage>>.value(
-              <_i9.ChatMessage>[],
+            returnValue: _i4.Future<List<_i10.ChatMessage>>.value(
+              <_i10.ChatMessage>[],
             ),
           )
-          as _i4.Future<List<_i9.ChatMessage>>);
+          as _i4.Future<List<_i10.ChatMessage>>);
+
+  @override
+  _i4.Future<void> deleteChat(String? chatId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteChat, [chatId]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> wipeAllData() =>
+      (super.noSuchMethod(
+            Invocation.method(#wipeAllData, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }
 
 /// A class which mocks [User].
@@ -326,7 +392,7 @@ class MockUser extends _i1.Mock implements _i2.User {
   String get uid =>
       (super.noSuchMethod(
             Invocation.getter(#uid),
-            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#uid)),
+            returnValue: _i9.dummyValue<String>(this, Invocation.getter(#uid)),
           )
           as String);
 
