@@ -28,6 +28,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   late TextEditingController _countryController;
 
+  String? _selectedGender;
+
   File? _imageFile;
   String? _generatedAvatarUrl;
   bool _isLoading = false;
@@ -65,6 +67,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       _cityController = TextEditingController(text: _currentUser?.city);
       _countryController = TextEditingController(text: _currentUser?.country);
+      _selectedGender = _currentUser?.gender;
 
       if (mounted) setState(() {});
     }
@@ -288,7 +291,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
         imageUrl: localDisplayImageUrl,
-        gender: _currentUser!.gender,
+        gender: _selectedGender ?? _currentUser!.gender,
         interests: _currentUser!.interests,
         genderPreference: _currentUser!.genderPreference,
         bio: _bioController.text.trim(),
@@ -422,6 +425,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Row(
                 children: [
                   Expanded(
+                    flex: 2,
                     child: _buildTextField(
                       'Age',
                       _ageController,
@@ -429,9 +433,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildTextField('City', _cityController)),
+                  Expanded(
+                    flex: 3,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedGender,
+                      decoration: InputDecoration(
+                        labelText: 'Gender',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFFE3C72),
+                          ),
+                        ),
+                      ),
+                      items: ['Male', 'Female', 'Non-binary']
+                          .map(
+                            (g) => DropdownMenuItem(value: g, child: Text(g)),
+                          )
+                          .toList(),
+                      onChanged: (val) => setState(() => _selectedGender = val),
+                    ),
+                  ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _buildTextField('City', _cityController),
               const SizedBox(height: 16),
               _buildTextField('Country', _countryController),
 
