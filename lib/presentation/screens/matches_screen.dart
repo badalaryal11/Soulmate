@@ -116,55 +116,9 @@ class MatchesScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: matches.length,
                     itemBuilder: (context, index) {
-                      final user = matches[index];
-                      return GestureDetector(
-                        onTap: () => _openChat(context, user),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Column(
-                            children: [
-                              ClipOval(
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      (user.imageUrl.isNotEmpty &&
-                                          !user.imageUrl.startsWith('assets/'))
-                                      ? user.imageUrl
-                                      : ImageGenerationService.generateProfileImageUrl(
-                                          user,
-                                        ),
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  memCacheWidth:
-                                      200, // Optimized for 60px display
-                                  memCacheHeight: 200,
-                                  maxWidthDiskCache: 200,
-                                  maxHeightDiskCache: 200,
-                                  fadeInDuration:
-                                      Duration.zero, // Instant appear
-                                  fadeOutDuration: Duration.zero,
-                                  placeholder: (context, url) => Container(
-                                    color: Colors.grey[200],
-                                    child: const Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                user.firstName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      return _MatchAvatarItem(
+                        user: matches[index],
+                        onTap: () => _openChat(context, matches[index]),
                       );
                     },
                   ),
@@ -199,92 +153,9 @@ class MatchesScreen extends StatelessWidget {
                     final user = matches[index];
                     return Column(
                       children: [
-                        InkWell(
+                        _MessageListItem(
+                          user: user,
                           onTap: () => _openChat(context, user),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 4,
-                            ),
-                            child: Row(
-                              children: [
-                                ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl:
-                                        (user.imageUrl.isNotEmpty &&
-                                            !user.imageUrl.startsWith(
-                                              'assets/',
-                                            ))
-                                        ? user.imageUrl
-                                        : ImageGenerationService.generateProfileImageUrl(
-                                            user,
-                                          ),
-                                    width: 56,
-                                    height: 56,
-                                    fit: BoxFit.cover,
-                                    memCacheWidth:
-                                        200, // Optimized for 56px display
-                                    memCacheHeight: 200,
-                                    maxWidthDiskCache: 200,
-                                    maxHeightDiskCache: 200,
-                                    placeholder: (context, url) =>
-                                        Container(color: Colors.grey[200]),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            user.firstName,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          if (user.streak > 0) ...[
-                                            const SizedBox(width: 6),
-                                            const Icon(
-                                              Icons.local_fire_department,
-                                              color: Colors.orange,
-                                              size: 16,
-                                            ),
-                                            const SizedBox(width: 2),
-                                            Text(
-                                              '${user.streak}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.orange,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Say hello!',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  color: Colors.grey[300],
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                         if (index < matches.length - 1)
                           const Divider(height: 1), // Separator
@@ -305,6 +176,143 @@ class MatchesScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ChatScreen(user: user)),
+    );
+  }
+}
+
+class _MatchAvatarItem extends StatelessWidget {
+  final User user;
+  final VoidCallback onTap;
+
+  const _MatchAvatarItem({required this.user, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          children: [
+            ClipOval(
+              child: CachedNetworkImage(
+                imageUrl:
+                    (user.imageUrl.isNotEmpty &&
+                        !user.imageUrl.startsWith('assets/'))
+                    ? user.imageUrl
+                    : ImageGenerationService.generateProfileImageUrl(user),
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                memCacheWidth: 200, // Optimized for 60px display
+                memCacheHeight: 200,
+                maxWidthDiskCache: 200,
+                maxHeightDiskCache: 200,
+                fadeInDuration: Duration.zero, // Instant appear
+                fadeOutDuration: Duration.zero,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.person, color: Colors.grey),
+                ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              user.firstName,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageListItem extends StatelessWidget {
+  final User user;
+  final VoidCallback onTap;
+
+  const _MessageListItem({required this.user, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Row(
+          children: [
+            ClipOval(
+              child: CachedNetworkImage(
+                imageUrl:
+                    (user.imageUrl.isNotEmpty &&
+                        !user.imageUrl.startsWith('assets/'))
+                    ? user.imageUrl
+                    : ImageGenerationService.generateProfileImageUrl(user),
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                memCacheWidth: 200, // Optimized for 56px display
+                memCacheHeight: 200,
+                maxWidthDiskCache: 200,
+                maxHeightDiskCache: 200,
+                placeholder: (context, url) =>
+                    Container(color: Colors.grey[200]),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        user.firstName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (user.streak > 0) ...[
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.local_fire_department,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${user.streak}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Say hello!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey[300]),
+          ],
+        ),
+      ),
     );
   }
 }

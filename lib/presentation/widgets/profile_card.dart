@@ -170,28 +170,10 @@ class ProfileCard extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
-                      children: user.interests.take(3).map((interest) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Text(
-                            interest,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      children: user.interests
+                          .take(3)
+                          .map((interest) => _InterestChip(label: interest))
+                          .toList(),
                     ),
                   ],
                 ),
@@ -207,5 +189,27 @@ class ProfileCard extends StatelessWidget {
     final url = ImageGenerationService.generateProfileImageUrl(user);
     debugPrint('Generated Image URL for ${user.firstName}: $url');
     return url;
+  }
+}
+
+class _InterestChip extends StatelessWidget {
+  final String label;
+
+  const _InterestChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
+    );
   }
 }
