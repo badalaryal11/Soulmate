@@ -42,7 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
 
+      // Ensure current user profile is loaded first to get preferences
+      await provider.loadCurrentUser();
+
       if (provider.users.isEmpty) {
+        // Load users (filters will be applied based on loaded profile)
         await provider.loadUsers();
       }
 
@@ -204,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onSelected: (bool selected) {
                           if (selected) {
                             provider.loadUsers(gender: 'male', clearList: true);
+                            _updateGenderPreference('male');
                           }
                         },
                       ),
@@ -216,6 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               gender: 'female',
                               clearList: true,
                             );
+                            _updateGenderPreference('female');
                           }
                         },
                       ),
@@ -230,6 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               gender: 'everyone',
                               clearList: true,
                             );
+                            _updateGenderPreference('everyone');
                           }
                         },
                       ),
@@ -297,6 +304,18 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void _updateGenderPreference(String gender) {
+    // Determine the value to save: 'male', 'female', or null (for everyone)
+    final valueToSave = gender == 'everyone' ? null : gender;
+
+    final user = AuthService().currentUser;
+    if (user != null) {
+      DatabaseService().updateUserField(user.uid, {
+        'genderPreference': valueToSave,
+      });
+    }
   }
 }
 
