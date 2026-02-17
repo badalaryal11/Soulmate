@@ -201,13 +201,12 @@ class _HomeTabState extends State<HomeTab> {
     if (url != null && url.isNotEmpty) {
       // PROPER OPTIMIZATION:
       // Match the `ProfileCard` cache configuration EXACTLY.
-      // ProfileCard uses `memCacheWidth: 350` and (now) `maxWidthDiskCache: 350`.
-      // 1. `ResizeImage` handles the `memCacheWidth` (Memory Cache).
-      // 2. `CachedNetworkImageProvider` props handle `maxWidthDiskCache` (Disk Cache).
+      // ProfileCard uses `memCacheWidth: 300`, `memCacheHeight: 450`, and `maxWidthDiskCache: 300`.
       precacheImage(
         ResizeImage(
-          CachedNetworkImageProvider(url, maxWidth: 300, maxHeight: 450),
+          CachedNetworkImageProvider(url, maxWidth: 300),
           width: 300,
+          height: 450,
         ),
         context,
       );

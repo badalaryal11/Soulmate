@@ -20,6 +20,8 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      300 * 1024 * 1024; // 300MB Cache
 
   // Enable edge-to-edge mode (moved from SplashScreen)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

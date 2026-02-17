@@ -5,10 +5,16 @@
 ## Features
 
 - **Authentication**: Secure sign-up and login using Email/Password and **Google Sign-In**.
-- **User Onboarding**: Personalized profile setup including gender selection and interest tagging.
-- **Matchmaking**: Interactive card-swiping interface to discover potential matches.
-- **Real-time Chat**: Instant messaging with matched users.
-- **User Profiles**: Detailed profiles showcasing user interests and photos.
+- **Smart Matching**:
+    - **Gender Preference**: Filter potential matches based on your interest.
+    - **Daily Picks**: Curated selection of users just for you.
+- **Interactive Home Screen**: Smooth card-swiping interface with optimized image loading.
+- **Gamified Chat**:
+    - **Relationship Levels**: Earn XP as you chat to unlock levels like "Acquaintance," "Friend," and "Soulmate."
+    - **AI Assistance**: Get conversation starters and replies tailored to your personality.
+- **User Profiles**:
+    - **Create & Edit**: Setup detailed profiles and update them anytime (including gender and interests).
+    - **AI Avatars**: Generate unique profile pictures if you don't have one handy.
 - **Modern UI/UX**: Built with Material 3 design principles, custom fonts (Poppins), and smooth animations.
 
 ## Tech Stack
