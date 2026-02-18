@@ -35,7 +35,9 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, provider, child) {
-        if (provider.status == UserStatus.loading && provider.users.isEmpty) {
+        if ((provider.status == UserStatus.loading ||
+                provider.status == UserStatus.initial) &&
+            provider.users.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
