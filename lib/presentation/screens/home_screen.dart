@@ -178,52 +178,90 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Streak Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                        Tooltip(
+                          message:
+                              'Keep your streak alive to earn more coins! 🔥',
+                          triggerMode: TooltipTriggerMode.tap,
+                          showDuration: const Duration(seconds: 4),
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.all(12),
+                          textStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            children: [
-                              const Text('🔥', style: TextStyle(fontSize: 14)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${user.streak}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text(
+                                  '🔥',
+                                  style: TextStyle(fontSize: 14),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${user.streak}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         // Coins Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                        Tooltip(
+                          message:
+                              'Log in daily to earn coins!\nBonus coins awarded for longer streaks.',
+                          triggerMode: TooltipTriggerMode.tap,
+                          showDuration: const Duration(seconds: 4),
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.all(12),
+                          textStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            children: [
-                              const Text('🪙', style: TextStyle(fontSize: 14)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${user.coins}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text(
+                                  '🪙',
+                                  style: TextStyle(fontSize: 14),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${user.coins}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
