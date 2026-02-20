@@ -49,10 +49,10 @@ class DailyPicksWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '3 special profiles picked just for you today.',
+          Text(
+            '${users.length} special profiles picked just for you today.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 16),
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
           const SizedBox(height: 32),
           SizedBox(
@@ -77,31 +77,44 @@ class DailyPicksWidget extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFFFE3C72),
-                            width: 2,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFE3C72), Color(0xFFFF655B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: const Color(
                                 0xFFFE3C72,
                               ).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
                             ),
                           ],
                         ),
-                        child: ClipOval(
-                          child: CachedNetworkImage(
-                            imageUrl: user.imageUrl,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 300,
+                        padding: const EdgeInsets.all(
+                          3,
+                        ), // gradient border width
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          padding: const EdgeInsets.all(
+                            2,
+                          ), // inner white border
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: user.imageUrl,
+                              width: 90,
+                              height: 90,
+                              fit: BoxFit.cover,
+                              memCacheWidth: 300,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         user.firstName,
                         style: const TextStyle(

@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
 import '../models/user_model.dart';
 
 class DailyPicksService {
@@ -18,8 +19,11 @@ class DailyPicksService {
       return allUsers.where((u) => storedIds.contains(u.id)).toList();
     } else {
       // Generate new picks
+      final random = math.Random();
+      final pickCount =
+          5 + random.nextInt(6); // Random number between 5 and 10 inclusive
       final shuffled = List<User>.from(allUsers)..shuffle();
-      final newPicks = shuffled.take(3).toList();
+      final newPicks = shuffled.take(pickCount).toList();
 
       // Save
       await prefs.setString(_storageKey, today);
