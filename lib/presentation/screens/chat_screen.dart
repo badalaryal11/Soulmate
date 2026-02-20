@@ -42,6 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int _xp = 0; // NEW
   String _relationshipLevel = "Stranger"; // NEW
 
+  late List<String> _availableIcebreakers;
   final List<String> _icebreakers = [
     "Two truths and a lie, go!",
     "What's your most controversial food opinion?",
@@ -54,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _availableIcebreakers = List<String>.from(_icebreakers)..shuffle();
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
       _currentUserId = currentUser.uid;
@@ -493,7 +495,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendIcebreaker() {
-    final randomStr = (List<String>.from(_icebreakers)..shuffle()).first;
+    if (_availableIcebreakers.isEmpty) {
+      _availableIcebreakers = List<String>.from(_icebreakers)..shuffle();
+    }
+    final randomStr = _availableIcebreakers.removeLast();
     _sendMessage(randomStr);
   }
 

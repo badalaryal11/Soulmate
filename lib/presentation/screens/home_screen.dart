@@ -121,12 +121,53 @@ class _HomeScreenState extends State<HomeScreen> {
               centerTitle: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.tune_rounded,
-                ), // Optimize UX with more modern icon
-                onPressed: () => _showFilterDialog(context),
-                tooltip: 'Filter Users', // Accessibility
+              leading: PopupMenuButton<String>(
+                icon: const Icon(Icons.tune_rounded),
+                tooltip: 'Preferences & Settings',
+                onSelected: (value) {
+                  if (value == 'filters') {
+                    _showFilterDialog(context);
+                  } else if (value == 'settings') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SettingsScreen(
+                          authService: widget.authService,
+                          databaseService: widget.databaseService,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                itemBuilder: (BuildContext context) {
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'filters',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('Filters'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'settings',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.settings,
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('Settings'),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
               ),
               actions: [
                 Consumer<UserProvider>(
@@ -189,23 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0, left: 8.0),
-                  child: IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SettingsScreen(
-                            authService: widget.authService,
-                            databaseService: widget.databaseService,
-                          ),
-                        ),
-                      );
-                    },
-                    tooltip: 'Settings', // Accessibility
-                  ),
-                ),
+                const SizedBox(width: 8),
               ],
             )
           : null, // Hide AppBar when not on Home tab
