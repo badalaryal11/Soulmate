@@ -86,9 +86,70 @@ class DetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'This is a sample bio for ${user.firstName}. In a real app, this data would come from the API. ${user.firstName} is from ${user.city} and enjoys meeting new people.',
+                      user.bio != null && user.bio!.isNotEmpty
+                          ? user.bio!
+                          : 'This is a sample bio for ${user.firstName}. In a real app, this data would come from the API. ${user.firstName} is from ${user.city} and enjoys meeting new people.',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
+                    if (user.prompts.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        'Profile Prompts',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...user.prompts.map(
+                        (prompt) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[50],
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey[700]!
+                                    : Colors.grey[200]!,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  prompt['question'] ?? '',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  prompt['answer'] ?? '',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     Text(
                       'Interests',

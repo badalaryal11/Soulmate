@@ -85,6 +85,63 @@ class UserProvider extends ChangeNotifier {
     if (user != null) {
       _currentUser = await _databaseService.getUser(user.uid);
       if (_currentUser != null) {
+        // Daily login logic (Streak & Coins)
+        final today = DateTime.now();
+        final lastLoginStr = _currentUser!.lastLoginDate;
+        DateTime? lastLogin;
+        if (lastLoginStr != null && lastLoginStr.isNotEmpty) {
+          lastLogin = DateTime.tryParse(lastLoginStr);
+        }
+
+        bool shouldUpdate = false;
+        int newStreak = _currentUser!.streak;
+        int newCoins = _currentUser!.coins;
+
+        if (lastLogin == null) {
+          shouldUpdate = true;
+          newStreak = 1;
+          newCoins += 10; // Initial Daily Reward
+        } else {
+          final isSameDay =
+              today.year == lastLogin.year &&
+              today.month == lastLogin.month &&
+              today.day == lastLogin.day;
+
+          if (!isSameDay) {
+            shouldUpdate = true;
+            // Check if it was yesterday
+            final yesterday = today.subtract(const Duration(days: 1));
+            final isYesterday =
+                yesterday.year == lastLogin.year &&
+                yesterday.month == lastLogin.month &&
+                yesterday.day == lastLogin.day;
+
+            if (isYesterday) {
+              newStreak++;
+            } else {
+              newStreak = 1; // Reset
+            }
+
+            // Reward formula: 10 base + streak bonus (cap at 10 bonus)
+            int streakBonus = newStreak > 10 ? 10 : newStreak;
+            newCoins += 10 + streakBonus;
+          }
+        }
+
+        if (shouldUpdate) {
+          final newLastLogin = today.toIso8601String();
+          await _databaseService.updateUserField(_currentUser!.id, {
+            'streak': newStreak,
+            'coins': newCoins,
+            'lastLoginDate': newLastLogin,
+          });
+          _currentUser = _currentUser!.copyWith(
+            streak: newStreak,
+            coins: newCoins,
+            lastLoginDate: newLastLogin,
+          );
+        }
+
         _currentUserInterests = _currentUser!.interests;
         if (_currentUser!.genderPreference != null) {
           _selectedGender = _currentUser!.genderPreference;

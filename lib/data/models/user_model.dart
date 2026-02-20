@@ -16,6 +16,10 @@ class User {
   final String? genderPreference;
   final String? bio;
   final int streak;
+  final int coins;
+  final String? lastLoginDate;
+  final List<Map<String, String>> prompts;
+  final List<String> badges;
 
   User({
     required this.id,
@@ -31,6 +35,10 @@ class User {
     this.genderPreference,
     this.bio,
     this.streak = 0,
+    this.coins = 0,
+    this.lastLoginDate,
+    this.prompts = const [],
+    this.badges = const [],
   });
 
   // Factory for RandomUser API
@@ -62,6 +70,10 @@ class User {
         bio:
             "Explorer of the world | Coffee enthusiast", // RandomUser doesn't have bio/company usually
         streak: 0,
+        coins: 0,
+        lastLoginDate: DateTime.now().toIso8601String(),
+        prompts: [],
+        badges: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -99,6 +111,10 @@ class User {
             ? '${json['company']['title']} at ${json['company']['name']}'
             : "Here to find my soulmate!",
         streak: 0,
+        coins: 0,
+        lastLoginDate: DateTime.now().toIso8601String(),
+        prompts: [],
+        badges: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -127,6 +143,10 @@ class User {
       'genderPreference': genderPreference,
       'bio': bio,
       'streak': streak,
+      'coins': coins,
+      'lastLoginDate': lastLoginDate,
+      'prompts': prompts,
+      'badges': badges,
     };
   }
 
@@ -146,6 +166,15 @@ class User {
       genderPreference: map['genderPreference'],
       bio: map['bio'],
       streak: map['streak'] ?? 0,
+      coins: map['coins'] ?? 0,
+      lastLoginDate: map['lastLoginDate'],
+      prompts: List<Map<String, String>>.from(
+        (map['prompts'] as List<dynamic>?)?.map(
+              (p) => Map<String, String>.from(p),
+            ) ??
+            [],
+      ),
+      badges: List<String>.from(map['badges'] ?? []),
     );
   }
 
@@ -166,6 +195,10 @@ class User {
     String? genderPreference,
     String? bio,
     int? streak,
+    int? coins,
+    String? lastLoginDate,
+    List<Map<String, String>>? prompts,
+    List<String>? badges,
   }) {
     return User(
       id: id ?? this.id,
@@ -181,6 +214,10 @@ class User {
       genderPreference: genderPreference ?? this.genderPreference,
       bio: bio ?? this.bio,
       streak: streak ?? this.streak,
+      coins: coins ?? this.coins,
+      lastLoginDate: lastLoginDate ?? this.lastLoginDate,
+      prompts: prompts ?? this.prompts,
+      badges: badges ?? this.badges,
     );
   }
 }

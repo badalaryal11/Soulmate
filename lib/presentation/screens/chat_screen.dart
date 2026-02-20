@@ -42,6 +42,15 @@ class _ChatScreenState extends State<ChatScreen> {
   int _xp = 0; // NEW
   String _relationshipLevel = "Stranger"; // NEW
 
+  final List<String> _icebreakers = [
+    "Two truths and a lie, go!",
+    "What's your most controversial food opinion?",
+    "If you could teleport anywhere right now, where to?",
+    "What's the best show you've watched recently?",
+    "What's a hobby you've always wanted to pick up?",
+    "What's your ideal first date?",
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -392,6 +401,36 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.centerLeft,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.casino,
+                      size: 16,
+                      color: Color(0xFFFE3C72),
+                    ),
+                    label: const Text('Send Icebreaker'),
+                    onPressed: _sendIcebreaker,
+                    backgroundColor: const Color(
+                      0xFFFE3C72,
+                    ).withValues(alpha: 0.1),
+                    labelStyle: const TextStyle(
+                      color: Color(0xFFFE3C72),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    side: BorderSide.none,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
@@ -451,6 +490,11 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void _sendIcebreaker() {
+    final randomStr = (List<String>.from(_icebreakers)..shuffle()).first;
+    _sendMessage(randomStr);
   }
 
   Future<void> _sendMessage(String text) async {

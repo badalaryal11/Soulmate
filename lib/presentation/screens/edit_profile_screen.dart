@@ -28,6 +28,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   late TextEditingController _countryController;
 
+  String? _selectedPrompt1;
+  late TextEditingController _prompt1AnswerController;
+  String? _selectedPrompt2;
+  late TextEditingController _prompt2AnswerController;
+
+  final List<String> _promptOptions = [
+    'My ideal first date is...',
+    'A shower thought I recently had...',
+    'I geek out on...',
+    'Two truths and a lie:',
+    'The quickest way to my heart is...',
+    'My most controversial opinion is...',
+  ];
+
   String? _selectedGender;
 
   File? _imageFile;
@@ -69,6 +83,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _countryController = TextEditingController(text: _currentUser?.country);
       _selectedGender = _currentUser?.gender;
 
+      _prompt1AnswerController = TextEditingController();
+      _prompt2AnswerController = TextEditingController();
+
+      if (_currentUser != null && _currentUser!.prompts.isNotEmpty) {
+        _selectedPrompt1 = _currentUser!.prompts[0]['question'];
+        _prompt1AnswerController.text =
+            _currentUser!.prompts[0]['answer'] ?? '';
+      }
+      if (_currentUser != null && _currentUser!.prompts.length > 1) {
+        _selectedPrompt2 = _currentUser!.prompts[1]['question'];
+        _prompt2AnswerController.text =
+            _currentUser!.prompts[1]['answer'] ?? '';
+      }
+
       if (mounted) setState(() {});
     }
   }
@@ -81,6 +109,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _ageController.dispose();
     _cityController.dispose();
     _countryController.dispose();
+    _prompt1AnswerController.dispose();
+    _prompt2AnswerController.dispose();
     super.dispose();
   }
 
@@ -112,6 +142,70 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = false;
       });
     });
+  }
+
+  int _calculateCompletion() {
+    if (_currentUser == null) return 0;
+    int score = 0;
+    if (_currentUser!.firstName.isNotEmpty) score += 10;
+    if (_currentUser!.lastName.isNotEmpty) score += 10;
+    if (_currentUser!.age > 0) score += 10;
+    if (_currentUser!.gender.isNotEmpty) score += 10;
+    if (_currentUser!.imageUrl.isNotEmpty) score += 20;
+    if (_currentUser!.bio != null && _currentUser!.bio!.isNotEmpty) score += 10;
+    if (_currentUser!.city.isNotEmpty && _currentUser!.country.isNotEmpty) {
+      score += 10;
+    }
+    if (_currentUser!.interests.isNotEmpty) score += 10;
+    if (_currentUser!.prompts.isNotEmpty) score += 10;
+    return score;
+  }
+
+  Widget _buildCompletionMeter() {
+    int percent = _calculateCompletion();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Profile Completion',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            Text(
+              '$percent%',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFFFE3C72),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: LinearProgressIndicator(
+            value: percent / 100.0,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation<Color>(
+              percent == 100 ? Colors.green : const Color(0xFFFE3C72),
+            ),
+            minHeight: 10,
+          ),
+        ),
+        if (percent < 100) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Complete your profile to get more matches!',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+        ],
+      ],
+    );
   }
 
   void _showAvatarSelectionSheet() {
@@ -281,6 +375,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         localDisplayImageUrl = _generatedAvatarUrl!;
       }
 
+      List<Map<String, String>> newPrompts = [];
+      if (_selectedPrompt1 != null &&
+          _prompt1AnswerController.text.isNotEmpty) {
+        newPrompts.add({
+          'question': _selectedPrompt1!,
+          'answer': _prompt1AnswerController.text.trim(),
+        });
+      }
+      if (_selectedPrompt2 != null &&
+          _prompt2AnswerController.text.isNotEmpty) {
+        newPrompts.add({
+          'question': _selectedPrompt2!,
+          'answer': _prompt2AnswerController.text.trim(),
+        });
+      }
+
       // Update User object
       final userForFirestore = User(
         id: _currentUser!.id,
@@ -295,6 +405,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         interests: _currentUser!.interests,
         genderPreference: _currentUser!.genderPreference,
         bio: _bioController.text.trim(),
+        prompts: newPrompts,
+        streak: _currentUser!.streak,
+        coins: _currentUser!.coins,
+        lastLoginDate: _currentUser!.lastLoginDate,
+        badges: _currentUser!.badges,
       );
 
       // Save to Firestore
@@ -358,6 +473,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
+              _buildCompletionMeter(),
+              const SizedBox(height: 30),
               // Profile Image
               GestureDetector(
                 onTap: _showImagePickerOptions,
@@ -497,9 +614,103 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ).then((_) => _loadUserData()); // Reload after return
                 },
               ),
+              const SizedBox(height: 30),
+
+              // Profile Prompts
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Profile Prompts',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildPromptSelector(
+                1,
+                _selectedPrompt1,
+                _prompt1AnswerController,
+                (val) => setState(() => _selectedPrompt1 = val),
+              ),
+              const SizedBox(height: 20),
+              _buildPromptSelector(
+                2,
+                _selectedPrompt2,
+                _prompt2AnswerController,
+                (val) => setState(() => _selectedPrompt2 = val),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPromptSelector(
+    int index,
+    String? selectedValue,
+    TextEditingController controller,
+    Function(String?) onChanged,
+  ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[800] : Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            dropdownColor: isDarkMode ? Colors.grey[800] : Colors.grey[50],
+            isExpanded: true,
+            initialValue: selectedValue,
+            hint: Text(
+              'Select Prompt $index',
+              style: TextStyle(
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+            decoration: const InputDecoration(border: InputBorder.none),
+            items: _promptOptions.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+          if (selectedValue != null) ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller,
+              maxLines: 2,
+              style: GoogleFonts.poppins(
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Your answer...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                  color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
