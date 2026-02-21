@@ -23,7 +23,11 @@ DO NOT:
 Use emojis occasionally mainly 😉, 😏, 🤣, 🙄 to convey tone, but don't overdo it.
 """;
 
-  static Map<String, String> generateFor(User aiUser, User humanUser) {
+  static Map<String, String> generateFor(
+    User aiUser,
+    User humanUser, {
+    String relationshipLevel = "Stranger",
+  }) {
     String aiBio =
         "You are ${aiUser.firstName}, a ${aiUser.age} year old from ${aiUser.city}, ${aiUser.country}. "
         "You are interested in ${aiUser.interests.join(', ')}. ";
@@ -31,7 +35,8 @@ Use emojis occasionally mainly 😉, 😏, 🤣, 🙄 to convey tone, but don't 
     String humanContext =
         "You are talking to ${humanUser.firstName}, a ${humanUser.age} year old from ${humanUser.city}, ${humanUser.country}. "
         "They are interested in ${humanUser.interests.join(', ')}. "
-        "Their bio says: '${humanUser.bio ?? 'No bio'}'. ";
+        "Their bio says: '${humanUser.bio ?? 'No bio'}'. \n"
+        "Current relationship level is: '$relationshipLevel'. Adjust your tone to match this level. ";
 
     return {'role': 'system', 'content': aiBio + humanContext + systemPrompt};
   }

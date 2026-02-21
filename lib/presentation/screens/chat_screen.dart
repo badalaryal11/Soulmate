@@ -40,6 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   StreamSubscription<DocumentSnapshot>? _chatSubscription; // NEW
   int _xp = 0; // NEW
+  bool _isFirstLoad = true;
   String _relationshipLevel = "Stranger"; // NEW
 
   late List<String> _availableIcebreakers;
@@ -72,7 +73,37 @@ class _ChatScreenState extends State<ChatScreen> {
           final data = snapshot.data() as Map<String, dynamic>;
           setState(() {
             _xp = data['xp'] ?? 0;
-            _relationshipLevel = _calculateLevel(_xp);
+            String newLevel = _calculateLevel(_xp);
+
+            if (!_isFirstLoad &&
+                _relationshipLevel != newLevel &&
+                newLevel == 'Soulmate') {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text(
+                        '✨ Soulmate Level Reached! ✨',
+                        textAlign: TextAlign.center,
+                      ),
+                      content: Text(
+                        'Congratulations! You and ${widget.user.firstName} are now Soulmates! 💖',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Awesome!'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              });
+            }
+
+            _relationshipLevel = newLevel;
+            _isFirstLoad = false;
           });
         }
       });
@@ -552,7 +583,13 @@ class _ChatScreenState extends State<ChatScreen> {
     List<Map<String, String>> apiMessages = [];
 
     // 1. Add System Prompt
-    apiMessages.add(DatingPersona.generateFor(widget.user, currentUser));
+    apiMessages.add(
+      DatingPersona.generateFor(
+        widget.user,
+        currentUser,
+        relationshipLevel: _relationshipLevel,
+      ),
+    );
 
     // 2. Fetch recent context (last 20 messages)
     try {
