@@ -12,7 +12,6 @@ import '../../presentation/providers/user_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/services/notification_service.dart';
 import 'details_screen.dart';
 
@@ -38,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final Uuid _uuid = const Uuid();
   bool _isTyping = false;
 
-  StreamSubscription<DocumentSnapshot>? _chatSubscription; // NEW
+  StreamSubscription<Map<String, dynamic>?>? _chatSubscription; // NEW
   int _xp = 0; // NEW
   bool _isFirstLoad = true;
   String _relationshipLevel = "Stranger"; // NEW
@@ -67,10 +66,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Listen to XP changes
       _chatSubscription = _databaseService.getChatStream(_chatId).listen((
-        snapshot,
+        data,
       ) {
-        if (snapshot.exists && snapshot.data() != null) {
-          final data = snapshot.data() as Map<String, dynamic>;
+        if (data != null) {
           setState(() {
             _xp = data['xp'] ?? 0;
             String newLevel = _calculateLevel(_xp);

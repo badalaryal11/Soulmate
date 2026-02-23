@@ -4,6 +4,9 @@ import 'package:soulmate/data/models/user_model.dart';
 import '../models/chat_message.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore;
@@ -13,6 +16,12 @@ class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _storage = storage ?? FirebaseStorage.instance;
+
+  // Local Streams for chat data
+  final Map<String, StreamController<Map<String, dynamic>?>>
+  _chatStreamControllers = {};
+  final Map<String, StreamController<List<ChatMessage>>>
+  _messageStreamControllers = {};
 
   // Upload Profile Image
   Future<String> uploadProfileImage(String userId, File imageFile) async {
@@ -148,18 +157,27 @@ class DatabaseService {
   // Get Active Chats for User
   Future<List<Map<String, dynamic>>> getActiveChats(String userId) async {
     try {
-      // Use array-contains to find chats where userId is in participants
-      final snapshot = await _firestore
-          .collection('chats')
-          .where('participants', arrayContains: userId)
-          .orderBy('lastMessageTime', descending: true)
-          .get();
+      final prefs = await SharedPreferences.getInstance();
+      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+      List<Map<String, dynamic>> userChats = [];
+      allChats.forEach((chatId, chatData) {
+        final data = chatData as Map<String, dynamic>;
+        final participants = List<String>.from(data['participants'] ?? []);
+        if (participants.contains(userId)) {
+          data['id'] = chatId;
+          userChats.add(data);
+        }
+      });
+
+      userChats.sort((a, b) {
+        final timeA = a['lastMessageTime'] as int? ?? 0;
+        final timeB = b['lastMessageTime'] as int? ?? 0;
+        return timeB.compareTo(timeA);
+      });
+
+      return userChats;
     } catch (e) {
       debugPrint("Error fetching active chats: $e");
       return [];
@@ -168,38 +186,39 @@ class DatabaseService {
 
   Future<void> sendMessage(String chatId, ChatMessage message) async {
     try {
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add(message.toMap());
+      final prefs = await SharedPreferences.getInstance();
 
-      // Update last message time in chat metadata AND increment XP
-      // STREAK LOGIC:
-      // 1. Fetch current chat data to check lastMessageTime
-      // 2. Calculate if streak should increment (if last message was yesterday)
-      // 3. Update fields
+      // Save Message
+      final messagesKey = 'chat_messages_$chatId';
+      final messagesJson = prefs.getStringList(messagesKey) ?? [];
 
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
-      int currentStreak = 0;
-      int lastTime = 0;
+      final msgMap = message.toMap();
+      msgMap['id'] = message.id; // Include ID in map for local storage
+      messagesJson.insert(
+        0,
+        jsonEncode(msgMap),
+      ); // Store newest first to match descending order
+      await prefs.setStringList(messagesKey, messagesJson);
 
-      if (chatDoc.exists && chatDoc.data() != null) {
-        final data = chatDoc.data() as Map<String, dynamic>;
-        currentStreak = data['streak'] ?? 0;
-        lastTime = data['lastMessageTime'] ?? 0;
-      }
+      // Update Stream
+      _broadcastMessages(chatId);
+
+      // Update Metadata
+      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+
+      final chatData = allChats[chatId] as Map<String, dynamic>? ?? {};
+
+      int currentStreak = chatData['streak'] ?? 0;
+      int lastTime = chatData['lastMessageTime'] ?? 0;
+      int currentXp = chatData['xp'] ?? 0;
 
       final now = DateTime.now();
-      final lastMsgDate = DateTime.fromMillisecondsSinceEpoch(lastTime);
+      final lastMsgDate = DateTime.fromMillisecondsSinceEpoch(
+        lastTime == 0 ? now.millisecondsSinceEpoch : lastTime,
+      );
       final difference = now.difference(lastMsgDate).inHours;
 
-      // Simple streak logic:
-      // If last message was > 24h ago and < 48h ago, increment.
-      // If > 48h, reset to 1.
-      // If < 24h, keep same (unless it's a new day? Let's stick to 24h window for simplicity or just check calendar day)
-
-      // Calendar day check is better for users.
       final isSameDay =
           now.year == lastMsgDate.year &&
           now.month == lastMsgDate.month &&
@@ -208,43 +227,80 @@ class DatabaseService {
           now.difference(lastMsgDate).inDays == 1 ||
           (now.day != lastMsgDate.day && difference < 48);
 
-      if (!isSameDay) {
+      if (!isSameDay && lastTime != 0) {
         if (isYesterday || currentStreak == 0) {
           currentStreak++;
         } else if (difference >= 48) {
           currentStreak = 1; // Reset
         }
+      } else if (lastTime == 0) {
+        currentStreak = 1;
       }
 
-      await _firestore.collection('chats').doc(chatId).set({
+      final updatedData = {
+        ...chatData,
         'lastMessage': message.text,
         'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
         'participants': chatId.split('_'),
-        'xp': FieldValue.increment(1),
+        'xp': currentXp + 1,
         'streak': currentStreak,
-      }, SetOptions(merge: true));
+      };
+
+      allChats[chatId] = updatedData;
+      await prefs.setString('chats_metadata', jsonEncode(allChats));
+
+      // Broadcast Metadata change
+      _broadcastChatMetadata(chatId, updatedData);
     } catch (e) {
       debugPrint("Error sending message: $e");
       rethrow;
     }
   }
 
-  Stream<DocumentSnapshot> getChatStream(String chatId) {
-    return _firestore.collection('chats').doc(chatId).snapshots();
+  void _broadcastMessages(String chatId) async {
+    if (_messageStreamControllers.containsKey(chatId)) {
+      final history = await getMessageHistory(
+        chatId,
+        limit: 10000,
+      ); // effectively all for the stream
+      _messageStreamControllers[chatId]!.add(history);
+    }
+  }
+
+  void _broadcastChatMetadata(String chatId, Map<String, dynamic>? data) {
+    if (_chatStreamControllers.containsKey(chatId)) {
+      _chatStreamControllers[chatId]!.add(data);
+    }
+  }
+
+  Stream<Map<String, dynamic>?> getChatStream(String chatId) {
+    if (!_chatStreamControllers.containsKey(chatId)) {
+      _chatStreamControllers[chatId] =
+          StreamController<Map<String, dynamic>?>.broadcast();
+    }
+
+    // Send initial value
+    SharedPreferences.getInstance().then((prefs) {
+      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+      _chatStreamControllers[chatId]!.add(
+        allChats[chatId] as Map<String, dynamic>?,
+      );
+    });
+
+    return _chatStreamControllers[chatId]!.stream;
   }
 
   Stream<List<ChatMessage>> getMessages(String chatId) {
-    return _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return ChatMessage.fromMap(doc.id, doc.data());
-          }).toList();
-        });
+    if (!_messageStreamControllers.containsKey(chatId)) {
+      _messageStreamControllers[chatId] =
+          StreamController<List<ChatMessage>>.broadcast();
+    }
+
+    // Broadcast initial history
+    _broadcastMessages(chatId);
+
+    return _messageStreamControllers[chatId]!.stream;
   }
 
   // Get recent messages for AI context
@@ -253,17 +309,20 @@ class DatabaseService {
     int limit = 10,
   }) async {
     try {
-      final snapshot = await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .get();
+      final prefs = await SharedPreferences.getInstance();
+      final messagesKey = 'chat_messages_$chatId';
+      final messagesJson = prefs.getStringList(messagesKey) ?? [];
 
-      return snapshot.docs.map((doc) {
-        return ChatMessage.fromMap(doc.id, doc.data());
+      final takeCount = messagesJson.length < limit
+          ? messagesJson.length
+          : limit;
+      final recent = messagesJson.take(takeCount).map((jsonStr) {
+        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        final id = map['id'] ?? '';
+        return ChatMessage.fromMap(id, map);
       }).toList();
+
+      return recent;
     } catch (e) {
       debugPrint("Error fetching message history: $e");
       return [];
@@ -273,29 +332,21 @@ class DatabaseService {
   // Delete Chat
   Future<void> deleteChat(String chatId) async {
     try {
-      // 1. Batch delete all messages in the subcollection
-      final messages = await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .get();
+      final prefs = await SharedPreferences.getInstance();
 
-      // Firestore batches support up to 500 operations
-      WriteBatch batch = _firestore.batch();
-      int count = 0;
-      for (var doc in messages.docs) {
-        batch.delete(doc.reference);
-        count++;
-        if (count >= 500) {
-          await batch.commit();
-          batch = _firestore.batch();
-          count = 0;
-        }
+      // Delete messages
+      await prefs.remove('chat_messages_$chatId');
+
+      // Delete metadata
+      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+      if (allChats.containsKey(chatId)) {
+        allChats.remove(chatId);
+        await prefs.setString('chats_metadata', jsonEncode(allChats));
       }
 
-      // 2. Also delete the chat document itself
-      batch.delete(_firestore.collection('chats').doc(chatId));
-      await batch.commit();
+      _broadcastChatMetadata(chatId, null);
+      _broadcastMessages(chatId);
     } catch (e) {
       debugPrint("Error deleting chat: $e");
       rethrow;
@@ -321,9 +372,12 @@ class DatabaseService {
       await batch.commit();
 
       // 2. Delete all Chats and Messages (uses batched deleteChat)
-      final chats = await _firestore.collection('chats').get();
-      for (var doc in chats.docs) {
-        await deleteChat(doc.id);
+      final prefs = await SharedPreferences.getInstance();
+      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+
+      for (var chatId in allChats.keys) {
+        await deleteChat(chatId);
       }
 
       // 3. Batch delete all Feedback
