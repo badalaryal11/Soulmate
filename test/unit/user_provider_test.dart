@@ -3,9 +3,9 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/data/repositories/user_repository.dart';
-import 'package:soulmate/data/models/user_model.dart';
-import 'package:soulmate/data/services/auth_service.dart';
-import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/data/datasources/auth_service.dart';
+import 'package:soulmate/data/datasources/database_service.dart';
 
 // Generate mocks
 @GenerateMocks([UserRepository, AuthService, DatabaseService])

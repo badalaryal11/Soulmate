@@ -6,15 +6,14 @@
 import 'dart:async' as _i3;
 import 'dart:io' as _i8;
 
-import 'package:cloud_firestore/cloud_firestore.dart' as _i11;
 import 'package:firebase_auth/firebase_auth.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:soulmate/data/models/chat_message.dart' as _i10;
-import 'package:soulmate/data/models/user_model.dart' as _i4;
+import 'package:soulmate/data/datasources/auth_service.dart' as _i5;
+import 'package:soulmate/data/datasources/database_service.dart' as _i7;
 import 'package:soulmate/data/repositories/user_repository.dart' as _i2;
-import 'package:soulmate/data/services/auth_service.dart' as _i5;
-import 'package:soulmate/data/services/database_service.dart' as _i7;
+import 'package:soulmate/domain/entities/chat_message.dart' as _i10;
+import 'package:soulmate/domain/entities/user_model.dart' as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -272,12 +271,12 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as _i3.Future<void>);
 
   @override
-  _i3.Stream<_i11.DocumentSnapshot<Object?>> getChatStream(String? chatId) =>
+  _i3.Stream<Map<String, dynamic>?> getChatStream(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getChatStream, [chatId]),
-            returnValue: _i3.Stream<_i11.DocumentSnapshot<Object?>>.empty(),
+            returnValue: _i3.Stream<Map<String, dynamic>?>.empty(),
           )
-          as _i3.Stream<_i11.DocumentSnapshot<Object?>>);
+          as _i3.Stream<Map<String, dynamic>?>);
 
   @override
   _i3.Stream<List<_i10.ChatMessage>> getMessages(String? chatId) =>

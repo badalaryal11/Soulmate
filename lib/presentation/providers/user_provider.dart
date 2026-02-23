@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import '../../data/models/user_model.dart';
+import '../../domain/entities/user_model.dart';
 import '../../data/repositories/user_repository.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
-import '../../data/services/image_generation_service.dart';
+import '../../data/datasources/auth_service.dart';
+import '../../data/datasources/database_service.dart';
+import '../../data/datasources/image_generation_service.dart';
 
 enum UserStatus { initial, loading, loaded, error }
 

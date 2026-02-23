@@ -1,4 +1,4 @@
-import '../models/user_model.dart';
+import '../../domain/entities/user_model.dart';
 
 class DatingPersona {
   static const String systemPrompt = """

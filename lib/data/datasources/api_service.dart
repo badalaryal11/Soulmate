@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // For compute
 import 'package:http/http.dart' as http;
-import '../models/user_model.dart';
+import '../../domain/entities/user_model.dart';
 import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 

@@ -12,8 +12,8 @@ import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'data/services/notification_service.dart';
-import 'data/services/auth_service.dart';
+import 'data/datasources/notification_service.dart';
+import 'data/datasources/auth_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

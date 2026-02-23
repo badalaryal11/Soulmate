@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/services/notification_service.dart';
+import '../../data/datasources/notification_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
   bool _areNotificationsEnabled = true;

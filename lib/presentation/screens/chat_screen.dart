@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../data/models/user_model.dart';
-import '../../data/models/chat_message.dart';
-import '../../data/services/chat_service.dart';
-import '../../data/services/database_service.dart';
-import '../../data/services/image_generation_service.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/config/dating_persona.dart';
+import '../../domain/entities/user_model.dart';
+import '../../domain/entities/chat_message.dart';
+import '../../data/datasources/chat_service.dart';
+import '../../data/datasources/database_service.dart';
+import '../../data/datasources/image_generation_service.dart';
+import '../../data/datasources/auth_service.dart';
+import '../../core/config/dating_persona.dart';
 import 'package:provider/provider.dart';
 import '../../presentation/providers/user_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'dart:async';
-import '../../data/services/notification_service.dart';
+import '../../data/datasources/notification_service.dart';
 import 'details_screen.dart';
 
 class ChatScreen extends StatefulWidget {

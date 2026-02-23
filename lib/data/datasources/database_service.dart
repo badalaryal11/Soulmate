@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:soulmate/data/models/user_model.dart';
-import '../models/chat_message.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
+import '../../domain/entities/chat_message.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'dart:convert';

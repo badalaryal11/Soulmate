@@ -7,12 +7,12 @@ import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
 import 'package:soulmate/presentation/screens/settings_screen.dart';
-import 'package:soulmate/data/services/auth_service.dart';
-import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/data/datasources/auth_service.dart';
+import 'package:soulmate/data/datasources/database_service.dart';
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
-import 'package:soulmate/data/services/daily_picks_service.dart';
+import 'package:soulmate/data/datasources/daily_picks_service.dart';
 import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
-import 'package:soulmate/data/models/user_model.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService? authService;
