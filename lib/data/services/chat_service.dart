@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -12,6 +13,7 @@ class ChatService {
   // API tokens loaded from .env
   static String get _hfApiToken => dotenv.env['HF_API_TOKEN'] ?? '';
   static String get _groqApiToken => dotenv.env['GROQ_API_KEY'] ?? '';
+  static String get _geminiApiToken => dotenv.env['GEMINI_API_KEY'] ?? '';
 
   // Provider configurations: each entry has a base URL, auth token, and models
   static List<Map<String, dynamic>> get _providers => [
@@ -45,7 +47,74 @@ class ChatService {
 
     final StringBuffer errorLog = StringBuffer();
 
-    // Try each provider and its models in order
+    // Try Gemini First (Very generous free tier, 15 RPM)
+    if (_geminiApiToken.isNotEmpty) {
+      debugPrint("[Gemini] Attempting model: gemini-2.5-flash");
+      try {
+        final model = GenerativeModel(
+          model: 'gemini-2.5-flash',
+          apiKey: _geminiApiToken,
+        );
+
+        // Convert format
+        final systemPrompt =
+            messages.firstWhere(
+              (m) => m['role'] == 'system',
+              orElse: () => {'content': ''},
+            )['content'] ??
+            '';
+
+        List<Content> geminiHistory = [];
+        for (var msg in messages) {
+          if (msg['role'] == 'system') continue;
+
+          final role = msg['role'] == 'assistant' ? 'model' : 'user';
+          geminiHistory.add(Content(role, [TextPart(msg['content'] ?? '')]));
+        }
+
+        // Add system instructions explicitly if supported, or just inject at start
+        // To be safe and compatible with older gemini implementations, we'll prepend system prompt to the user's first message
+        // if geminiHistory is not empty and system prompt exists
+        if (systemPrompt.isNotEmpty && geminiHistory.isNotEmpty) {
+          final firstUserMsg = geminiHistory.firstWhere(
+            (c) => c.role == 'user',
+            orElse: () => geminiHistory.first,
+          );
+          if (firstUserMsg.parts.isNotEmpty) {
+            final oldText = (firstUserMsg.parts.first as TextPart).text;
+            firstUserMsg.parts[0] = TextPart(
+              "System Instruction: $systemPrompt\n\nUser: $oldText",
+            );
+          } else {
+            geminiHistory.insert(
+              0,
+              Content('user', [TextPart("System Instruction: $systemPrompt")]),
+            );
+          }
+        }
+
+        // Separate the last message as the actual prompt, and rest as history for startChat
+        if (geminiHistory.isNotEmpty) {
+          final currentMsg = geminiHistory.removeLast();
+          final chat = model.startChat(history: geminiHistory);
+
+          final response = await chat
+              .sendMessage(currentMsg)
+              .timeout(const Duration(seconds: 30));
+          if (response.text != null && response.text!.isNotEmpty) {
+            return response.text!.trim();
+          }
+        }
+      } catch (e) {
+        debugPrint("[Gemini] Chat Service Error: $e");
+        errorLog.writeln("Gemini: Exception($e)");
+      }
+    } else {
+      debugPrint("Skipping Gemini: No API token configured.");
+      errorLog.writeln("Gemini: Skipped (no API token)");
+    }
+
+    // Try other providers and models in order if Gemini fails or is not configured
     for (final provider in _providers) {
       final String providerName = provider['name'];
       final String url = provider['url'];

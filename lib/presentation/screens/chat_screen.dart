@@ -589,11 +589,11 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
 
-    // 2. Fetch recent context (last 20 messages)
+    // 2. Fetch recent context (save tokens: use last 5 instead of 20)
     try {
       final history = await _databaseService.getMessageHistory(
         _chatId,
-        limit: 20,
+        limit: 5,
       );
       // History is descending (newest first), but API needs ascending (oldest first)
       // Reverse it
