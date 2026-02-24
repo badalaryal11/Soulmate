@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
+import '../../data/datasources/auth_service.dart';
+import '../../data/datasources/database_service.dart';
 import 'gender_selection_screen.dart'; // Navigate to this next
 
 class UserGenderSelectionScreen extends StatefulWidget {

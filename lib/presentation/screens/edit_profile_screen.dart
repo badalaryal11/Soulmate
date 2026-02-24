@@ -5,10 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'dart:io';
 
-import '../../data/models/user_model.dart';
-import '../../data/services/database_service.dart';
-import '../../data/services/storage_service.dart';
-import '../../data/services/image_generation_service.dart';
+import '../../domain/entities/user_model.dart';
+import '../../data/datasources/database_service.dart';
+import '../../data/datasources/storage_service.dart';
+import '../../data/datasources/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'interest_selection_screen.dart';
 

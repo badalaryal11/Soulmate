@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../data/constants/interests.dart';
+import '../../core/constants/interests.dart';
 import '../providers/user_provider.dart';
-import '../../data/services/auth_service.dart';
-import '../../data/services/database_service.dart';
+import '../../data/datasources/auth_service.dart';
+import '../../data/datasources/database_service.dart';
 import 'home_screen.dart';
 
 class InterestSelectionScreen extends StatefulWidget {

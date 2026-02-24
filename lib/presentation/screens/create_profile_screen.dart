@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import '../../data/models/user_model.dart';
-import '../../data/services/database_service.dart';
+import '../../domain/entities/user_model.dart';
+import '../../data/datasources/database_service.dart';
 import 'gender_selection_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:soulmate/data/models/user_model.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
 
 // Mock UserProvider to control users
 class MockUserProvider extends ChangeNotifier implements UserProvider {

@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:math';
-import '../constants/interests.dart';
+import '../../core/constants/interests.dart';
 
 class User {
   final String id;

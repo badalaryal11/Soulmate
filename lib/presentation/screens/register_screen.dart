@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/services/auth_service.dart';
+import '../../data/datasources/auth_service.dart';
 import 'create_profile_screen.dart';
 
 class RegisterScreen extends StatefulWidget {

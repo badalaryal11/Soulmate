@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/services/auth_service.dart';
+import '../../data/datasources/auth_service.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String oobCode;

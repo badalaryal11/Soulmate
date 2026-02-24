@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:soulmate/data/services/auth_service.dart';
-import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/data/datasources/auth_service.dart';
+import 'package:soulmate/data/datasources/database_service.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';

@@ -1,6 +1,6 @@
-import 'package:soulmate/data/models/user_model.dart';
-import 'package:soulmate/data/services/api_service.dart';
-import 'package:soulmate/data/services/database_service.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/data/datasources/api_service.dart';
+import 'package:soulmate/data/datasources/database_service.dart';
 
 class UserRepository {
   final ApiService _apiService;

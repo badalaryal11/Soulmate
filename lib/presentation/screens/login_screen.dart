@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:soulmate/data/services/auth_service.dart';
-import 'package:soulmate/data/services/database_service.dart';
-import 'package:soulmate/data/models/user_model.dart';
+import 'package:soulmate/data/datasources/auth_service.dart';
+import 'package:soulmate/data/datasources/database_service.dart';
+import 'package:soulmate/domain/entities/user_model.dart';
 import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
 

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soulmate/presentation/screens/home_screen.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
-import 'package:soulmate/data/models/user_model.dart' as model;
+import 'package:soulmate/domain/entities/user_model.dart' as model;
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../unit/providers/user_provider_test.mocks.dart';
 

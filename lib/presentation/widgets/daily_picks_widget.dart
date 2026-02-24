@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../data/models/user_model.dart';
+import '../../domain/entities/user_model.dart';
 import '../screens/match_screen.dart'; // Reuse MatchScreen styling or similar
 import 'package:google_fonts/google_fonts.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/user_model.dart';
+import '../../domain/entities/user_model.dart';
 
 class ImageGenerationService {
   // Source 1: xsgames.co (High quality, ~50KB per image, 500x500+)
