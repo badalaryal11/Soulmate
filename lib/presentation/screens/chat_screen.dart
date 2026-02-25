@@ -42,7 +42,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isFirstLoad = true;
   String _relationshipLevel = "Stranger"; // NEW
 
-  late List<String> _availableIcebreakers;
   final List<String> _icebreakers = [
     "Two truths and a lie, go!",
     "What's your most controversial food opinion?",
@@ -50,12 +49,131 @@ class _ChatScreenState extends State<ChatScreen> {
     "What's the best show you've watched recently?",
     "What's a hobby you've always wanted to pick up?",
     "What's your ideal first date?",
+    "If you could have dinner with any historical figure, who would it be?",
+    "What's the most unusual job you've ever had?",
+    "If you had to eat one meal for the rest of your life, what would it be?",
+    "What's the best piece of advice you've ever received?",
+    "What's a movie you can practically quote from start to finish?",
+    "If you were a superhero, what would your superpower be?",
+    "What's the most spontaneous thing you've ever done?",
+    "What's a hidden talent you have that most people don't know about?",
+    "If you could instantly become an expert in any subject, what would it be?",
+    "What's your favorite way to spend a lazy Sunday?",
+    "What's the most interesting place you've ever visited?",
+    "If your life was a movie, what genre would it be?",
+    "What's a song that always puts you in a good mood?",
+    "If you could live in any fictional universe, which one would you choose?",
+    "What's the weirdest dream you've ever had?",
+    "What's a bucket list item you're determined to tick off?",
+    "If you had a time machine, would you go to the past or the future?",
+    "What's your go-to comfort food?",
+    "What's the best gift you've ever given someone?",
+    "If you could be any animal for a day, what would you be?",
+    "What was the last thing you read that really moved you?",
+    "If you could master one instrument instantly, what would it be?",
+    "What is the most memorable prank you've ever pulled or had pulled on you?",
+    "What's a fact you learned recently that blew your mind?",
+    "If you could be any fictional character's best friend, who would it be?",
+    "Which language would you love to learn to speak fluently?",
+    "What is a childhood rule you still follow today?",
+    "What's the weirdest food combo that you secretly enjoy?",
+    "Do you believe in aliens? Why or why not?",
+    "What's the most beautiful place you've ever seen in person?",
+    "If you were stranded on a desert island, what 3 physical objects would you bring?",
+    "What was your favorite childhood toy?",
+    "If you had to describe yourself in 3 words, what would they be?",
+    "What's the best concert you've ever been to?",
+    "If you could have any job in the world without worrying about money, what would it be?",
+    "What's a small thing that instantly makes your day better?",
+    "Are you a morning person or a night owl?",
+    "What is the most irrational fear you have?",
+    "What's the most daring thing you've ever done?",
+    "If you could be guaranteed the correct answer to one question, what would you ask?",
+    "What's a skill you'd like to learn but haven't had the time for?",
+    "If you could only listen to one album for the rest of your life, what would it be?",
+    "What is the best compliment you've ever received?",
+    "If you had to switch lives with someone for a day, who would it be?",
+    "What’s the most unforgettable lesson you’ve learned from a mistake?",
+    "If you could write a book, what would it be about?",
+    "What’s your favorite quote and why?",
+    "If you could invent a new holiday, what would we celebrate?",
+    "What was the highlight of your week so far?",
+    "If your house was on fire and you could only save one item, what would it be?",
+    "What’s the most interesting documentary you’ve ever watched?",
+    "If you were a color, what color would you be and why?",
+    "What’s a trend from the past that you wish would come back?",
+    "If you could have a conversation with your future self, what would you ask?",
+    "What is the most adventurous thing on your bucket list?",
+    "What’s the strangest coincidence that’s ever happened to you?",
+    "If you had to listen to one artist for a whole year, who would it be?",
+    "What’s your favorite word in the English language?",
+    "If you could relive one day of your life, which day would it be?",
+    "What is a cause you are deeply passionate about?",
+    "If you could design your dream home, what’s one room it absolutely must have?",
+    "What’s a movie that practically everyone loves but you secretly dislike?",
+    "If you could be a contestant on any game show, which one would it be?",
+    "What’s the best piece of advice you would give to your younger self?",
+    "What is the most surprising thing you’ve learned about yourself recently?",
+    "If you could teleport to any specific moment in history, when and where would you go?",
+    "What’s your favorite way to relax after a long day?",
+    "If you had an unlimited budget to start a business, what would it be?",
+    "What is a simple pleasure that you never take for granted?",
+    "If you could star in any movie, what kind of character would you play?",
+    "What’s the most memorable meal you’ve ever eaten?",
+    "If you had to teach a class on one obscure subject, what would it be?",
+    "What’s a popular song that you can’t stand?",
+    "If you could have any exotic pet, what would you choose?",
+    "What is the best way someone can show they care about you?",
+    "If you could magically eliminate one minor inconvenience from your life, what would it be?",
+    "What’s the funniest joke you know by heart?",
+    "If you were given a million dollars but had to give it all away, who would you give it to?",
+    "What’s the best season of the year and why?",
+    "If you could automatically be hired for your dream job, what would the title be?",
+    "What is the most important quality you look for in a friend?",
+    "If your pet could talk for one minute, what do you think they would say?",
+    "What’s the most unusual place you’ve ever slept?",
+    "If you could magically learn to cook one elaborate dish perfectly, what would it be?",
+    "What’s the bravest thing you’ve ever done?",
+    "If you were trapped in a TV show for a month, which show would it be?",
+    "What is the best advice you’ve ever ignored?",
+    "If you could change one thing about the way you were raised, what would it be?",
+    "What is the most defining moment of your life so far?",
+    "If you could only use 3 apps on your phone, what would they be?",
+    "What’s your favorite tradition from your childhood?",
+    "If you were a ghost, who or where would you haunt?",
+    "What is a book that completely changed your perspective on life?",
+    "If you could invent a new flavor of ice cream, what would it be?",
+    "What’s the scariest thing you’ve ever done for fun?",
+    "If you could have a lifetime supply of one item, what would it be?",
+    "What is a topic you could give a 30-minute presentation on with zero preparation?",
+    "If you could permanently erase one chore from your life, what would you pick?",
+    "What’s your biggest pet peeve?",
+    "If you could instantly upgrade one piece of technology you own, what would it be?",
+    "What’s the best compliment you’ve ever given someone else?",
+    "If you could only eat cuisine from one country for the rest of your life, which would it be?",
+    "What’s a personal rule you never break?",
+    "If you could experience one fictional event in real life, what would it be?",
+    "What’s the most embarrassing phase you went through?",
+    "If you could be remembered for one specific accomplishment, what would you want it to be?",
+    "What’s the happiest memory you have?",
+    "If you had the power to change one law in your country, what would you change?",
+    "What’s your favorite smell in the whole world?",
+    "If you could have your own personal billboard, what would it say?",
+    "What’s the most thoughtful thing anyone has ever done for you?",
+    "If you were given an extra hour every day, what would you use it for?",
+    "What’s your favorite sound?",
+    "If you could seamlessly blend into any culture, which one would you choose to experience?",
+    "What's the hardest thing you've ever had to achieve?",
+    "If you were to write a movie script, what would it be about?",
+    "What part of your daily routine do you enjoy the most?",
+    "If you had to live in a different state or country, where would you go?",
+    "What’s an unpopular opinion you hold?",
+    "If you were stuck on an elevator with one person for 12 hours, who would you want it to be?",
   ];
 
   @override
   void initState() {
     super.initState();
-    _availableIcebreakers = List<String>.from(_icebreakers)..shuffle();
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
       _currentUserId = currentUser.uid;
@@ -523,11 +641,30 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sendIcebreaker() {
-    if (_availableIcebreakers.isEmpty) {
-      _availableIcebreakers = List<String>.from(_icebreakers)..shuffle();
+  Future<void> _sendIcebreaker() async {
+    final history = await _databaseService.getMessageHistory(
+      _chatId,
+      limit: 10000,
+    );
+    final sentTexts = history.map((m) => m.text).toSet();
+
+    final unusedIcebreakers = _icebreakers
+        .where((i) => !sentTexts.contains(i))
+        .toList();
+
+    if (unusedIcebreakers.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("You've used all available icebreakers!"),
+          ),
+        );
+      }
+      return;
     }
-    final randomStr = _availableIcebreakers.removeLast();
+
+    unusedIcebreakers.shuffle();
+    final randomStr = unusedIcebreakers.first;
     _sendMessage(randomStr);
   }
 
