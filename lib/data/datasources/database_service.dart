@@ -9,13 +9,30 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
+  static FirebaseFirestore? _mockFirestoreStatic;
+  static FirebaseStorage? _mockStorageStatic;
+
+  final FirebaseFirestore? _injectedFirestore;
+  final FirebaseStorage? _injectedStorage;
   final String _usersCollection = 'users';
 
+  @visibleForTesting
+  static void setMockInstances({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  }) {
+    _mockFirestoreStatic = firestore;
+    _mockStorageStatic = storage;
+  }
+
   DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _storage = storage ?? FirebaseStorage.instance;
+    : _injectedFirestore = firestore,
+      _injectedStorage = storage;
+
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? _mockFirestoreStatic ?? FirebaseFirestore.instance;
+  FirebaseStorage get _storage =>
+      _injectedStorage ?? _mockStorageStatic ?? FirebaseStorage.instance;
 
   // Local Streams for chat data
   final Map<String, StreamController<Map<String, dynamic>?>>
@@ -253,6 +270,33 @@ class DatabaseService {
       _broadcastChatMetadata(chatId, updatedData);
     } catch (e) {
       debugPrint("Error sending message: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> updateGameMessage(
+    String chatId,
+    String messageId,
+    Map<String, dynamic> gameData,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final messagesKey = 'chat_messages_$chatId';
+      final messagesJson = prefs.getStringList(messagesKey) ?? [];
+
+      for (int i = 0; i < messagesJson.length; i++) {
+        final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
+        if (msgMap['id'] == messageId) {
+          msgMap['gameData'] = gameData;
+          messagesJson[i] = jsonEncode(msgMap);
+          break;
+        }
+      }
+
+      await prefs.setStringList(messagesKey, messagesJson);
+      _broadcastMessages(chatId);
+    } catch (e) {
+      debugPrint("Error updating game message: $e");
       rethrow;
     }
   }

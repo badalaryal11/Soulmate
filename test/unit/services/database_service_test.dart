@@ -8,6 +8,7 @@ import 'package:soulmate/domain/entities/user_model.dart';
 // Generate mocks for FirebaseFirestore, CollectionReference, DocumentReference, DocumentSnapshot, QuerySnapshot
 @GenerateMocks([
   FirebaseFirestore,
+  FirebaseStorage,
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
@@ -15,21 +16,27 @@ import 'package:soulmate/domain/entities/user_model.dart';
   Query,
   QueryDocumentSnapshot,
 ])
+import 'package:firebase_storage/firebase_storage.dart';
 import 'database_service_test.mocks.dart';
 
 void main() {
   late MockFirebaseFirestore mockFirestore;
+  late MockFirebaseStorage mockStorage;
   late MockCollectionReference<Map<String, dynamic>> mockCollectionReference;
   late MockDocumentReference<Map<String, dynamic>> mockDocumentReference;
   late DatabaseService databaseService;
 
   setUp(() {
     mockFirestore = MockFirebaseFirestore();
+    mockStorage = MockFirebaseStorage();
     mockCollectionReference = MockCollectionReference();
     mockDocumentReference = MockDocumentReference();
 
     // Inject mock firestore
-    databaseService = DatabaseService(firestore: mockFirestore);
+    databaseService = DatabaseService(
+      firestore: mockFirestore,
+      storage: mockStorage,
+    );
   });
 
   group('DatabaseService', () {

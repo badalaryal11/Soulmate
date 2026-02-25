@@ -3,12 +3,16 @@ class ChatMessage {
   final String senderId;
   final String text;
   final DateTime timestamp;
+  final String? gameType;
+  final Map<String, dynamic>? gameData;
 
   ChatMessage({
     required this.id,
     required this.senderId,
     required this.text,
     required this.timestamp,
+    this.gameType,
+    this.gameData,
   });
 
   Map<String, dynamic> toMap() {
@@ -16,6 +20,8 @@ class ChatMessage {
       'senderId': senderId,
       'text': text,
       'timestamp': timestamp.millisecondsSinceEpoch,
+      'gameType': gameType,
+      'gameData': gameData,
     };
   }
 
@@ -25,6 +31,10 @@ class ChatMessage {
       senderId: map['senderId'] ?? '',
       text: map['text'] ?? '',
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
+      gameType: map['gameType'],
+      gameData: map['gameData'] != null
+          ? Map<String, dynamic>.from(map['gameData'])
+          : null,
     );
   }
 }

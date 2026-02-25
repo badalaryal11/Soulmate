@@ -1,0 +1,216 @@
+00:00 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:01 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:02 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:03 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:04 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:05 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:06 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:07 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:08 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:09 +0: loading /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart                                                                                                                         00:09 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              00:10 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              00:11 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              00:12 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              00:13 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              00:13 +0: HomeScreen renders AppBar and bottom navigation                                                                                                                                              
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following MissingStubError was thrown running a test:
+'currentUser'
+No stub was found which matches the arguments of this method call:
+currentUser
+
+Add a stub for this method using Mockito's 'when' API, or generate the MockAuthService mock with the
+@GenerateNiceMocks annotation (see
+https://pub.dev/documentation/mockito/latest/annotations/MockSpec-class.html).
+
+When the exception was thrown, this was the stack:
+#0      Mock._noSuchMethod (package:mockito/src/mock.dart:200:7)
+#1      Mock.noSuchMethod (package:mockito/src/mock.dart:194:47)
+#2      MockAuthService.currentUser (file:///Users/badalaryal/Soulmate/test/unit/providers/user_provider_test.mocks.dart:91:7)
+#3      _HomeScreenState.initState.<anonymous closure>.<anonymous closure> (package:soulmate/presentation/screens/home_screen.dart:66:35)
+#15     FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#16     FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#17     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1337:26)
+#20     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#21     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#22     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#25     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#26     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#27     main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:144:18)
+#28     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#29     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 16 frames from dart:async and package:stack_trace)
+
+The test description was:
+  HomeScreen renders AppBar and bottom navigation
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:13 +0 -1: HomeScreen renders AppBar and bottom navigation [E]                                                                                                                                       
+  Test failed. See exception logs above.
+  The test description was: HomeScreen renders AppBar and bottom navigation
+  
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test (but after the test had completed):
+Expected: exactly one matching candidate
+  Actual: _IconWidgetFinder:<Found 0 widgets with icon "IconData(U+0E57F)": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:149:31)
+#1      _expect (package:matcher/src/expect/expect.dart:144:3)
+#2      expect (package:matcher/src/expect/expect.dart:56:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:149:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+  Test failed. See exception logs above.
+  The test description was: HomeScreen renders AppBar and bottom navigation
+  
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart -p vm --plain-name 'HomeScreen renders AppBar and bottom navigation'
+00:13 +0 -1: HomeScreen shows loading indicator when loading                                                                                                                                           00:14 +0 -1: HomeScreen shows loading indicator when loading                                                                                                                                           00:14 +0 -1: HomeScreen shows loading indicator when loading                                                                                                                                           
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following MissingStubError was thrown running a test:
+'currentUser'
+No stub was found which matches the arguments of this method call:
+currentUser
+
+Add a stub for this method using Mockito's 'when' API, or generate the MockAuthService mock with the
+@GenerateNiceMocks annotation (see
+https://pub.dev/documentation/mockito/latest/annotations/MockSpec-class.html).
+
+When the exception was thrown, this was the stack:
+#0      Mock._noSuchMethod (package:mockito/src/mock.dart:200:7)
+#1      Mock.noSuchMethod (package:mockito/src/mock.dart:194:47)
+#2      MockAuthService.currentUser (file:///Users/badalaryal/Soulmate/test/unit/providers/user_provider_test.mocks.dart:91:7)
+#3      _HomeScreenState.initState.<anonymous closure>.<anonymous closure> (package:soulmate/presentation/screens/home_screen.dart:66:35)
+#15     FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#16     FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#17     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1337:26)
+#20     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#21     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#22     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#25     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#26     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#27     main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:159:18)
+#28     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#29     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 16 frames from dart:async and package:stack_trace)
+
+The test description was:
+  HomeScreen shows loading indicator when loading
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:14 +0 -2: HomeScreen shows loading indicator when loading [E]                                                                                                                                       
+  Test failed. See exception logs above.
+  The test description was: HomeScreen shows loading indicator when loading
+  
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart -p vm --plain-name 'HomeScreen shows loading indicator when loading'
+00:14 +0 -2: HomeScreen shows no users message when empty                                                                                                                                              00:14 +0 -2: HomeScreen shows no users message when empty                                                                                                                                              
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following MissingStubError was thrown running a test:
+'currentUser'
+No stub was found which matches the arguments of this method call:
+currentUser
+
+Add a stub for this method using Mockito's 'when' API, or generate the MockAuthService mock with the
+@GenerateNiceMocks annotation (see
+https://pub.dev/documentation/mockito/latest/annotations/MockSpec-class.html).
+
+When the exception was thrown, this was the stack:
+#0      Mock._noSuchMethod (package:mockito/src/mock.dart:200:7)
+#1      Mock.noSuchMethod (package:mockito/src/mock.dart:194:47)
+#2      MockAuthService.currentUser (file:///Users/badalaryal/Soulmate/test/unit/providers/user_provider_test.mocks.dart:91:7)
+#3      _HomeScreenState.initState.<anonymous closure>.<anonymous closure> (package:soulmate/presentation/screens/home_screen.dart:66:35)
+#15     FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#16     FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#17     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1337:26)
+#20     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#21     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#22     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#25     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#26     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#27     main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:169:18)
+#28     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#29     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 16 frames from dart:async and package:stack_trace)
+
+The test description was:
+  HomeScreen shows no users message when empty
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:14 +0 -3: HomeScreen shows no users message when empty [E]                                                                                                                                          
+  Test failed. See exception logs above.
+  The test description was: HomeScreen shows no users message when empty
+  
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test (but after the test had completed):
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "No users match your filters.": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:149:31)
+#1      _expect (package:matcher/src/expect/expect.dart:144:3)
+#2      expect (package:matcher/src/expect/expect.dart:56:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:172:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+  Test failed. See exception logs above.
+  The test description was: HomeScreen shows no users message when empty
+  
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart -p vm --plain-name 'HomeScreen shows no users message when empty'
+00:14 +0 -3: HomeScreen renders profile cards                                                                                                                                                          00:15 +0 -3: HomeScreen renders profile cards                                                                                                                                                          00:15 +0 -3: HomeScreen renders profile cards                                                                                                                                                          
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following MissingStubError was thrown running a test:
+'currentUser'
+No stub was found which matches the arguments of this method call:
+currentUser
+
+Add a stub for this method using Mockito's 'when' API, or generate the MockAuthService mock with the
+@GenerateNiceMocks annotation (see
+https://pub.dev/documentation/mockito/latest/annotations/MockSpec-class.html).
+
+When the exception was thrown, this was the stack:
+#0      Mock._noSuchMethod (package:mockito/src/mock.dart:200:7)
+#1      Mock.noSuchMethod (package:mockito/src/mock.dart:194:47)
+#2      MockAuthService.currentUser (file:///Users/badalaryal/Soulmate/test/unit/providers/user_provider_test.mocks.dart:91:7)
+#3      _HomeScreenState.initState.<anonymous closure>.<anonymous closure> (package:soulmate/presentation/screens/home_screen.dart:66:35)
+#15     FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#16     FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#17     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1337:26)
+#20     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#21     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#22     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#25     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#26     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#27     main.<anonymous closure> (file:///Users/badalaryal/Soulmate/test/widget/home_screen_test.dart:192:18)
+#28     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#29     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 16 frames from dart:async and package:stack_trace)
+
+The test description was:
+  HomeScreen renders profile cards
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:15 +0 -4: HomeScreen renders profile cards [E]                                                                                                                                                      
+  Test failed. See exception logs above.
+  The test description was: HomeScreen renders profile cards
+  
+Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
+TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
+will actually be made. Any test expecting a real network connection and status code will fail.
+To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
+test, so that your test can consistently provide a testable response to the code under test.
+
+To run this test again: /Users/badalaryal/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/badalaryal/Soulmate/test/widget/home_screen_test.dart -p vm --plain-name 'HomeScreen renders profile cards'
+00:15 +0 -4: Some tests failed.                                                                                                                                                                        

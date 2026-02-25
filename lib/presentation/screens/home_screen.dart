@@ -62,8 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
             provider.errorMessage == null) {
           // User authenticated but no profile found (and no error occurred)
           // Redirect to Create Profile
-          final authUser =
-              widget.authService?.currentUser ?? AuthService().currentUser;
+          final auth = widget.authService ?? AuthService();
+          final authUser = auth.currentUser;
           if (authUser != null) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
@@ -433,11 +433,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Determine the value to save: 'male', 'female', or null (for everyone)
     final valueToSave = gender == 'everyone' ? null : gender;
 
-    final user = AuthService().currentUser;
+    final auth = widget.authService ?? AuthService();
+    final db = widget.databaseService ?? DatabaseService();
+    final user = auth.currentUser;
     if (user != null) {
-      DatabaseService().updateUserField(user.uid, {
-        'genderPreference': valueToSave,
-      });
+      db.updateUserField(user.uid, {'genderPreference': valueToSave});
     }
   }
 }

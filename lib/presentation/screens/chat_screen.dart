@@ -543,6 +543,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       return MessageBubble(
                         message: message,
                         isMe: message.senderId == _currentUserId,
+                        currentUserId: _currentUserId,
+                        chatId: _chatId,
+                        databaseService: _databaseService,
                       );
                     },
                   );
@@ -569,6 +572,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     ).withValues(alpha: 0.1),
                     labelStyle: const TextStyle(
                       color: Color(0xFFFE3C72),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    side: BorderSide.none,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ActionChip(
+                    avatar: const Text('✌️', style: TextStyle(fontSize: 16)),
+                    label: const Text('Play RPS'),
+                    onPressed: _sendRandomRpsChallenge,
+                    backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                    labelStyle: const TextStyle(
+                      color: Colors.blue,
                       fontWeight: FontWeight.bold,
                     ),
                     side: BorderSide.none,
@@ -787,16 +805,99 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) setState(() => _isTyping = false);
     }
   }
+
+  void _sendRandomRpsChallenge() {
+    final moves = ['rock', 'paper', 'scissors'];
+    moves.shuffle();
+    final userMove = moves.first;
+    _sendRpsChallenge(userMove);
+  }
+
+  Future<void> _sendRpsChallenge(String move) async {
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+
+    if (currentUser == null) return;
+
+    final gameData = {
+      'challengerId': _currentUserId,
+      'challengerMove': move,
+      'opponentId': widget.user.id,
+      'opponentMove': null,
+      'status': 'pending',
+    };
+
+    final gameMessage = ChatMessage(
+      id: _uuid.v4(),
+      senderId: _currentUserId,
+      text: 'I challenged you to Rock, Paper, Scissors!',
+      timestamp: DateTime.now(),
+      gameType: 'rps',
+      gameData: gameData,
+    );
+
+    try {
+      await _databaseService.sendMessage(_chatId, gameMessage);
+
+      // Auto-reply so the AI doesn't try to reply to the game move as if it's chat text
+      // All matches in this environment are AI implementations
+      _simulateAiRpsResponse(gameMessage);
+    } catch (e) {
+      debugPrint("Error sending RPS challenge: $e");
+    }
+  }
+
+  // Very simple bot logic so the AI can play back automatically
+  Future<void> _simulateAiRpsResponse(ChatMessage initialMessage) async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final moves = ['rock', 'paper', 'scissors'];
+    moves.shuffle();
+    final botMove = moves.first;
+
+    final gameData = Map<String, dynamic>.from(initialMessage.gameData ?? {});
+    gameData['opponentMove'] = botMove;
+    gameData['status'] = 'completed';
+
+    await _databaseService.updateGameMessage(
+      _chatId,
+      initialMessage.id,
+      gameData,
+    );
+  }
 }
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
+  final String currentUserId;
+  final String chatId;
+  final DatabaseService databaseService;
 
-  const MessageBubble({super.key, required this.message, required this.isMe});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.isMe,
+    required this.currentUserId,
+    required this.chatId,
+    required this.databaseService,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (message.gameType == 'rps') {
+      return RpsGameBubble(
+        message: message,
+        isMe: isMe,
+        currentUserId: currentUserId,
+        chatId: chatId,
+        databaseService: databaseService,
+      );
+    }
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -851,8 +952,198 @@ class MessageBubble extends StatelessWidget {
   }
 
   String _formatTime(DateTime time) {
-    String hour = time.hour.toString().padLeft(2, '0');
-    String minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final hour = time.hour > 12
+        ? time.hour - 12
+        : (time.hour == 0 ? 12 : time.hour);
+    final minute = time.minute.toString().padLeft(2, '0');
+    final amPm = time.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $amPm';
+  }
+}
+
+class RpsGameBubble extends StatelessWidget {
+  final ChatMessage message;
+  final bool isMe;
+  final String currentUserId;
+  final String chatId;
+  final DatabaseService databaseService;
+
+  const RpsGameBubble({
+    super.key,
+    required this.message,
+    required this.isMe,
+    required this.currentUserId,
+    required this.chatId,
+    required this.databaseService,
+  });
+
+  String _getEmoji(String? move) {
+    if (move == 'rock') return '🪨';
+    if (move == 'paper') return '📄';
+    if (move == 'scissors') return '✂️';
+    return '❓';
+  }
+
+  String _getGameResult(String myMove, String theirMove) {
+    if (myMove == theirMove) return 'It\'s a Tie!';
+    if ((myMove == 'rock' && theirMove == 'scissors') ||
+        (myMove == 'paper' && theirMove == 'rock') ||
+        (myMove == 'scissors' && theirMove == 'paper')) {
+      return 'You Won! 🎉';
+    }
+    return 'You Lost! 😢';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gameData = message.gameData ?? {};
+    final status = gameData['status'] as String? ?? 'pending';
+    final challengerId = gameData['challengerId'] as String?;
+    final challengerMove = gameData['challengerMove'] as String?;
+    final opponentMove = gameData['opponentMove'] as String?;
+
+    final iAmChallenger = currentUserId == challengerId;
+
+    Widget content;
+
+    if (status == 'pending') {
+      if (iAmChallenger) {
+        content = Column(
+          children: [
+            const Text(
+              'You challenged them to Rock, Paper, Scissors!',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Waiting for their move...',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your move: ${_getEmoji(challengerMove)}',
+              style: const TextStyle(fontSize: 24),
+            ),
+          ],
+        );
+      } else {
+        content = Column(
+          children: [
+            const Text(
+              'You were challenged to Rock, Paper, Scissors!',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text('Pick your move:'),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildMoveButton('rock', '🪨'),
+                _buildMoveButton('paper', '📄'),
+                _buildMoveButton('scissors', '✂️'),
+              ],
+            ),
+          ],
+        );
+      }
+    } else {
+      // Completed
+      final myMove = iAmChallenger ? challengerMove : opponentMove;
+      final theirMove = iAmChallenger ? opponentMove : challengerMove;
+
+      content = Column(
+        children: [
+          const Text(
+            'Rock, Paper, Scissors Result',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  const Text('You'),
+                  Text(_getEmoji(myMove), style: const TextStyle(fontSize: 32)),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'VS',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Column(
+                children: [
+                  const Text('Them'),
+                  Text(
+                    _getEmoji(theirMove),
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _getGameResult(myMove!, theirMove!),
+            style: const TextStyle(
+              fontSize: 18,
+              color: Color(0xFFFE3C72),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(16),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFFE3C72).withValues(alpha: 0.3),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: content,
+      ),
+    );
+  }
+
+  Widget _buildMoveButton(String move, String emoji) {
+    return InkWell(
+      onTap: () async {
+        final gameData = Map<String, dynamic>.from(message.gameData ?? {});
+        gameData['opponentMove'] = move;
+        gameData['status'] = 'completed';
+        await databaseService.updateGameMessage(chatId, message.id, gameData);
+      },
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 24)),
+      ),
+    );
   }
 }

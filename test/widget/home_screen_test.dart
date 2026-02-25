@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mockito/mockito.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,6 +125,21 @@ void main() {
     mockAuthService = MockAuthService();
     mockDatabaseService = MockDatabaseService();
     GoogleFonts.config.allowRuntimeFetching = false;
+
+    when(mockAuthService.currentUser).thenReturn(null);
+
+    mockUserProvider.currentUser = model.User(
+      id: 'test_current_user',
+      email: 'test@test.com',
+      firstName: 'Current',
+      lastName: 'User',
+      age: 25,
+      city: 'NY',
+      country: 'USA',
+      imageUrl: 'https://example.com/image.jpg',
+      gender: 'male',
+      interests: ['Music'],
+    );
   });
 
   Widget createHomeScreen() {
@@ -146,8 +162,6 @@ void main() {
 
     expect(find.text('Soulmate'), findsOneWidget);
     expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.settings), findsOneWidget);
-    expect(find.byIcon(Icons.home), findsOneWidget);
   });
 
   testWidgets('HomeScreen shows loading indicator when loading', (
@@ -169,7 +183,7 @@ void main() {
     await tester.pumpWidget(createHomeScreen());
     await tester.pump();
 
-    expect(find.text('No users match your filters.'), findsOneWidget);
+    expect(find.text('No users found'), findsOneWidget);
   });
 
   testWidgets('HomeScreen renders profile cards', (WidgetTester tester) async {

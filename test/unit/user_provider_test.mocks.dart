@@ -271,6 +271,23 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> updateGameMessage(
+    String? chatId,
+    String? messageId,
+    Map<String, dynamic>? gameData,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateGameMessage, [
+              chatId,
+              messageId,
+              gameData,
+            ]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Stream<Map<String, dynamic>?> getChatStream(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getChatStream, [chatId]),
