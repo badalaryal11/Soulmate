@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user_model.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../data/datasources/chat_service.dart';
@@ -385,30 +385,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
               child: ClipOval(
-                child: widget.user.imageUrl.startsWith('assets/')
-                    ? Image.asset(
-                        widget.user.imageUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      )
-                    : CachedNetworkImage(
-                        imageUrl:
-                            (widget.user.imageUrl.isNotEmpty &&
-                                !widget.user.imageUrl.startsWith('assets/'))
-                            ? widget.user.imageUrl
-                            : ImageGenerationService.generateProfileImageUrl(
-                                widget.user,
-                              ),
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 100,
-                        placeholder: (context, url) =>
-                            Container(color: Colors.grey[200]),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                      ),
+                child: ImageUtils.getImageWidget(
+                  (widget.user.imageUrl.isNotEmpty &&
+                          !widget.user.imageUrl.startsWith('assets/'))
+                      ? widget.user.imageUrl
+                      : ImageGenerationService.generateProfileImageUrl(
+                          widget.user,
+                        ),
+                  width: 40,
+                  height: 40,
+                  memCacheWidth: 100,
+                  memCacheHeight: 100,
+                ),
               ),
             ),
             const SizedBox(width: 10),

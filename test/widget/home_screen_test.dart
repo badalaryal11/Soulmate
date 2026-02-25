@@ -7,6 +7,8 @@ import 'package:soulmate/presentation/screens/home_screen.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/domain/entities/user_model.dart' as model;
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:network_image_mock/network_image_mock.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../unit/providers/user_provider_test.mocks.dart';
 
 // Manual Mock for UserProvider
@@ -157,11 +159,26 @@ void main() {
   testWidgets('HomeScreen renders AppBar and bottom navigation', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pump();
+    await mockNetworkImagesFor(() async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(createHomeScreen());
+      await tester.pump();
 
-    expect(find.text('Soulmate'), findsOneWidget);
-    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+      expect(find.text('Soulmate'), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+
+      // Verify 3 bottom navigation items exist
+      expect(find.byType(BottomNavigationBar), findsOneWidget);
+
+      final bottomNav = tester.widget<BottomNavigationBar>(
+        find.byType(BottomNavigationBar),
+      );
+      expect(bottomNav.items.length, 3);
+
+      expect(find.text('Home'), findsWidgets);
+      expect(find.text('Matches'), findsWidgets);
+      expect(find.text('Profile'), findsWidgets);
+    });
   });
 
   testWidgets('HomeScreen shows loading indicator when loading', (
@@ -170,8 +187,11 @@ void main() {
     mockUserProvider.status = UserStatus.loading;
     mockUserProvider.users = [];
 
-    await tester.pumpWidget(createHomeScreen());
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await mockNetworkImagesFor(() async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(createHomeScreen());
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
   });
 
   testWidgets('HomeScreen shows no users message when empty', (
@@ -180,10 +200,13 @@ void main() {
     mockUserProvider.status = UserStatus.loaded;
     mockUserProvider.filteredUsers = [];
 
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pump();
+    await mockNetworkImagesFor(() async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(createHomeScreen());
+      await tester.pump();
 
-    expect(find.text('No users found'), findsOneWidget);
+      expect(find.text('No users found'), findsOneWidget);
+    });
   });
 
   testWidgets('HomeScreen renders profile cards', (WidgetTester tester) async {
@@ -203,11 +226,14 @@ void main() {
       ),
     ];
 
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pump();
+    await mockNetworkImagesFor(() async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(createHomeScreen());
+      await tester.pump();
 
-    expect(find.text('John, 25'), findsOneWidget);
-    expect(find.text('NY, USA'), findsOneWidget);
+      expect(find.text('John, 25'), findsOneWidget);
+      expect(find.text('NY, USA'), findsOneWidget);
+    });
   });
 
   // Note: Navigation test removed as SettingsScreen is tested separately in settings_screen_test.dart

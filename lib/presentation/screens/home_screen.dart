@@ -6,12 +6,12 @@ import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
-import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 import 'package:soulmate/data/datasources/daily_picks_service.dart';
 import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
+import 'package:soulmate/presentation/widgets/profile_tab.dart';
 import 'package:soulmate/domain/entities/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -121,52 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
               centerTitle: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              leading: PopupMenuButton<String>(
+              leading: IconButton(
                 icon: const Icon(Icons.tune_rounded),
-                tooltip: 'Preferences & Settings',
-                onSelected: (value) {
-                  if (value == 'filters') {
-                    _showFilterDialog(context);
-                  } else if (value == 'settings') {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SettingsScreen(
-                          authService: widget.authService,
-                          databaseService: widget.databaseService,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                itemBuilder: (BuildContext context) {
-                  return [
-                    PopupMenuItem<String>(
-                      value: 'filters',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.filter_list,
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text('Filters'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'settings',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.settings,
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text('Settings'),
-                        ],
-                      ),
-                    ),
-                  ];
+                tooltip: 'Filters',
+                onPressed: () {
+                  _showFilterDialog(context);
                 },
               ),
               actions: [
@@ -275,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: IndexedStack(
         index: _selectedIndex,
-        children: [_buildHomeTab(), const MatchesScreen()],
+        children: [_buildHomeTab(), const MatchesScreen(), const ProfileTab()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -284,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.forum_rounded),
             label: 'Matches',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: const Color(0xFFFE3C72),

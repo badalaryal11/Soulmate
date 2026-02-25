@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/user_model.dart';
+import '../../core/utils/image_utils.dart';
 import '../screens/match_screen.dart'; // Reuse MatchScreen styling or similar
 import 'package:google_fonts/google_fonts.dart';
 
@@ -104,11 +104,10 @@ class DailyPicksWidget extends StatelessWidget {
                             2,
                           ), // inner white border
                           child: ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: user.imageUrl,
+                            child: ImageUtils.getImageWidget(
+                              user.imageUrl,
                               width: 90,
                               height: 90,
-                              fit: BoxFit.cover,
                               memCacheWidth: 180,
                               memCacheHeight: 180,
                             ),

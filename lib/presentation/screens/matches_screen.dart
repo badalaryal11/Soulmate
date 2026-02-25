@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/image_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 import '../../domain/entities/user_model.dart';
@@ -195,26 +195,15 @@ class _MatchAvatarItem extends StatelessWidget {
         child: Column(
           children: [
             ClipOval(
-              child: CachedNetworkImage(
-                imageUrl:
-                    (user.imageUrl.isNotEmpty &&
+              child: ImageUtils.getImageWidget(
+                (user.imageUrl.isNotEmpty &&
                         !user.imageUrl.startsWith('assets/'))
                     ? user.imageUrl
                     : ImageGenerationService.generateProfileImageUrl(user),
                 width: 60,
                 height: 60,
-                fit: BoxFit.cover,
-                memCacheWidth: 200, // Optimized for 60px display
+                memCacheWidth: 200,
                 memCacheHeight: 200,
-                maxWidthDiskCache: 200,
-                maxHeightDiskCache: 200,
-                fadeInDuration: Duration.zero, // Instant appear
-                fadeOutDuration: Duration.zero,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.person, color: Colors.grey),
-                ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
             const SizedBox(height: 6),
@@ -247,22 +236,15 @@ class _MessageListItem extends StatelessWidget {
         child: Row(
           children: [
             ClipOval(
-              child: CachedNetworkImage(
-                imageUrl:
-                    (user.imageUrl.isNotEmpty &&
+              child: ImageUtils.getImageWidget(
+                (user.imageUrl.isNotEmpty &&
                         !user.imageUrl.startsWith('assets/'))
                     ? user.imageUrl
                     : ImageGenerationService.generateProfileImageUrl(user),
                 width: 56,
                 height: 56,
-                fit: BoxFit.cover,
-                memCacheWidth: 200, // Optimized for 56px display
+                memCacheWidth: 200,
                 memCacheHeight: 200,
-                maxWidthDiskCache: 200,
-                maxHeightDiskCache: 200,
-                placeholder: (context, url) =>
-                    Container(color: Colors.grey[200]),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
             const SizedBox(width: 16),

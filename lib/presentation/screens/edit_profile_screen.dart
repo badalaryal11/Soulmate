@@ -7,10 +7,12 @@ import 'dart:io';
 
 import '../../domain/entities/user_model.dart';
 import '../../data/datasources/database_service.dart';
-import '../../data/datasources/storage_service.dart';
 import '../../data/datasources/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'interest_selection_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../core/utils/image_utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -27,6 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _ageController;
   late TextEditingController _cityController;
   late TextEditingController _countryController;
+  final ImagePicker _picker = ImagePicker();
 
   String? _selectedPrompt1;
   late TextEditingController _prompt1AnswerController;
@@ -300,6 +303,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      if (!mounted) return;
+      setState(() {
+        _imageFile = File(image.path);
+        _generatedAvatarUrl = null;
+        _uploadedImageUrl = null;
+        // The background upload starts immediately in _saveProfile or similar flows if needed
+      });
+    }
+  }
+
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -324,6 +340,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 onTap: () {
                   Navigator.pop(context);
                   _generateAIPortrait();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Upload from Device'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
                 },
               ),
             ],
@@ -361,15 +385,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             throw Exception("Image upload failed");
           }
         } else {
-          // Fallback: Upload wasn't started for some reason (shouldn't happen with correct flow)
-          final url = await StorageService().uploadProfileImage(
-            _imageFile!,
-            _currentUser!.id,
-          );
-          if (url != null) {
-            localDisplayImageUrl =
-                '$url&v=${DateTime.now().millisecondsSinceEpoch}';
-          }
+          // Device upload - save locally instead of Firebase Storage
+          final appDir = await getApplicationDocumentsDirectory();
+          final fileName =
+              '${_currentUser!.id}_avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final localFile = File('${appDir.path}/$fileName');
+          await _imageFile!.copy(localFile.path);
+          localDisplayImageUrl = 'file://${localFile.path}';
         }
       } else if (_generatedAvatarUrl != null) {
         localDisplayImageUrl = _generatedAvatarUrl!;
@@ -460,6 +482,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.check, color: Color(0xFFFE3C72)),
@@ -488,13 +516,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           : (_imageFile != null
                                 ? FileImage(_imageFile!)
                                 : (_currentUser!.imageUrl.isNotEmpty
-                                          ? CachedNetworkImageProvider(
-                                              _currentUser!.imageUrl,
-                                              maxWidth:
-                                                  300, // Optimize for 120px display (Radius 60 * 2)
-                                            )
-                                          : null)
-                                      as ImageProvider?),
+                                      ? ImageUtils.getImageProvider(
+                                          _currentUser!.imageUrl,
+                                          maxWidth: 300,
+                                        )
+                                      : null)),
                       child: _isUploadingImage
                           ? const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(

@@ -57,6 +57,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   google_generative_ai: ^0.4.7
   flutter_secure_storage: ^10.0.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.2
   mockito: ^5.4.4
   build_runner: ^2.4.8
+  network_image_mock: ^2.1.1
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user_model.dart';
 import '../../data/datasources/image_generation_service.dart';
 import '../providers/user_provider.dart';
@@ -37,14 +37,7 @@ class MatchScreen extends StatelessWidget {
               Consumer<UserProvider>(
                 builder: (context, userProvider, child) {
                   final currentUser = userProvider.currentUser;
-                  final isAsset =
-                      currentUser == null ||
-                      currentUser.imageUrl.isEmpty ||
-                      currentUser.imageUrl.startsWith('assets/');
-                  return _Avatar(
-                    imageUrl: currentUser?.imageUrl ?? '',
-                    isAsset: isAsset,
-                  );
+                  return _Avatar(imageUrl: currentUser?.imageUrl ?? '');
                 },
               ),
               const SizedBox(width: 20),
@@ -52,7 +45,6 @@ class MatchScreen extends StatelessWidget {
                 imageUrl: user.imageUrl.isNotEmpty
                     ? user.imageUrl
                     : ImageGenerationService.generateProfileImageUrl(user),
-                isAsset: user.imageUrl.startsWith('assets/'),
               ),
             ],
           ),
@@ -101,9 +93,8 @@ class MatchScreen extends StatelessWidget {
 
 class _Avatar extends StatelessWidget {
   final String imageUrl;
-  final bool isAsset;
 
-  const _Avatar({required this.imageUrl, required this.isAsset});
+  const _Avatar({required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -117,30 +108,13 @@ class _Avatar extends StatelessWidget {
         radius: 50,
         backgroundColor: Colors.grey[200],
         child: ClipOval(
-          child: isAsset
-              ? Image.asset(
-                  imageUrl.isEmpty
-                      ? 'assets/images/logo_transparent.png'
-                      : imageUrl,
-                  fit: BoxFit.cover,
-                  width: 100,
-                  height: 100,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Image.asset('assets/images/logo_transparent.png'),
-                )
-              : CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  width: 100,
-                  height: 100,
-                  memCacheWidth: 200, // Optimized for 100px display
-                  memCacheHeight: 200,
-                  maxWidthDiskCache: 200,
-                  maxHeightDiskCache: 200,
-                  placeholder: (context, url) =>
-                      const CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                ),
+          child: ImageUtils.getImageWidget(
+            imageUrl.isEmpty ? 'assets/images/logo_transparent.png' : imageUrl,
+            width: 100,
+            height: 100,
+            memCacheWidth: 200,
+            memCacheHeight: 200,
+          ),
         ),
       ),
     );

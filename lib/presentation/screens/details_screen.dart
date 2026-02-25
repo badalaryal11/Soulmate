@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/user_model.dart';
 import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_utils.dart';
 
 class DetailsScreen extends StatelessWidget {
   final User user;
@@ -18,38 +18,13 @@ class DetailsScreen extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(user.firstName),
-              background: user.imageUrl.startsWith('assets/')
-                  ? Image.asset(
-                      user.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.error));
-                      },
-                    )
-                  : CachedNetworkImage(
-                      imageUrl:
-                          (user.imageUrl.isNotEmpty &&
-                              !user.imageUrl.startsWith('assets/'))
-                          ? user.imageUrl
-                          : ImageGenerationService.generateProfileImageUrl(
-                              user,
-                            ),
-                      fit: BoxFit.cover,
-                      memCacheWidth:
-                          800, // Keep high res for details, but use same URL
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFE3C72),
-                            ),
-                          ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
+              background: ImageUtils.getImageWidget(
+                (user.imageUrl.isNotEmpty &&
+                        !user.imageUrl.startsWith('assets/'))
+                    ? user.imageUrl
+                    : ImageGenerationService.generateProfileImageUrl(user),
+                memCacheWidth: 800,
+              ),
             ),
           ),
           SliverList(

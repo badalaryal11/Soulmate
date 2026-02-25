@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/user_model.dart';
@@ -28,27 +29,66 @@ class ProfileCard extends StatelessWidget {
             children: [
               // Use AI Generated Image for Cards to match description
               // Handle local assets
-              user.imageUrl.startsWith('assets/')
-                  ? Image.asset(
-                      user.imageUrl,
+              if (user.imageUrl.startsWith('assets/'))
+                Image.asset(
+                  user.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(child: Icon(Icons.error));
+                  },
+                )
+              else if (user.imageUrl.startsWith('file://'))
+                Image.file(
+                  File(user.imageUrl.substring(7)),
+                  fit: BoxFit.cover,
+                  cacheWidth: 300,
+                  cacheHeight: 450,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Center(child: Icon(Icons.error)),
+                )
+              else
+                CachedNetworkImage(
+                  // Use original image if valid, otherwise generate one
+                  imageUrl:
+                      (user.imageUrl.isNotEmpty &&
+                          !user.imageUrl.startsWith('assets/') &&
+                          !user.imageUrl.startsWith('file://'))
+                      ? user.imageUrl
+                      : _generateAndLogUrl(user),
+                  fit: BoxFit.cover,
+                  // Optimization: Match cache dimensions to image source (300x450)
+                  memCacheWidth: 300,
+                  memCacheHeight: 450,
+                  maxWidthDiskCache: 300,
+                  // Optimization: Instant appearance (no fade-in) for faster "feel"
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFFE3C72),
+                        ),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, errorUrl, error) {
+                    // Try fallback URL if primary fails
+                    final fallbackUrl = ImageGenerationService.getFallbackUrl(
+                      user,
+                      errorUrl,
+                    );
+                    debugPrint(
+                      'Image failed: $errorUrl. Trying fallback: $fallbackUrl',
+                    );
+
+                    return CachedNetworkImage(
+                      imageUrl: fallbackUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.error));
-                      },
-                    )
-                  : CachedNetworkImage(
-                      // Use original image if valid, otherwise generate one
-                      imageUrl:
-                          (user.imageUrl.isNotEmpty &&
-                              !user.imageUrl.startsWith('assets/'))
-                          ? user.imageUrl
-                          : _generateAndLogUrl(user),
-                      fit: BoxFit.cover,
-                      // Optimization: Match cache dimensions to image source (300x450)
                       memCacheWidth: 300,
                       memCacheHeight: 450,
                       maxWidthDiskCache: 300,
-                      // Optimization: Instant appearance (no fade-in) for faster "feel"
                       fadeInDuration: Duration.zero,
                       fadeOutDuration: Duration.zero,
                       placeholder: (context, url) => Container(
@@ -61,47 +101,15 @@ class ProfileCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      errorWidget: (context, errorUrl, error) {
-                        // Try fallback URL if primary fails
-                        final fallbackUrl =
-                            ImageGenerationService.getFallbackUrl(
-                              user,
-                              errorUrl,
-                            );
-                        debugPrint(
-                          'Image failed: $errorUrl. Trying fallback: $fallbackUrl',
-                        );
-
-                        return CachedNetworkImage(
-                          imageUrl: fallbackUrl,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 300,
-                          memCacheHeight: 450,
-                          maxWidthDiskCache: 300,
-                          fadeInDuration: Duration.zero,
-                          fadeOutDuration: Duration.zero,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFFFE3C72),
-                                ),
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

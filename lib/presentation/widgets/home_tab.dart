@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/image_utils.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../../data/datasources/image_generation_service.dart';
@@ -203,15 +203,10 @@ class _HomeTabState extends State<HomeTab> {
     if (url != null && url.isNotEmpty) {
       // PROPER OPTIMIZATION:
       // Match the `ProfileCard` cache configuration EXACTLY.
-      // ProfileCard uses `memCacheWidth: 300`, `memCacheHeight: 450`, and `maxWidthDiskCache: 300`.
-      precacheImage(
-        ResizeImage(
-          CachedNetworkImageProvider(url, maxWidth: 300),
-          width: 300,
-          height: 450,
-        ),
-        context,
-      );
+      final provider = ImageUtils.getImageProvider(url, maxWidth: 300);
+      if (provider != null) {
+        precacheImage(ResizeImage(provider, width: 300, height: 450), context);
+      }
     }
   }
 }
