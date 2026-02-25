@@ -6,11 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DatabaseService {
   static FirebaseFirestore? _mockFirestoreStatic;
   static FirebaseStorage? _mockStorageStatic;
+  final _secureStorage = const FlutterSecureStorage();
 
   final FirebaseFirestore? _injectedFirestore;
   final FirebaseStorage? _injectedStorage;
@@ -174,8 +176,8 @@ class DatabaseService {
   // Get Active Chats for User
   Future<List<Map<String, dynamic>>> getActiveChats(String userId) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final chatsJson =
+          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
       final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
       List<Map<String, dynamic>> userChats = [];
@@ -203,11 +205,12 @@ class DatabaseService {
 
   Future<void> sendMessage(String chatId, ChatMessage message) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
       // Save Message
       final messagesKey = 'chat_messages_$chatId';
-      final messagesJson = prefs.getStringList(messagesKey) ?? [];
+      final msgsStr = await _secureStorage.read(key: messagesKey);
+      List<String> messagesJson = msgsStr != null
+          ? List<String>.from(jsonDecode(msgsStr))
+          : [];
 
       final msgMap = message.toMap();
       msgMap['id'] = message.id; // Include ID in map for local storage
@@ -215,13 +218,17 @@ class DatabaseService {
         0,
         jsonEncode(msgMap),
       ); // Store newest first to match descending order
-      await prefs.setStringList(messagesKey, messagesJson);
+      await _secureStorage.write(
+        key: messagesKey,
+        value: jsonEncode(messagesJson),
+      );
 
       // Update Stream
       _broadcastMessages(chatId);
 
       // Update Metadata
-      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final chatsJson =
+          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
       final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
       final chatData = allChats[chatId] as Map<String, dynamic>? ?? {};
@@ -264,7 +271,10 @@ class DatabaseService {
       };
 
       allChats[chatId] = updatedData;
-      await prefs.setString('chats_metadata', jsonEncode(allChats));
+      await _secureStorage.write(
+        key: 'chats_metadata',
+        value: jsonEncode(allChats),
+      );
 
       // Broadcast Metadata change
       _broadcastChatMetadata(chatId, updatedData);
@@ -280,9 +290,11 @@ class DatabaseService {
     Map<String, dynamic> gameData,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final messagesKey = 'chat_messages_$chatId';
-      final messagesJson = prefs.getStringList(messagesKey) ?? [];
+      final msgsStr = await _secureStorage.read(key: messagesKey);
+      List<String> messagesJson = msgsStr != null
+          ? List<String>.from(jsonDecode(msgsStr))
+          : [];
 
       for (int i = 0; i < messagesJson.length; i++) {
         final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
@@ -293,7 +305,10 @@ class DatabaseService {
         }
       }
 
-      await prefs.setStringList(messagesKey, messagesJson);
+      await _secureStorage.write(
+        key: messagesKey,
+        value: jsonEncode(messagesJson),
+      );
       _broadcastMessages(chatId);
     } catch (e) {
       debugPrint("Error updating game message: $e");
@@ -324,9 +339,8 @@ class DatabaseService {
     }
 
     // Send initial value
-    SharedPreferences.getInstance().then((prefs) {
-      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
-      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+    _secureStorage.read(key: 'chats_metadata').then((chatsJson) {
+      final Map<String, dynamic> allChats = jsonDecode(chatsJson ?? '{}');
       _chatStreamControllers[chatId]!.add(
         allChats[chatId] as Map<String, dynamic>?,
       );
@@ -353,9 +367,11 @@ class DatabaseService {
     int limit = 10,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final messagesKey = 'chat_messages_$chatId';
-      final messagesJson = prefs.getStringList(messagesKey) ?? [];
+      final msgsStr = await _secureStorage.read(key: messagesKey);
+      List<String> messagesJson = msgsStr != null
+          ? List<String>.from(jsonDecode(msgsStr))
+          : [];
 
       final takeCount = messagesJson.length < limit
           ? messagesJson.length
@@ -376,17 +392,19 @@ class DatabaseService {
   // Delete Chat
   Future<void> deleteChat(String chatId) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
       // Delete messages
-      await prefs.remove('chat_messages_$chatId');
+      await _secureStorage.delete(key: 'chat_messages_$chatId');
 
       // Delete metadata
-      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final chatsJson =
+          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
       final Map<String, dynamic> allChats = jsonDecode(chatsJson);
       if (allChats.containsKey(chatId)) {
         allChats.remove(chatId);
-        await prefs.setString('chats_metadata', jsonEncode(allChats));
+        await _secureStorage.write(
+          key: 'chats_metadata',
+          value: jsonEncode(allChats),
+        );
       }
 
       _broadcastChatMetadata(chatId, null);
@@ -416,8 +434,8 @@ class DatabaseService {
       await batch.commit();
 
       // 2. Delete all Chats and Messages (uses batched deleteChat)
-      final prefs = await SharedPreferences.getInstance();
-      final chatsJson = prefs.getString('chats_metadata') ?? '{}';
+      final chatsJson =
+          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
       final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
       for (var chatId in allChats.keys) {
