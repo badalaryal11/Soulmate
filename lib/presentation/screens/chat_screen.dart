@@ -889,63 +889,67 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (message.gameType == 'rps') {
-      return RpsGameBubble(
-        message: message,
-        isMe: isMe,
-        currentUserId: currentUserId,
-        chatId: chatId,
-        databaseService: databaseService,
+      return RepaintBoundary(
+        child: RpsGameBubble(
+          message: message,
+          isMe: isMe,
+          currentUserId: currentUserId,
+          chatId: chatId,
+          databaseService: databaseService,
+        ),
       );
     }
 
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        decoration: BoxDecoration(
-          color: isMe
-              ? const Color(0xFFFE3C72)
-              : (Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[800]
-                    : Colors.grey[200]),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+    return RepaintBoundary(
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              message.text,
-              style: TextStyle(
-                color: isMe
-                    ? Colors.white
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black87),
-                fontSize: 16,
-              ),
+          decoration: BoxDecoration(
+            color: isMe
+                ? const Color(0xFFFE3C72)
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.grey[200]),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
+              bottomRight: isMe ? Radius.zero : const Radius.circular(16),
             ),
-            const SizedBox(height: 4),
-            Text(
-              _formatTime(message.timestamp),
-              style: TextStyle(
-                color: isMe
-                    ? Colors.white70
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54),
-                fontSize: 10,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                message.text,
+                style: TextStyle(
+                  color: isMe
+                      ? Colors.white
+                      : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black87),
+                  fontSize: 16,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                _formatTime(message.timestamp),
+                style: TextStyle(
+                  color: isMe
+                      ? Colors.white70
+                      : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.black54),
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

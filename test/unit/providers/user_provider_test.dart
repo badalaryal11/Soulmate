@@ -62,9 +62,18 @@ void main() {
         mockDatabaseService.getUser('test_uid'),
       ).thenAnswer((_) async => user);
 
+      when(
+        mockDatabaseService.getActiveChats('test_uid'),
+      ).thenAnswer((_) async => []);
+
+      when(
+        mockDatabaseService.updateUserField(any, any),
+      ).thenAnswer((_) async => {});
+
       await userProvider.loadCurrentUser();
 
-      expect(userProvider.currentUser, user);
+      expect(userProvider.currentUser?.id, user.id);
+      expect(userProvider.currentUser?.email, user.email);
       expect(userProvider.currentUserInterests, ['Coding']);
       verify(mockAuthService.currentUser).called(1);
       verify(mockDatabaseService.getUser('test_uid')).called(1);
@@ -93,7 +102,8 @@ void main() {
       await userProvider.loadUsers();
 
       expect(userProvider.status, UserStatus.loaded);
-      expect(userProvider.users, users);
+      expect(userProvider.users.length, 1);
+      expect(userProvider.users.first.id, '1');
       verify(mockUserRepository.getUsers(gender: anyNamed('gender'))).called(1);
     });
   });

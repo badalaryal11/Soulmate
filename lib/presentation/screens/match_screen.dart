@@ -133,10 +133,10 @@ class _Avatar extends StatelessWidget {
                   fit: BoxFit.cover,
                   width: 100,
                   height: 100,
-                  memCacheWidth: 300, // Optimized for 100px display
-                  memCacheHeight: 300,
-                  maxWidthDiskCache: 300,
-                  maxHeightDiskCache: 300,
+                  memCacheWidth: 200, // Optimized for 100px display
+                  memCacheHeight: 200,
+                  maxWidthDiskCache: 200,
+                  maxHeightDiskCache: 200,
                   placeholder: (context, url) =>
                       const CircularProgressIndicator(),
                   errorWidget: (context, url, error) => const Icon(Icons.error),

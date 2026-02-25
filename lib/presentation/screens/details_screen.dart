@@ -36,7 +36,7 @@ class DetailsScreen extends StatelessWidget {
                             ),
                       fit: BoxFit.cover,
                       memCacheWidth:
-                          1000, // Keep high res for details, but use same URL
+                          800, // Keep high res for details, but use same URL
                       placeholder: (context, url) => Container(
                         color: Colors.grey[200],
                         child: const Center(
