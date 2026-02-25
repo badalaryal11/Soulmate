@@ -1,5 +1,17 @@
 # Changelog
 
+## [11.0.0] - 2026-02-25
+
+### 🛡️ Critical Security & Privacy Enhancements
+* **Ironclad Database Protection:** We have significantly hardened the cloud database rules. Chat histories are now strictly locked down so that only verified participants of a specific conversation can read or send messages, completely preventing unauthorized eavesdropping.
+* **Encrypted Local Storage:** All chat messages and private conversation metadata saved to your device are now vaulted using military-grade AES encryption via Android Keystore and iOS Keychain. Your intimate conversations remain inaccessible to other apps, even on compromised devices.
+* **Security Policy Published:** A comprehensive `SECURITY.md` policy has been added to our repository outlining our commitment to user data protection and vulnerability disclosure procedures.
+
+### 🛠️ Performance & Stability
+* **Routine Maintenance:** Resolved residual bugs within the test suites to ensure absolute stability and regression safety for future feature rollouts.
+
+***
+
 ## [10.0.0] - 2026-02-25
 
 ### 🎉 New Features
