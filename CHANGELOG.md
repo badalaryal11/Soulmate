@@ -1,5 +1,22 @@
 # Changelog
 
+## [13.0.0] - 2026-02-26
+
+### 🛡️ Security & Validation Improvements
+* **Data Integrity**: Implemented robust Firestore cross-validation for chat messages.
+* **Account Security**: Enforced email verification requirements and added secure session wiping capabilities.
+* **Compliance**: Added a proprietary `LICENSE` file. Updated `SECURITY.md` with guidelines on supported versions and vulnerability reporting.
+
+### 🚀 Performance & System Optimizations
+* **Crash Prevention**: Drastically lowered the global image cache size limit (`maximumSizeBytes`) to prevent out-of-memory (OOM) crashes on older mobile devices.
+* **Memory Leaks**: Fixed a critical memory leak in the database service by safely closing chat stream controllers when a chat is deleted.
+* **Architecture Stress Tests**: Engineered an aggressive load-testing suite proving the state provider (`UserProvider`) can process 5000+ profiles and rapid swipe interactions in milliseconds without freezing the interface.
+
+### 📝 Documentation
+* **Comprehensive Detailing**: Exhaustively updated the `README.md` to showcase Soulmate's modern tech stack features, AI components, Gamification integration, and Performance metrics.
+
+***
+
 ## [12.0.0] - 2026-02-26
 
 ### 🎉 New Features
