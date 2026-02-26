@@ -1,5 +1,14 @@
 # Changelog
 
+## [12.0.0] - 2026-02-26
+
+### 🎉 New Features
+* **Dedicated Profile Tab:** A new "Profile" tab has been added to the main navigation bar, centralizing your profile picture, bio, interests, and general account settings in one beautifully organized space.
+* **Local Image Storage:** Taking control of your privacy and performance, photos you upload from your device gallery are now saved natively on your device rather than pushed to Firebase cloud storage.
+* **Centralized Image Handling:** Restructured how images render globally across the app to seamlessly and intelligently load high-speed local images alongside online network avatars perfectly.
+
+***
+
 ## [11.0.0] - 2026-02-25
 
 ### 🛡️ Critical Security & Privacy Enhancements
