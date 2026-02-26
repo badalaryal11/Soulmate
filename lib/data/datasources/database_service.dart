@@ -407,8 +407,20 @@ class DatabaseService {
         );
       }
 
-      _broadcastChatMetadata(chatId, null);
-      _broadcastMessages(chatId);
+      // Close and remove stream controllers to prevent memory leaks
+      if (_chatStreamControllers.containsKey(chatId)) {
+        await _chatStreamControllers[chatId]!.close();
+        _chatStreamControllers.remove(chatId);
+      } else {
+        _broadcastChatMetadata(chatId, null);
+      }
+
+      if (_messageStreamControllers.containsKey(chatId)) {
+        await _messageStreamControllers[chatId]!.close();
+        _messageStreamControllers.remove(chatId);
+      } else {
+        _broadcastMessages(chatId);
+      }
     } catch (e) {
       debugPrint("Error deleting chat: $e");
       rethrow;
