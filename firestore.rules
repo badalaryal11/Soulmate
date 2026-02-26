@@ -17,13 +17,12 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid in resource.data.participants;
       
       match /messages/{messageId} {
-        // Since we can't easily check parent resource from subcollection without an extra read, 
-        // we allow read/write to the subcollection if the user is authenticated 
-        // AND the message sender matches OR they're authenticated (relying on parent's restrictiveness for list calls).
-        // Ideally, we'd add participants array to the message or use get() for strictness, 
-        // but since chats is already locked, access to the subcollection path is obscure.
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && request.auth.uid == request.resource.data.senderId;
+        // Enforce that the user is a participant in the parent chat
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        // Enforce the sender matches the payload AND the sender belongs to the chat room
+        allow write: if request.auth != null 
+                     && request.auth.uid == request.resource.data.senderId 
+                     && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }
     }
 

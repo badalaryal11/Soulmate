@@ -11,6 +11,15 @@ Soulmate actively supports the following versions for security updates. We stron
 | 10.0.x  | :x:                |
 | < 10.0  | :x:                |
 
+## Security Architecture & Active Defenses
+
+Soulmate employs several active defense mechanisms to guarantee user privacy and data security:
+
+* **Firestore Cross-Validation Injection Protection:** All Firestore rules for chats and messages dynamically cross-validate the authenticated user against the parent conversation's participant list over the network, making unauthorized eavesdropping or message injection impossible.
+* **Encrypted Local Storage:** All cached conversational metadata and offline chat histories are exclusively stored in an AES-encrypted vault powered by Android Keystore and the iOS Keychain (`flutter_secure_storage`).
+* **Secure Session Wiping:** A dynamic `.deleteAll()` mechanism violently destroys the entire local encrypted key-store immediately upon sign out, ensuring zero sensitive relationship data residuals survive on shared hardware.
+* **Email Verification Enforcement:** Our Authentication framework aggressively rejects login payloads from non-verified email addresses to isolate the app from spam, spoofing, and automated attacks.
+
 ## Reporting a Vulnerability
 
 We take the security of Soulmate and our users' data very seriously. If you have discovered a security vulnerability in our application, we appreciate your help in disclosing it to us in a responsible manner.

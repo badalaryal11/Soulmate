@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   static FirebaseAuth? _mockAuth;
@@ -102,10 +103,22 @@ class AuthService {
     String password,
   ) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Enforce email verification
+      if (credential.user != null && !credential.user!.emailVerified) {
+        // Sign them back out immediately
+        await _auth.signOut();
+        throw FirebaseAuthException(
+          code: 'email-not-verified',
+          message: 'Please verify your email address before signing in.',
+        );
+      }
+
+      return credential;
     } catch (e) {
       debugPrint("Error signing in with email and password: $e");
       rethrow;
@@ -118,10 +131,17 @@ class AuthService {
     String password,
   ) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Automatically send verification email on registration
+      if (credential.user != null && !credential.user!.emailVerified) {
+        await credential.user!.sendEmailVerification();
+      }
+
+      return credential;
     } catch (e) {
       debugPrint("Error registering with email and password: $e");
       rethrow;
@@ -194,6 +214,10 @@ class AuthService {
 
   // Sign out
   Future<void> signOut() async {
+    // Securely wipe all local cached data (AES encrypted chats)
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.deleteAll();
+
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
