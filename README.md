@@ -1,34 +1,41 @@
 # Soulmate
 
-**Soulmate** is a modern Flutter-based dating and social application designed to help users find meaningful connections. With a sleek user interface and robust features, it offers a seamless experience for discovering and chatting with potential matches.
+**Soulmate** is a modern Flutter-based dating and social application designed to help users find meaningful connections. With a sleek user interface, comprehensive security measures, and robust AI integration, it offers a highly engaging experience for discovering and chatting with potential matches.
 
 ## Features
 
-- **Authentication**: Secure sign-up and login using Email/Password and **Google Sign-In**.
-- **Smart Matching**:
-    - **Gender Preference**: Filter potential matches based on your interest.
-    - **Daily Picks**: Curated selection of users just for you.
-- **Interactive Home Screen**: Smooth card-swiping interface with optimized image loading.
-- **Gamified Chat**:
-    - **Relationship Levels**: Earn XP as you chat to unlock levels like "Acquaintance," "Friend," and "Soulmate."
-    - **AI Assistance**: Get conversation starters and replies tailored to your personality.
+- **Authentication & Security**: 
+    - Secure sign-up/login using Email/Password and Google Sign-In.
+    - Protected session management with local data encrypted via `flutter_secure_storage`.
+    - Secure account wiping and strict Firestore cross-validation rules.
+- **Smart Matching & Discovery**:
+    - **Custom Filters**: Filter potential matches by age and gender preference.
+    - **Daily Picks**: A curated selection of standout users just for you.
+    - **Interactive Home Screen**: Highly optimized, buttery-smooth tinder-like card-swiping interface.
+- **Gamified Chat Experience**:
+    - **Relationship Levels**: Earn XP for chatting and maintaining streaks to unlock levels like "Acquaintance," "Friend," and "Soulmate."
+    - **Dynamic AI Personas**: Interact with highly advanced, context-aware AI personas acting as your matches.
+    - **In-Chat Games**: Challenge your matches to quick games like Rock, Paper, Scissors!
 - **User Profiles**:
-    - **Create & Edit**: Setup detailed profiles and update them anytime (including gender and interests).
-    - **AI Avatars**: Generate unique profile pictures if you don't have one handy.
-- **Modern UI/UX**: Built with Material 3 design principles, custom fonts (Poppins), and smooth animations.
+    - **Comprehensive Management**: A dedicated unified Profile Tab to update bios, interests, and preferences effortlessly.
+    - **Device Uploads & AI Avatars**: Upload your own profile pictures directly from your device, or let our AI generate a unique avatar proxy image for you.
+- **Performance Optimized**:
+    - Strict memory cache constraints to prevent Out-Of-Memory (OOM) crashes on mobile devices.
+    - Streamlined memory handling with leak-proof chat streams.
 
 ## Tech Stack
 
 - **Frontend**: [Flutter](https://flutter.dev/) (Dart)
 - **Backend & Services**: [Firebase](https://firebase.google.com/)
-  - **Firebase Auth**: User authentication.
-  - **Cloud Firestore**: Real-time database for user data and chat history.
+  - **Firebase Auth**: User authentication securely handled.
+  - **Cloud Firestore**: Real-time database for user metadata and activity tracking.
+  - **Firebase Storage**: For user uploaded images.
+- **Local Storage**: `flutter_secure_storage` for encrypted on-device message caching.
 - **State Management**: [Provider](https://pub.dev/packages/provider)
 - **Key Packages**:
-  - [`flutter_card_swiper`](https://pub.dev/packages/flutter_card_swiper): For the tinder-like swipe animation.
-  - [`google_sign_in`](https://pub.dev/packages/google_sign_in): For Google authentication.
-  - [`cached_network_image`](https://pub.dev/packages/cached_network_image): Efficient image loading and caching.
-  - [`google_fonts`](https://pub.dev/packages/google_fonts): Custom typography.
+  - `flutter_card_swiper`: For fluid swipe animations.
+  - `cached_network_image`: Efficient, aggressively-optimized image loading and caching.
+  - `google_generative_ai`: Powering the conversational matchmaking AI.
 
 ## Getting Started
 
@@ -36,8 +43,8 @@ Follow these steps to set up the project locally.
 
 ### Prerequisites
 
-- **Flutter SDK**: Ensure you have Flutter installed and set up. [Install Flutter](https://docs.flutter.dev/get-started/install).
-- **Firebase Project**: You need a Firebase project configured for Android and iOS.
+- **Flutter SDK**: Ensure you have Flutter installed. [Install Flutter](https://docs.flutter.dev/get-started/install).
+- **Firebase Project**: Configure a Firebase project with Authentication, Firestore, and Storage enabled.
 
 ### Installation
 
@@ -53,25 +60,20 @@ Follow these steps to set up the project locally.
     ```
 
 3.  **Configure Environment:**
-    - Create a `.env` file in the root directory (if required by the code, though `flutter_dotenv` is used).
-    - Ensure `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` are present (obtained from your Firebase console).
+    - Create a `.env` file in the root directory and specify your AI keys and API config.
+    - Ensure `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` are correctly placed.
 
 4.  **Run the App:**
     ```bash
     flutter run
     ```
 
-## Folder Structure
+## Security & Privacy
+Security is a top priority. For information on responsible disclosure and supported versions, please refer to [SECURITY.md](SECURITY.md).
 
-The project follows a feature-based structure within `lib/`:
-
-- `data/`: Data layer including services (e.g., `auth_service.dart`) and models.
-- `presentation/`: UI layer.
-  - `screens/`: Application screens (Login, Home, Chat, etc.).
-  - `providers/`: State management providers (e.g., `user_provider.dart`).
-  - `widgets/`: Reusable UI components.
-- `utils/`: Utility classes and constants.
+## License
+Soulmate includes a proprietary [LICENSE](LICENSE) file. Please review it for terms regarding distribution and use.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to open an issue or submit a Pull Request.
