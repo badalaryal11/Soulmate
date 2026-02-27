@@ -19,7 +19,18 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<List<ChatMessage>> getChatStream(String chatId) {
-    return _databaseService.getChatStream(chatId);
+    // DatabaseService returns Stream<Map<String, dynamic>?>
+    // We need to parse this into a stream of messages
+    return _databaseService.getChatStream(chatId).map((data) {
+      if (data == null || data['messages'] == null) return [];
+      final messagesData = data['messages'] as List<dynamic>;
+      return messagesData.map((m) {
+        final map = Map<String, dynamic>.from(m);
+        // Ensure there is an ID to pass, otherwise use an empty string or generate one
+        final id = map['id'] ?? '';
+        return ChatMessage.fromMap(id, map);
+      }).toList();
+    });
   }
 
   @override
@@ -37,7 +48,7 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<String> getChatId(String userId1, String userId2) {
+  Future<String> getChatId(String userId1, String userId2) async {
     return _databaseService.getChatId(userId1, userId2);
   }
 

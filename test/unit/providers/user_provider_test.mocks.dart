@@ -11,9 +11,9 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
 import 'package:soulmate/data/datasources/auth_service.dart' as _i6;
 import 'package:soulmate/data/datasources/database_service.dart' as _i7;
-import 'package:soulmate/data/repositories/user_repository.dart' as _i3;
 import 'package:soulmate/domain/entities/chat_message.dart' as _i10;
 import 'package:soulmate/domain/entities/user_model.dart' as _i5;
+import 'package:soulmate/domain/repositories/user_repository.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -71,18 +71,46 @@ class MockUserRepository extends _i1.Mock implements _i3.UserRepository {
   }
 
   @override
+  _i4.Future<void> saveUser(_i5.User? user) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveUser, [user]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<_i5.User?> getUser(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#getUser, [uid]),
+            returnValue: _i4.Future<_i5.User?>.value(),
+          )
+          as _i4.Future<_i5.User?>);
+
+  @override
   _i4.Future<List<_i5.User>> getUsers({
     String? gender,
     String? currentUserId,
+    int? limit = 10,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getUsers, [], {
               #gender: gender,
               #currentUserId: currentUserId,
+              #limit: limit,
             }),
             returnValue: _i4.Future<List<_i5.User>>.value(<_i5.User>[]),
           )
           as _i4.Future<List<_i5.User>>);
+
+  @override
+  _i4.Future<void> updateUserField(String? uid, Map<String, dynamic>? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateUserField, [uid, data]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }
 
 /// A class which mocks [AuthService].

@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../../domain/entities/user_model.dart';
-import '../../data/repositories/user_repository.dart';
+import '../../domain/repositories/user_repository.dart';
+import '../../data/repositories/user_repository_impl.dart';
+import '../../domain/usecases/get_users_usecase.dart';
+import '../../data/repositories/chat_repository_impl.dart';
+import '../../domain/usecases/get_active_chats_usecase.dart';
+import '../../domain/usecases/delete_chat_usecase.dart';
+import '../../domain/usecases/get_chat_id_usecase.dart';
+import '../../data/datasources/api_service.dart';
 import '../../data/datasources/auth_service.dart';
 import '../../data/datasources/database_service.dart';
 import '../../data/datasources/image_generation_service.dart';
@@ -14,16 +21,51 @@ class UserProvider extends ChangeNotifier {
   static const int _maxImageUrls = 300;
 
   final UserRepository _userRepository;
+  final GetUsersUseCase _getUsersUseCase;
   final AuthService _authService;
-  final DatabaseService _databaseService;
+  final GetActiveChatsUseCase _getActiveChatsUseCase;
+  final DeleteChatUseCase _deleteChatUseCase;
+  final GetChatIdUseCase _getChatIdUseCase;
 
   UserProvider({
     UserRepository? userRepository,
+    GetUsersUseCase? getUsersUseCase,
     AuthService? authService,
     DatabaseService? databaseService,
-  }) : _userRepository = userRepository ?? UserRepository(),
+    GetActiveChatsUseCase? getActiveChatsUseCase,
+    DeleteChatUseCase? deleteChatUseCase,
+    GetChatIdUseCase? getChatIdUseCase,
+  }) : _userRepository =
+           userRepository ??
+           UserRepositoryImpl(
+             databaseService ?? DatabaseService(),
+             ApiService(),
+           ),
+       _getUsersUseCase =
+           getUsersUseCase ??
+           GetUsersUseCase(
+             userRepository ??
+                 UserRepositoryImpl(
+                   databaseService ?? DatabaseService(),
+                   ApiService(),
+                 ),
+           ),
        _authService = authService ?? AuthService(),
-       _databaseService = databaseService ?? DatabaseService();
+       _getActiveChatsUseCase =
+           getActiveChatsUseCase ??
+           GetActiveChatsUseCase(
+             ChatRepositoryImpl(databaseService ?? DatabaseService()),
+           ),
+       _deleteChatUseCase =
+           deleteChatUseCase ??
+           DeleteChatUseCase(
+             ChatRepositoryImpl(databaseService ?? DatabaseService()),
+           ),
+       _getChatIdUseCase =
+           getChatIdUseCase ??
+           GetChatIdUseCase(
+             ChatRepositoryImpl(databaseService ?? DatabaseService()),
+           );
 
   final List<User> _users = [];
   final Set<String> _usedImageUrls =
@@ -83,7 +125,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> loadCurrentUser() async {
     final user = _authService.currentUser;
     if (user != null) {
-      _currentUser = await _databaseService.getUser(user.uid);
+      _currentUser = await _userRepository.getUser(user.uid);
       if (_currentUser != null) {
         // Daily login logic (Streak & Coins)
         final today = DateTime.now();
@@ -130,7 +172,7 @@ class UserProvider extends ChangeNotifier {
 
         if (shouldUpdate) {
           final newLastLogin = today.toIso8601String();
-          await _databaseService.updateUserField(_currentUser!.id, {
+          await _userRepository.updateUserField(_currentUser!.id, {
             'streak': newStreak,
             'coins': newCoins,
             'lastLoginDate': newLastLogin,
@@ -182,7 +224,7 @@ class UserProvider extends ChangeNotifier {
     }
 
     try {
-      final newUsers = await _userRepository.getUsers(
+      final newUsers = await _getUsersUseCase.call(
         gender: _selectedGender,
         currentUserId: _currentUser?.id,
       );
@@ -245,7 +287,7 @@ class UserProvider extends ChangeNotifier {
     if (_currentUser == null) return;
 
     try {
-      final chatDocs = await _databaseService.getActiveChats(_currentUser!.id);
+      final chatDocs = await _getActiveChatsUseCase(_currentUser!.id);
       final List<User> loadedMatches = [];
 
       for (var chat in chatDocs) {
@@ -266,7 +308,7 @@ class UserProvider extends ChangeNotifier {
             // Not found locally
           }
 
-          user ??= await _databaseService.getUser(otherUserId);
+          user ??= await _userRepository.getUser(otherUserId);
 
           if (user != null) {
             // Inject streak
@@ -335,8 +377,8 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_currentUser != null) {
-      final chatId = _databaseService.getChatId(_currentUser!.id, userId);
-      await _databaseService.deleteChat(chatId);
+      final chatId = await _getChatIdUseCase(_currentUser!.id, userId);
+      await _deleteChatUseCase(chatId);
     }
   }
 }

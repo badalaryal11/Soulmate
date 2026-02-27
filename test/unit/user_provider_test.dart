@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
-import 'package:soulmate/data/repositories/user_repository.dart';
+import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/domain/entities/user_model.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';

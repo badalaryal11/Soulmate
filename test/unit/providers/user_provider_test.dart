@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
-import 'package:soulmate/data/repositories/user_repository.dart';
+import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
 import 'package:soulmate/domain/entities/user_model.dart';
@@ -59,7 +59,7 @@ void main() {
       );
 
       when(
-        mockDatabaseService.getUser('test_uid'),
+        mockUserRepository.getUser('test_uid'),
       ).thenAnswer((_) async => user);
 
       when(
@@ -76,7 +76,7 @@ void main() {
       expect(userProvider.currentUser?.email, user.email);
       expect(userProvider.currentUserInterests, ['Coding']);
       verify(mockAuthService.currentUser).called(1);
-      verify(mockDatabaseService.getUser('test_uid')).called(1);
+      verify(mockUserRepository.getUser('test_uid')).called(1);
     });
 
     test('loadUsers updates status and users list', () async {

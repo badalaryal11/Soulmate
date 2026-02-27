@@ -11,9 +11,17 @@ import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/chat_provider.dart';
+import 'data/repositories/chat_repository_impl.dart';
+import 'domain/usecases/get_chat_id_usecase.dart';
+import 'domain/usecases/get_chat_stream_usecase.dart';
+import 'domain/usecases/get_message_history_usecase.dart';
+import 'domain/usecases/send_message_usecase.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'data/datasources/notification_service.dart';
 import 'data/datasources/auth_service.dart';
+import 'data/datasources/database_service.dart';
+import 'data/datasources/chat_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -159,6 +167,22 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final databaseService = DatabaseService();
+            final chatRepository = ChatRepositoryImpl(databaseService);
+            return ChatProvider(
+              chatService: ChatService(),
+              notificationService: NotificationService(),
+              getChatIdUseCase: GetChatIdUseCase(chatRepository),
+              getChatStreamUseCase: GetChatStreamUseCase(chatRepository),
+              getMessageHistoryUseCase: GetMessageHistoryUseCase(
+                chatRepository,
+              ),
+              sendMessageUseCase: SendMessageUseCase(chatRepository),
+            );
+          },
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
