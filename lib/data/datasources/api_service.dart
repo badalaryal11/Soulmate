@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // For compute
 import 'package:http/http.dart' as http;
-import '../../domain/entities/user_model.dart';
+import 'package:soulmate/data/models/user_model.dart';
+import '../../domain/entities/user_model.dart' as domain;
 import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 
 // Top-level function for compute
-List<User> parseDummyJsonUsers(String responseBody) {
+List<domain.User> parseDummyJsonUsers(String responseBody) {
   final Map<String, dynamic> data = json.decode(responseBody);
   final List<dynamic> usersData = data['users'];
   return usersData.map((json) {
-    final user = User.fromDummyJson(json);
+    final user = UserModel.fromDummyJson(json);
     // Replace DummyJSON image with high-quality generated one
     return user.copyWith(
       imageUrl: ImageGenerationService.generateProfileImageUrl(user),
@@ -19,10 +20,10 @@ List<User> parseDummyJsonUsers(String responseBody) {
 }
 
 // Top-level function for compute
-List<User> parseRandomUserMeUsers(String responseBody) {
+List<domain.User> parseRandomUserMeUsers(String responseBody) {
   final Map<String, dynamic> data = json.decode(responseBody);
   final List<dynamic> usersData = data['results'];
-  return usersData.map((json) => User.fromRandomUser(json)).toList();
+  return usersData.map((json) => UserModel.fromRandomUser(json)).toList();
 }
 
 class ApiService {
@@ -33,7 +34,7 @@ class ApiService {
   static const String _dummyJsonUrl = 'https://dummyjson.com/users';
   static const String _randomUserUrl = 'https://randomuser.me/api/';
 
-  Future<List<User>> fetchUsers({int results = 50, String? gender}) async {
+  Future<List<domain.User>> fetchUsers({int results = 50, String? gender}) async {
     // Split results between the two APIs
     // Ensure at least 1 user from each if results is small, otherwise split roughly 50/50
     int halfLimit = (results / 2).ceil();
@@ -50,7 +51,7 @@ class ApiService {
 
     final resultsList = await Future.wait([dummyJsonFuture, randomUserFuture]);
 
-    final List<User> allUsers = [];
+    final List<domain.User> allUsers = [];
     allUsers.addAll(resultsList[0]);
     allUsers.addAll(resultsList[1]);
 
@@ -61,7 +62,7 @@ class ApiService {
     return allUsers;
   }
 
-  Future<List<User>> _fetchDummyJsonUsers({
+  Future<List<domain.User>> _fetchDummyJsonUsers({
     required int results,
     String? gender,
   }) async {
@@ -100,7 +101,7 @@ class ApiService {
     return [];
   }
 
-  Future<List<User>> _fetchRandomUserMeUsers({
+  Future<List<domain.User>> _fetchRandomUserMeUsers({
     required int results,
     String? gender,
   }) async {

@@ -67,7 +67,28 @@ void main() {
 
       verify(mockFirestore.collection('users')).called(1);
       verify(mockCollectionReference.doc('test_uid')).called(1);
-      verify(mockDocumentReference.set(user.toMap(), any)).called(1);
+
+      final expectedMap = {
+        'id': 'test_uid',
+        'email': 'test@example.com',
+        'firstName': 'Test',
+        'lastName': 'User',
+        'age': 25,
+        'city': 'New York',
+        'country': 'USA',
+        'imageUrl': 'http://example.com/image.jpg',
+        'gender': 'Male',
+        'interests': ['Coding', 'Music'],
+        'genderPreference': null,
+        'bio': null,
+        'streak': 0,
+        'coins': 0,
+        'lastLoginDate': null,
+        'prompts': [],
+        'badges': [],
+      };
+
+      verify(mockDocumentReference.set(expectedMap, any)).called(1);
     });
 
     test('updateUserField updates user data', () async {

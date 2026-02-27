@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
-import '../../domain/entities/chat_message.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:soulmate/data/models/user_model.dart';
+import '../../domain/entities/user_model.dart' as domain;
+import '../../domain/entities/chat_message.dart';
 import 'dart:async';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -79,12 +80,31 @@ class DatabaseService {
   }
 
   // Save or Update User
-  Future<void> saveUser(User user) async {
+  Future<void> saveUser(domain.User user) async {
     try {
+      final userModel = UserModel(
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        age: user.age,
+        city: user.city,
+        country: user.country,
+        imageUrl: user.imageUrl,
+        gender: user.gender,
+        interests: user.interests,
+        genderPreference: user.genderPreference,
+        bio: user.bio,
+        streak: user.streak,
+        coins: user.coins,
+        lastLoginDate: user.lastLoginDate,
+        prompts: user.prompts,
+        badges: user.badges,
+      );
       await _firestore
           .collection(_usersCollection)
           .doc(user.id)
-          .set(user.toMap(), SetOptions(merge: true));
+          .set(userModel.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint("Error saving user: $e");
       rethrow; // Let the UI handle it or just log it
@@ -115,14 +135,14 @@ class DatabaseService {
   }
 
   // Get User
-  Future<User?> getUser(String uid) async {
+  Future<domain.User?> getUser(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore
           .collection(_usersCollection)
           .doc(uid)
           .get();
       if (doc.exists && doc.data() != null) {
-        return User.fromMap(doc.data() as Map<String, dynamic>);
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }
       return null;
     } catch (e) {
@@ -132,7 +152,7 @@ class DatabaseService {
   }
 
   // Get Multiple Users (Potential Matches)
-  Future<List<User>> getUsers({
+  Future<List<domain.User>> getUsers({
     String? gender,
     String? currentUserId,
     int limit = 10,
@@ -157,7 +177,7 @@ class DatabaseService {
       QuerySnapshot snapshot = await query.limit(limit).get();
 
       return snapshot.docs
-          .map((doc) => User.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
           .where((user) => user.id != currentUserId) // Client-side exclusion
           .toList();
     } catch (e) {
