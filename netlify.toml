@@ -1,0 +1,8 @@
+[build]
+  # This downloads Flutter (if not cached), sets the path, gets packages, and builds the web app
+  command = "if [ -d flutter ]; then echo 'Flutter cached'; else git clone https://github.com/flutter/flutter.git -b stable; fi && export PATH=\"$PATH:`pwd`/flutter/bin\" && flutter config --enable-web && flutter pub get && flutter build web"
+  publish = "build/web"
+
+[build.environment]
+  # Cache the flutter sdk directory to make subsequent builds faster
+  NETLIFY_USE_YARN = "false"
