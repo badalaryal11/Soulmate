@@ -24,23 +24,15 @@ void main() async {
     exit(1);
   }
 
-  final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
+  final model = GenerativeModel(model: 'gemini-pro-vision', apiKey: apiKey);
 
   final stickerUrls = [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmVtdWd5YmlyZHdrcTBpeWVib2k2cDB6OTJqdDJnZndhY2hheDcyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/11S5TjEEDEq8t126uYn/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtc2Vqa3RocWtlaGczMWE0NmxlaXRnODJ4cjdwd2YxcTJlaDUzMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/26FLdmIp6wJr91JAI/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGxtZmxhNjZpdHJmMGExdXpnd3J5NXB2NzR6ZGNsbnAxdXR1dWF6bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenF2emtxMzFxdXV6MzhpdGVldXZvcGV0MWtiam9uYnJwNXgyYXB6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l4pTfx2qLszoacZRS/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXQyOHE0bHExdGpnZW94YnRvdGR0NGQ3am9nZG13amIzejdmaGQwZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKoWXm3okO1kgHC/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm5nZHB0ZXFtaDFhMmhtdnhrNXVxc2NueHpvamZ1eDJucDNsOTNnbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/7kn27lnYSAE9O/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNxdmQ3dDhybjFmOHp3anl6aDdzZWYxaTN1Mm13ZGg5NnB4eXZpdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gvnAxj2ISzJdbA63/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzlqMDhzMjdzeWR5dzc0ejhmcTVyNm5yeWFzbnF3enlxMWg0a24weiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/KztT2c4u8mYYUiMKdJ/giphy.gif',
-    'https://media.tenor.com/WyYsbi0fei8AAAAC/love-mochi.gif',
-    'https://media.tenor.com/_reUPa03zXsAAAAC/love-shine-on.gif',
-    'https://media.tenor.com/kqHNV9zBRM8AAAAC/dog-happy-dog.gif',
-    'https://media.tenor.com/d9PoZm99CTgAAAAC/sadcat-crying-cat.gif',
-    'https://media.tenor.com/Ydqpw1Nn2JkAAAAC/quby-sad.gif',
-    'https://media.tenor.com/T7fRyJXgmB8AAAAC/cute-cat.gif',
+    'https://i.waifu.pics/J2EF9YT.gif',
+    'https://i.waifu.pics/EYcAlMR.gif',
+    'https://i.waifu.pics/8ixFGjY.gif',
+    'https://i.waifu.pics/M4kkraV.gif',
+    'https://i.waifu.pics/V4ztx1j.gif',
+    'https://i.waifu.pics/wSJHUmH.gif',
   ];
 
   print('Describing ${stickerUrls.length} stickers...');
@@ -70,5 +62,6 @@ void main() async {
     } catch (e) {
       print('Error getting description for sticker $i: $e');
     }
+    await Future.delayed(const Duration(seconds: 5));
   }
 }

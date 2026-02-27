@@ -48,22 +48,31 @@ class ChatService {
 
     final StringBuffer errorLog = StringBuffer();
 
-    // Prepare optimized system prompt with sticker mapping
+    // Prepare message history
     final List<Map<String, String>> messages = List<Map<String, String>>.from(
       initialMessages,
     );
 
-    final systemIndex = messages.indexWhere((m) => m['role'] == 'system');
-    final stickerMapping = Stickers.systemPromptMapping;
-
-    String systemPrompt = '';
-    if (systemIndex != -1) {
-      final currentContent = messages[systemIndex]['content'] ?? '';
-      systemPrompt = '$currentContent\n\n$stickerMapping';
-      messages[systemIndex] = {'role': 'system', 'content': systemPrompt};
-    } else {
-      systemPrompt = stickerMapping;
-      messages.insert(0, {'role': 'system', 'content': systemPrompt});
+    // Optimize token usage: Intercept sticker indices and replace them with the actual vision description inline.
+    // This avoids needing to send the entire mapping dictionary in every system prompt.
+    for (var msg in messages) {
+      if (msg['content'] != null &&
+          msg['content']!.contains('[USER_STICKER:')) {
+        final regex = RegExp(r'\[USER_STICKER:(\d+)\]');
+        msg['content'] = msg['content']!.replaceAllMapped(regex, (match) {
+          final indexStr = match.group(1);
+          if (indexStr != null) {
+            final index = int.tryParse(indexStr);
+            if (index != null &&
+                index >= 0 &&
+                index < Stickers.stickerData.length) {
+              final desc = Stickers.stickerData[index]['desc'];
+              return '[User sent a sticker image showing: $desc]';
+            }
+          }
+          return '[User sent a sticker]';
+        });
+      }
     }
 
     // Try Gemini First (Very generous free tier, 15 RPM)
@@ -85,22 +94,27 @@ class ChatService {
 
         // Add system instructions explicitly if supported, or just inject at start
         // To be safe and compatible with older gemini implementations, we'll prepend system prompt to the user's first message
-        // if geminiHistory is not empty and system prompt exists
-        if (systemPrompt.isNotEmpty && geminiHistory.isNotEmpty) {
-          final firstUserMsg = geminiHistory.firstWhere(
-            (c) => c.role == 'user',
-            orElse: () => geminiHistory.first,
-          );
-          if (firstUserMsg.parts.isNotEmpty) {
-            final oldText = (firstUserMsg.parts.first as TextPart).text;
-            firstUserMsg.parts[0] = TextPart(
-              "System Instruction: $systemPrompt\n\nUser: $oldText",
+        final systemIndex = messages.indexWhere((m) => m['role'] == 'system');
+        if (systemIndex != -1 && geminiHistory.isNotEmpty) {
+          final systemPrompt = messages[systemIndex]['content'] ?? '';
+          if (systemPrompt.isNotEmpty) {
+            final firstUserMsg = geminiHistory.firstWhere(
+              (c) => c.role == 'user',
+              orElse: () => geminiHistory.first,
             );
-          } else {
-            geminiHistory.insert(
-              0,
-              Content('user', [TextPart("System Instruction: $systemPrompt")]),
-            );
+            if (firstUserMsg.parts.isNotEmpty) {
+              final oldText = (firstUserMsg.parts.first as TextPart).text;
+              firstUserMsg.parts[0] = TextPart(
+                "System Instruction: $systemPrompt\n\nUser: $oldText",
+              );
+            } else {
+              geminiHistory.insert(
+                0,
+                Content('user', [
+                  TextPart("System Instruction: $systemPrompt"),
+                ]),
+              );
+            }
           }
         }
 

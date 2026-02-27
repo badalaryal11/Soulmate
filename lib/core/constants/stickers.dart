@@ -64,18 +64,30 @@ class Stickers {
       'url': 'https://media.tenor.com/T7fRyJXgmB8AAAAC/cute-cat.gif',
       'desc': 'a cute cat waving hello',
     },
+    {
+      'url': 'https://i.waifu.pics/J2EF9YT.gif',
+      'desc':
+          'anime character affectionately patting another character on the head',
+    },
+    {
+      'url': 'https://i.waifu.pics/EYcAlMR.gif',
+      'desc': 'anime characters sharing a warm, loving hug',
+    },
+    {
+      'url': 'https://i.waifu.pics/8ixFGjY.gif',
+      'desc': 'anime characters sharing a romantic kiss',
+    },
+    {
+      'url': 'https://i.waifu.pics/M4kkraV.gif',
+      'desc': 'anime character looking extremely happy and joyful',
+    },
+    {
+      'url': 'https://i.waifu.pics/V4ztx1j.gif',
+      'desc': 'anime character performing a cute and energetic dance',
+    },
+    {
+      'url': 'https://i.waifu.pics/wSJHUmH.gif',
+      'desc': 'anime character giving a bright, heartfelt smile',
+    },
   ];
-
-  static final String systemPromptMapping = _buildSystemPromptMapping();
-
-  static String _buildSystemPromptMapping() {
-    final buffer = StringBuffer();
-    buffer.writeln(
-      "If the user sends a message formatted exactly as [USER_STICKER:<index>], it means they sent a visual sticker. Treat it exactly as if they sent an image of the following description:",
-    );
-    for (int i = 0; i < stickerData.length; i++) {
-      buffer.writeln("Index $i: ${stickerData[i]['desc']}");
-    }
-    return buffer.toString();
-  }
 }

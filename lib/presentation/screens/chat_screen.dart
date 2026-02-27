@@ -521,6 +521,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     reverse: true, // Start from bottom
                     controller: _scrollController,
                     itemCount: messages.length,
+                    findChildIndexCallback: (Key key) {
+                      if (key is ValueKey<String>) {
+                        return messages.indexWhere((m) => m.id == key.value);
+                      }
+                      return null;
+                    },
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -530,6 +536,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       // so index 0 is latest
                       final message = messages[index];
                       return MessageBubble(
+                        key: ValueKey(message.id),
                         message: message,
                         isMe: message.senderId == _currentUserId,
                         currentUserId: _currentUserId,
@@ -846,6 +853,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: ImageUtils.getImageWidget(
                           sticker['url']!,
                           fit: BoxFit.cover,
+                          memCacheWidth: 250,
+                          memCacheHeight: 250,
                         ),
                       ),
                     );
@@ -902,92 +911,90 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (message.stickerUrl != null && message.stickerUrl!.isNotEmpty) {
-      return RepaintBoundary(
-        child: Align(
-          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-            child: Column(
-              crossAxisAlignment: isMe
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: ImageUtils.getImageWidget(
-                    message.stickerUrl!,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatTime(message.timestamp),
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white54
-                        : Colors.black54,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return RepaintBoundary(
-      child: Align(
+      return Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          decoration: BoxDecoration(
-            color: isMe
-                ? const Color(0xFFFE3C72)
-                : (Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]
-                      : Colors.grey[200]),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-              bottomRight: isMe ? Radius.zero : const Radius.circular(16),
-            ),
-          ),
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: isMe
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
-              Text(
-                message.text,
-                style: TextStyle(
-                  color: isMe
-                      ? Colors.white
-                      : (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black87),
-                  fontSize: 16,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: ImageUtils.getImageWidget(
+                  message.stickerUrl!,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 250,
+                  memCacheHeight: 250,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 _formatTime(message.timestamp),
                 style: TextStyle(
-                  color: isMe
-                      ? Colors.white70
-                      : (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black54),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white54
+                      : Colors.black54,
                   fontSize: 10,
                 ),
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
+        decoration: BoxDecoration(
+          color: isMe
+              ? const Color(0xFFFE3C72)
+              : (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[800]
+                    : Colors.grey[200]),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(16),
+            topRight: const Radius.circular(16),
+            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
+            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.text,
+              style: TextStyle(
+                color: isMe
+                    ? Colors.white
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black87),
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _formatTime(message.timestamp),
+              style: TextStyle(
+                color: isMe
+                    ? Colors.white70
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.black54),
+                fontSize: 10,
+              ),
+            ),
+          ],
         ),
       ),
     );
