@@ -2,43 +2,43 @@ class Stickers {
   static const List<Map<String, String>> stickerData = [
     {
       'url':
-          'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmVtdWd5YmlyZHdrcTBpeWVib2k2cDB6OTJqdDJnZndhY2hheDcyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/11S5TjEEDEq8t126uYn/giphy.gif',
-      'desc': 'a spinning animated heart',
-    },
-    {
-      'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtc2Vqa3RocWtlaGczMWE0NmxlaXRnODJ4cjdwd2YxcTJlaDUzMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/26FLdmIp6wJr91JAI/giphy.gif',
-      'desc': 'an adorable cat cuddling and hugging a heart affectionately',
+      'desc':
+          'Patrick Star looking enamored with hands on cheeks, surrounded by pixel hearts',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGxtZmxhNjZpdHJmMGExdXpnd3J5NXB2NzR6ZGNsbnAxdXR1dWF6bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif',
-      'desc': 'a cute cat stretching its arms out to give a big warm hug',
+      'desc':
+          'Pleading cat looking up with an outstretched paw asking for something',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenF2emtxMzFxdXV6MzhpdGVldXZvcGV0MWtiam9uYnJwNXgyYXB6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l4pTfx2qLszoacZRS/giphy.gif',
-      'desc': 'shining, magical sparkles indicating awe or excitement',
+      'desc':
+          'Sassy gnome in a pink swimsuit and green sunglasses dancing smoothly',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXQyOHE0bHExdGpnZW94YnRvdGR0NGQ3am9nZG13amIzejdmaGQwZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKoWXm3okO1kgHC/giphy.gif',
-      'desc': 'a small dog dancing happily and playfully',
+      'desc': 'Red hearts joyfully falling from the top downwards',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm5nZHB0ZXFtaDFhMmhtdnhrNXVxc2NueHpvamZ1eDJucDNsOTNnbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/7kn27lnYSAE9O/giphy.gif',
-      'desc': 'a cute dog laughing hysterically on the floor',
+      'desc':
+          'A yellow puppet character, wide-eyed and overjoyed, laughing loudly with a wide-open mouth',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNxdmQ3dDhybjFmOHp3anl6aDdzZWYxaTN1Mm13ZGg5NnB4eXZpdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gvnAxj2ISzJdbA63/giphy.gif',
-      'desc': 'a sad, crying animal shedding tears',
+      'desc':
+          'Asian man smiling warmly and making a small heart shape with his hands',
     },
     {
       'url':
           'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzlqMDhzMjdzeWR5dzc0ejhmcTVyNm5yeWFzbnF3enlxMWg0a24weiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/KztT2c4u8mYYUiMKdJ/giphy.gif',
-      'desc': 'blowing an animated kiss full of love',
+      'desc': 'Red heart glowing and beating',
     },
     {
       'url': 'https://media.tenor.com/WyYsbi0fei8AAAAC/love-mochi.gif',
