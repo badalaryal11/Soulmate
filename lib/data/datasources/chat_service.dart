@@ -39,7 +39,7 @@ class ChatService {
     },
   ];
 
-  Future<String> sendMessage(List<Map<String, String>> messages) async {
+  Future<String> sendMessage(List<Map<String, String>> initialMessages) async {
     // Check connectivity
     final connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult.contains(ConnectivityResult.none)) {
@@ -47,6 +47,24 @@ class ChatService {
     }
 
     final StringBuffer errorLog = StringBuffer();
+
+    // Prepare optimized system prompt with sticker mapping
+    final List<Map<String, String>> messages = List<Map<String, String>>.from(
+      initialMessages,
+    );
+
+    final systemIndex = messages.indexWhere((m) => m['role'] == 'system');
+    final stickerMapping = Stickers.systemPromptMapping;
+
+    String systemPrompt = '';
+    if (systemIndex != -1) {
+      final currentContent = messages[systemIndex]['content'] ?? '';
+      systemPrompt = '$currentContent\n\n$stickerMapping';
+      messages[systemIndex] = {'role': 'system', 'content': systemPrompt};
+    } else {
+      systemPrompt = stickerMapping;
+      messages.insert(0, {'role': 'system', 'content': systemPrompt});
+    }
 
     // Try Gemini First (Very generous free tier, 15 RPM)
     if (_geminiApiToken.isNotEmpty) {
@@ -56,18 +74,6 @@ class ChatService {
           model: 'gemini-2.5-flash',
           apiKey: _geminiApiToken,
         );
-
-        // Convert format
-        final baseSystemPrompt =
-            messages.firstWhere(
-              (m) => m['role'] == 'system',
-              orElse: () => {'content': ''},
-            )['content'] ??
-            '';
-
-        // Append sticker mapping instructions to the system prompt
-        final systemPrompt =
-            "$baseSystemPrompt\n\n${Stickers.getSystemPromptMapping()}";
 
         List<Content> geminiHistory = [];
         for (var msg in messages) {

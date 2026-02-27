@@ -66,7 +66,9 @@ class Stickers {
     },
   ];
 
-  static String getSystemPromptMapping() {
+  static final String systemPromptMapping = _buildSystemPromptMapping();
+
+  static String _buildSystemPromptMapping() {
     final buffer = StringBuffer();
     buffer.writeln(
       "If the user sends a message formatted exactly as [USER_STICKER:<index>], it means they sent a visual sticker. Treat it exactly as if they sent an image of the following description:",
