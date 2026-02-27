@@ -309,11 +309,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
-                  if (chatProvider.isTyping)
-                    const Text(
-                      'typing...',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFFE3C72)),
-                    ),
                 ],
               ),
             ),
@@ -372,10 +367,19 @@ class _ChatScreenState extends State<ChatScreen> {
                   return ListView.builder(
                     reverse: true, // Start from bottom
                     controller: _scrollController,
-                    itemCount: messages.length,
+                    itemCount:
+                        messages.length + (chatProvider.isTyping ? 1 : 0),
                     findChildIndexCallback: (Key key) {
+                      if (key == const ValueKey('typing_indicator')) {
+                        return chatProvider.isTyping ? 0 : null;
+                      }
                       if (key is ValueKey<String>) {
-                        return messages.indexWhere((m) => m.id == key.value);
+                        int index = messages.indexWhere(
+                          (m) => m.id == key.value,
+                        );
+                        if (index != -1) {
+                          return chatProvider.isTyping ? index + 1 : index;
+                        }
                       }
                       return null;
                     },
@@ -384,6 +388,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       vertical: 8,
                     ),
                     itemBuilder: (context, index) {
+                      if (chatProvider.isTyping) {
+                        if (index == 0) {
+                          return TypingBubble(
+                            key: const ValueKey('typing_indicator'),
+                            user: widget.user,
+                          );
+                        }
+                        index -= 1;
+                      }
                       // messages are already ordered descending from firestore
                       // so index 0 is latest
                       final message = messages[index];
@@ -685,5 +698,68 @@ class MessageBubble extends StatelessWidget {
     final minute = time.minute.toString().padLeft(2, '0');
     final amPm = time.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $amPm';
+  }
+}
+
+class TypingBubble extends StatelessWidget {
+  final User user;
+
+  const TypingBubble({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final imageUrl =
+        (user.imageUrl.isNotEmpty && !user.imageUrl.startsWith('assets/'))
+        ? user.imageUrl
+        : ImageGenerationService.generateProfileImageUrl(user);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ClipOval(
+            child: ImageUtils.getImageWidget(
+              imageUrl,
+              width: 28,
+              height: 28,
+              memCacheWidth: 70,
+              memCacheHeight: 70,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+                bottomLeft: Radius.circular(0),
+              ),
+            ),
+            child: const SizedBox(
+              width: 40,
+              height: 20,
+              child: Center(
+                child: SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFFE3C72),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
