@@ -627,6 +627,20 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
+                    onTap: () {
+                      _showStickerPicker(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: Colors.grey[500],
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
                     onTap: () => _sendMessage(_controller.text),
                     child: CircleAvatar(
                       backgroundColor: const Color(0xFFFE3C72),
@@ -675,6 +689,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage(String text) async {
+    await _sendMessageInternal(text, saveToDb: true);
+  }
+
+  Future<void> _sendMessageInternal(
+    String text, {
+    required bool saveToDb,
+  }) async {
     if (text.trim().isEmpty) return;
 
     // Capture user data before async operations to avoid BuildContext across async gaps
@@ -689,7 +710,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final userMessageText = text.trim();
-    _controller.clear();
+    if (saveToDb) {
+      _controller.clear();
+    }
 
     // Create User Message
     final userMessage = ChatMessage(
@@ -699,8 +722,10 @@ class _ChatScreenState extends State<ChatScreen> {
       timestamp: DateTime.now(),
     );
 
-    // Save to Database
-    await _databaseService.sendMessage(_chatId, userMessage);
+    // Save to Database only if requested
+    if (saveToDb) {
+      await _databaseService.sendMessage(_chatId, userMessage);
+    }
 
     // Schedule Proactive Notification (Retention Hook)
     try {
@@ -794,6 +819,128 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _showStickerPicker(BuildContext context) {
+    // A curated list of lovely sticker URLs with descriptive names for the AI
+    final List<Map<String, String>> stickerData = [
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmVtdWd5YmlyZHdrcTBpeWVib2k2cDB6OTJqdDJnZndhY2hheDcyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/11S5TjEEDEq8t126uYn/giphy.gif',
+        'desc': 'a spinning animated heart',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtc2Vqa3RocWtlaGczMWE0NmxlaXRnODJ4cjdwd2YxcTJlaDUzMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/26FLdmIp6wJr91JAI/giphy.gif',
+        'desc': 'an adorable cat cuddling and hugging a heart affectionately',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGxtZmxhNjZpdHJmMGExdXpnd3J5NXB2NzR6ZGNsbnAxdXR1dWF6bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif',
+        'desc': 'a cute cat stretching its arms out to give a big warm hug',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenF2emtxMzFxdXV6MzhpdGVldXZvcGV0MWtiam9uYnJwNXgyYXB6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l4pTfx2qLszoacZRS/giphy.gif',
+        'desc': 'shining, magical sparkles indicating awe or excitement',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXQyOHE0bHExdGpnZW94YnRvdGR0NGQ3am9nZG13amIzejdmaGQwZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKoWXm3okO1kgHC/giphy.gif',
+        'desc': 'a small dog dancing happily and playfully',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm5nZHB0ZXFtaDFhMmhtdnhrNXVxc2NueHpvamZ1eDJucDNsOTNnbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/7kn27lnYSAE9O/giphy.gif',
+        'desc': 'a cute dog laughing hysterically on the floor',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNxdmQ3dDhybjFmOHp3anl6aDdzZWYxaTN1Mm13ZGg5NnB4eXZpdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gvnAxj2ISzJdbA63/giphy.gif',
+        'desc': 'a sad, crying animal shedding tears',
+      },
+      {
+        'url':
+            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzlqMDhzMjdzeWR5dzc0ejhmcTVyNm5yeWFzbnF3enlxMWg0a24weiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/KztT2c4u8mYYUiMKdJ/giphy.gif',
+        'desc': 'blowing an animated kiss full of love',
+      },
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          height: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Send a Sticker',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: stickerData.length,
+                  itemBuilder: (context, index) {
+                    final sticker = stickerData[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _sendSticker(sticker['url']!, sticker['desc']!);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: ImageUtils.getImageWidget(
+                          sticker['url']!,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _sendSticker(String stickerUrl, String description) async {
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+
+    if (currentUser == null) return;
+
+    final userMessage = ChatMessage(
+      id: _uuid.v4(),
+      senderId: _currentUserId,
+      text: 'Sent a sticker',
+      timestamp: DateTime.now(),
+      stickerUrl: stickerUrl,
+    );
+
+    // Save to Database
+    await _databaseService.sendMessage(_chatId, userMessage);
+
+    // Treat as a regular message to the AI but explicitly describe the sticker WITHOUT displaying it as a new chat bubble
+    _sendMessageInternal(
+      '[User sent a sticker of $description]',
+      saveToDb: false,
+    );
+  }
+
   void _sendRandomRpsChallenge() {
     final moves = ['rock', 'paper', 'scissors'];
     moves.shuffle();
@@ -884,6 +1031,43 @@ class MessageBubble extends StatelessWidget {
           currentUserId: currentUserId,
           chatId: chatId,
           databaseService: databaseService,
+        ),
+      );
+    }
+
+    if (message.stickerUrl != null && message.stickerUrl!.isNotEmpty) {
+      return RepaintBoundary(
+        child: Align(
+          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+            child: Column(
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: ImageUtils.getImageWidget(
+                    message.stickerUrl!,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatTime(message.timestamp),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white54
+                        : Colors.black54,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }

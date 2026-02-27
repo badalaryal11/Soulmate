@@ -5,6 +5,7 @@ class ChatMessage {
   final DateTime timestamp;
   final String? gameType;
   final Map<String, dynamic>? gameData;
+  final String? stickerUrl;
 
   ChatMessage({
     required this.id,
@@ -13,6 +14,7 @@ class ChatMessage {
     required this.timestamp,
     this.gameType,
     this.gameData,
+    this.stickerUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +24,7 @@ class ChatMessage {
       'timestamp': timestamp.millisecondsSinceEpoch,
       'gameType': gameType,
       'gameData': gameData,
+      'stickerUrl': stickerUrl,
     };
   }
 
@@ -35,6 +38,7 @@ class ChatMessage {
       gameData: map['gameData'] != null
           ? Map<String, dynamic>.from(map['gameData'])
           : null,
+      stickerUrl: map['stickerUrl'],
     );
   }
 }
