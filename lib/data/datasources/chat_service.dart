@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../../core/constants/stickers.dart';
 
 class ChatService {
   // Shared HTTP client for connection reuse
@@ -57,12 +58,16 @@ class ChatService {
         );
 
         // Convert format
-        final systemPrompt =
+        final baseSystemPrompt =
             messages.firstWhere(
               (m) => m['role'] == 'system',
               orElse: () => {'content': ''},
             )['content'] ??
             '';
+
+        // Append sticker mapping instructions to the system prompt
+        final systemPrompt =
+            "$baseSystemPrompt\n\n${Stickers.getSystemPromptMapping()}";
 
         List<Content> geminiHistory = [];
         for (var msg in messages) {

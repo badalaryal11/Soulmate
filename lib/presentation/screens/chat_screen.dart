@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/image_utils.dart';
+import '../../core/constants/stickers.dart';
 import '../../domain/entities/user_model.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../data/datasources/chat_service.dart';
@@ -820,49 +821,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showStickerPicker(BuildContext context) {
-    // A curated list of lovely sticker URLs with descriptive names for the AI
-    final List<Map<String, String>> stickerData = [
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmVtdWd5YmlyZHdrcTBpeWVib2k2cDB6OTJqdDJnZndhY2hheDcyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/11S5TjEEDEq8t126uYn/giphy.gif',
-        'desc': 'a spinning animated heart',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtc2Vqa3RocWtlaGczMWE0NmxlaXRnODJ4cjdwd2YxcTJlaDUzMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/26FLdmIp6wJr91JAI/giphy.gif',
-        'desc': 'an adorable cat cuddling and hugging a heart affectionately',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGxtZmxhNjZpdHJmMGExdXpnd3J5NXB2NzR6ZGNsbnAxdXR1dWF6bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif',
-        'desc': 'a cute cat stretching its arms out to give a big warm hug',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenF2emtxMzFxdXV6MzhpdGVldXZvcGV0MWtiam9uYnJwNXgyYXB6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l4pTfx2qLszoacZRS/giphy.gif',
-        'desc': 'shining, magical sparkles indicating awe or excitement',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXQyOHE0bHExdGpnZW94YnRvdGR0NGQ3am9nZG13amIzejdmaGQwZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3o7TKoWXm3okO1kgHC/giphy.gif',
-        'desc': 'a small dog dancing happily and playfully',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm5nZHB0ZXFtaDFhMmhtdnhrNXVxc2NueHpvamZ1eDJucDNsOTNnbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/7kn27lnYSAE9O/giphy.gif',
-        'desc': 'a cute dog laughing hysterically on the floor',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNxdmQ3dDhybjFmOHp3anl6aDdzZWYxaTN1Mm13ZGg5NnB4eXZpdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/R6gvnAxj2ISzJdbA63/giphy.gif',
-        'desc': 'a sad, crying animal shedding tears',
-      },
-      {
-        'url':
-            'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzlqMDhzMjdzeWR5dzc0ejhmcTVyNm5yeWFzbnF3enlxMWg0a24weiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/KztT2c4u8mYYUiMKdJ/giphy.gif',
-        'desc': 'blowing an animated kiss full of love',
-      },
-    ];
+    final stickerData = Stickers.stickerData;
 
     showModalBottomSheet(
       context: context,
@@ -873,7 +832,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16),
-          height: 300,
+          height: 400,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -895,7 +854,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     return GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
-                        _sendSticker(sticker['url']!, sticker['desc']!);
+                        _sendSticker(sticker['url']!, index);
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
@@ -915,7 +874,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> _sendSticker(String stickerUrl, String description) async {
+  Future<void> _sendSticker(String stickerUrl, int index) async {
     final currentUser = Provider.of<UserProvider>(
       context,
       listen: false,
@@ -935,10 +894,7 @@ class _ChatScreenState extends State<ChatScreen> {
     await _databaseService.sendMessage(_chatId, userMessage);
 
     // Treat as a regular message to the AI but explicitly describe the sticker WITHOUT displaying it as a new chat bubble
-    _sendMessageInternal(
-      '[User sent a sticker of $description]',
-      saveToDb: false,
-    );
+    _sendMessageInternal('[USER_STICKER:$index]', saveToDb: false);
   }
 
   void _sendRandomRpsChallenge() {
