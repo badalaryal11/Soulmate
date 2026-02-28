@@ -18,12 +18,18 @@ class DailyPicksService {
       final storedIds = prefs.getStringList(_usersKey) ?? [];
       return allUsers.where((u) => storedIds.contains(u.id)).toList();
     } else {
-      // Generate new picks
+      // Generate new picks using random indices (avoids copying full list)
       final random = math.Random();
-      final pickCount =
-          5 + random.nextInt(6); // Random number between 5 and 10 inclusive
-      final shuffled = List<User>.from(allUsers)..shuffle();
-      final newPicks = shuffled.take(pickCount).toList();
+      final pickCount = math.min(
+        5 + random.nextInt(6), // 5-10 inclusive
+        allUsers.length,
+      );
+
+      final indices = <int>{};
+      while (indices.length < pickCount) {
+        indices.add(random.nextInt(allUsers.length));
+      }
+      final newPicks = indices.map((i) => allUsers[i]).toList();
 
       // Save
       await prefs.setString(_storageKey, today);

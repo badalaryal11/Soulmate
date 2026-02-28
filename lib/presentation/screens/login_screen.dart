@@ -31,19 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    final injectedAuth = widget.authService;
-    if (injectedAuth != null) {
-      _authService = injectedAuth;
-    } else {
-      _authService = AuthService();
-    }
-
-    final injectedDb = widget.databaseService;
-    if (injectedDb != null) {
-      _databaseService = injectedDb;
-    } else {
-      _databaseService = DatabaseService();
-    }
+    _authService = widget.authService ?? AuthService();
+    _databaseService = widget.databaseService ?? DatabaseService();
   }
 
   @override

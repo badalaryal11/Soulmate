@@ -101,6 +101,15 @@ class ChatProvider extends ChangeNotifier {
 
   void disposeProvider() {
     _chatSubscription?.cancel();
+    _chatSubscription = null;
+    _messagesStream = null;
+    _chatId = null;
+    _currentUser = null;
+    _otherUser = null;
+    _isTyping = false;
+    _xp = 0;
+    _isFirstLoad = true;
+    _relationshipLevel = "Stranger";
   }
 
   double calculateProgress(int xp) {
@@ -202,20 +211,20 @@ class ChatProvider extends ChangeNotifier {
     // Save to Database only if requested
     if (saveToDb) {
       await _sendMessageUseCase(_chatId!, userMessage);
-    }
 
-    // Schedule Proactive Notification (Retention Hook)
-    try {
-      await _notificationService.cancelNotification(_chatId.hashCode);
-      await _notificationService.scheduleNotification(
-        id: _chatId.hashCode,
-        title: '${_otherUser!.firstName} misses you! 🥺',
-        body:
-            'Come back and continue your conversation with ${_otherUser!.firstName}.',
-        delay: const Duration(hours: 6),
-      );
-    } catch (e) {
-      debugPrint("Error scheduling notification: $e");
+      // Schedule Proactive Notification only for user-sent messages
+      try {
+        await _notificationService.cancelNotification(_chatId.hashCode);
+        await _notificationService.scheduleNotification(
+          id: _chatId.hashCode,
+          title: '${_otherUser!.firstName} misses you! 🥺',
+          body:
+              'Come back and continue your conversation with ${_otherUser!.firstName}.',
+          delay: const Duration(hours: 6),
+        );
+      } catch (e) {
+        debugPrint("Error scheduling notification: $e");
+      }
     }
 
     _isTyping = true;
