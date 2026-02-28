@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,6 +18,16 @@ import 'package:soulmate/data/datasources/auth_service.dart';
 import 'auth_service_test.mocks.dart';
 
 void main() {
+  // Required for FlutterSecureStorage used in signOut()
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Mock the FlutterSecureStorage platform channel
+  const channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return null; // Return success for all secure storage operations
+      });
+
   late MockFirebaseAuth mockAuth;
   late MockGoogleSignIn mockGoogleSignIn;
   late AuthService authService;
@@ -24,20 +35,6 @@ void main() {
   setUp(() {
     mockAuth = MockFirebaseAuth();
     mockGoogleSignIn = MockGoogleSignIn();
-    // We need to inject mocks into AuthService, but AuthService currently instantiates them internally.
-    // Ideally, we should refactor AuthService to accept dependencies.
-    // Since we cannot easily change AuthService without potentially breaking other things or if we do,
-    // we should execute a refactor.
-    // However, AuthService has fields:
-    // final FirebaseAuth _auth = FirebaseAuth.instance;
-    // final GoogleSignIn _googleSignIn = GoogleSignIn();
-    // These are final and private. We can't set them from outside.
-
-    // START REFACTOR PLAN:
-    // 1. Modify AuthService to allow dependency injection.
-    // 2. Update existing usages to use default instances.
-
-    // For now, I will write the test assuming I will refactor AuthService in the next step.
     authService = AuthService(auth: mockAuth, googleSignIn: mockGoogleSignIn);
   });
 
@@ -46,6 +43,12 @@ void main() {
       'signInWithEmailAndPassword returns UserCredential on success',
       () async {
         final mockUserCredential = MockUserCredential();
+        final mockUser = MockUser();
+
+        // Stub the user property so email verification check succeeds
+        when(mockUserCredential.user).thenReturn(mockUser);
+        when(mockUser.emailVerified).thenReturn(true);
+
         when(
           mockAuth.signInWithEmailAndPassword(
             email: 'test@example.com',
@@ -72,6 +75,12 @@ void main() {
       'registerWithEmailAndPassword returns UserCredential on success',
       () async {
         final mockUserCredential = MockUserCredential();
+        final mockUser = MockUser();
+
+        // Stub the user property so email verification logic works
+        when(mockUserCredential.user).thenReturn(mockUser);
+        when(mockUser.emailVerified).thenReturn(true);
+
         when(
           mockAuth.createUserWithEmailAndPassword(
             email: 'test@example.com',
