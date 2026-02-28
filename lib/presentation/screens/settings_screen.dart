@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
+import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
 
@@ -18,8 +20,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
-    final auth = authService ?? AuthService();
-    final db = databaseService ?? DatabaseService();
+    final auth = authService ?? ServiceLocator.authService;
+    final db = databaseService ?? ServiceLocator.databaseService;
 
     return Scaffold(
       appBar: AppBar(
@@ -224,9 +226,12 @@ class SettingsScreen extends StatelessWidget {
                 // 2. Update Firestore immediately so UI reflects change
                 final user = authService.currentUser;
                 if (user != null) {
-                  await dbService.updateUserField(user.uid, {
-                    'email': newEmail,
-                  });
+                  if (context.mounted) {
+                    await context.read<UserProvider>().updateUserField(
+                      user.uid,
+                      {'email': newEmail},
+                    );
+                  }
                 }
 
                 if (context.mounted) {
@@ -451,7 +456,12 @@ class SettingsScreen extends StatelessWidget {
               if (message.isNotEmpty) {
                 try {
                   final userId = authService.currentUser?.uid ?? 'anonymous';
-                  await dbService.saveFeedback(userId, message);
+                  if (context.mounted) {
+                    await context.read<UserProvider>().saveFeedback(
+                      userId,
+                      message,
+                    );
+                  }
 
                   if (context.mounted) {
                     Navigator.pop(context);

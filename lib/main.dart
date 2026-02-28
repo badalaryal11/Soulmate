@@ -8,21 +8,10 @@ import 'package:app_links/app_links.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
-import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
-import 'presentation/providers/chat_provider.dart';
-import 'data/repositories/chat_repository_impl.dart';
-import 'domain/usecases/get_chat_id_usecase.dart';
-import 'domain/usecases/get_chat_stream_usecase.dart';
-import 'domain/usecases/get_message_history_usecase.dart';
-import 'domain/usecases/send_message_usecase.dart';
-import 'domain/usecases/mark_messages_as_read_usecase.dart';
+import 'core/di/service_locator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'data/datasources/notification_service.dart';
-import 'data/datasources/auth_service.dart';
-import 'data/datasources/database_service.dart';
-import 'data/datasources/chat_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -56,7 +45,7 @@ void main() async {
     cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
   );
 
-  await NotificationService().initialize();
+  await ServiceLocator.notificationService.initialize();
   runApp(const SoulmateApp());
 }
 
@@ -171,27 +160,13 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ServiceLocator.createUserProvider(),
+        ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(
-          create: (_) {
-            final databaseService = DatabaseService();
-            final chatRepository = ChatRepositoryImpl(databaseService);
-            return ChatProvider(
-              chatService: ChatService(),
-              notificationService: NotificationService(),
-              getChatIdUseCase: GetChatIdUseCase(chatRepository),
-              getChatStreamUseCase: GetChatStreamUseCase(chatRepository),
-              getMessageHistoryUseCase: GetMessageHistoryUseCase(
-                chatRepository,
-              ),
-              sendMessageUseCase: SendMessageUseCase(chatRepository),
-              markMessagesAsReadUseCase: MarkMessagesAsReadUseCase(
-                chatRepository,
-              ),
-            );
-          },
+          create: (_) => ServiceLocator.createChatProvider(),
         ),
       ],
       child: Consumer<ThemeProvider>(
@@ -214,7 +189,7 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
               ),
               textTheme: poppinsDark,
             ),
-            home: AuthService().currentUser != null
+            home: ServiceLocator.authService.currentUser != null
                 ? const HomeScreen()
                 : const LoginScreen(),
           );

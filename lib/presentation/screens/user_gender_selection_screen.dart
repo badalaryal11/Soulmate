@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../data/datasources/auth_service.dart';
-import '../../data/datasources/database_service.dart';
-import 'gender_selection_screen.dart'; // Navigate to this next
+import '../providers/user_provider.dart';
+import 'gender_selection_screen.dart';
 
 class UserGenderSelectionScreen extends StatefulWidget {
   const UserGenderSelectionScreen({super.key});
@@ -107,9 +108,11 @@ class _UserGenderSelectionScreenState extends State<UserGenderSelectionScreen> {
   Future<void> _handleContinue() async {
     final currentUser = AuthService().currentUser;
     if (currentUser != null && _selectedGender != null) {
-      await DatabaseService().updateUserField(currentUser.uid, {
-        'gender': _selectedGender, // Update 'gender', not 'genderPreference'
-      });
+      if (mounted) {
+        await context.read<UserProvider>().updateUserField(currentUser.uid, {
+          'gender': _selectedGender, // Update 'gender', not 'genderPreference'
+        });
+      }
     }
 
     if (!mounted) return;

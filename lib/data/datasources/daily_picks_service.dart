@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 
 class DailyPicksService {
   static const String _storageKey = 'daily_picks_date';

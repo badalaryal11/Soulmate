@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soulmate/presentation/screens/home_screen.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
-import 'package:soulmate/domain/entities/user_model.dart' as model;
+import 'package:soulmate/domain/entities/user.dart' as model;
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -106,6 +106,16 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   Future<void> unmatchUser(String userId) async {}
+
+  @override
+  Future<void> updateUserField(String uid, Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> saveFeedback(String userId, String message) async {}
+
+  @override
+  Future<String> uploadProfileImage(String userId, dynamic imageFile) async =>
+      '';
 
   @override
   void updateLocalUser(model.User user) {

@@ -1,4 +1,4 @@
-import '../entities/user_model.dart';
+import '../entities/user.dart';
 import '../repositories/user_repository.dart';
 
 class GetUsersUseCase {

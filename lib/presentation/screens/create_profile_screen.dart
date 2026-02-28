@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 import '../../data/datasources/database_service.dart';
 import 'gender_selection_screen.dart';
 

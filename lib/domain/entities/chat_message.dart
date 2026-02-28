@@ -21,34 +21,27 @@ class ChatMessage {
     this.readAt,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'senderId': senderId,
-      'text': text,
-      'timestamp': timestamp.millisecondsSinceEpoch,
-      'gameType': gameType,
-      'gameData': gameData,
-      'stickerUrl': stickerUrl,
-      'isRead': isRead,
-      'readAt': readAt?.millisecondsSinceEpoch,
-    };
-  }
-
-  factory ChatMessage.fromMap(String id, Map<String, dynamic> map) {
+  ChatMessage copyWith({
+    String? id,
+    String? senderId,
+    String? text,
+    DateTime? timestamp,
+    String? gameType,
+    Map<String, dynamic>? gameData,
+    String? stickerUrl,
+    bool? isRead,
+    DateTime? readAt,
+  }) {
     return ChatMessage(
-      id: id,
-      senderId: map['senderId'] ?? '',
-      text: map['text'] ?? '',
-      timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
-      gameType: map['gameType'],
-      gameData: map['gameData'] != null
-          ? Map<String, dynamic>.from(map['gameData'])
-          : null,
-      stickerUrl: map['stickerUrl'],
-      isRead: map['isRead'] ?? false,
-      readAt: map['readAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['readAt'])
-          : null,
+      id: id ?? this.id,
+      senderId: senderId ?? this.senderId,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      gameType: gameType ?? this.gameType,
+      gameData: gameData ?? this.gameData,
+      stickerUrl: stickerUrl ?? this.stickerUrl,
+      isRead: isRead ?? this.isRead,
+      readAt: readAt ?? this.readAt,
     );
   }
 }

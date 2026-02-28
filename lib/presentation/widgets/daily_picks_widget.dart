@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 import '../../core/utils/image_utils.dart';
 import '../screens/match_screen.dart'; // Reuse MatchScreen styling or similar
 import 'package:google_fonts/google_fonts.dart';

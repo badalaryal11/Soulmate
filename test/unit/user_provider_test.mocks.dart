@@ -3,17 +3,31 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
-import 'dart:io' as _i8;
+import 'dart:async' as _i7;
+import 'dart:io' as _i13;
 
-import 'package:firebase_auth/firebase_auth.dart' as _i6;
+import 'package:firebase_auth/firebase_auth.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:soulmate/data/datasources/auth_service.dart' as _i5;
-import 'package:soulmate/data/datasources/database_service.dart' as _i7;
-import 'package:soulmate/domain/entities/chat_message.dart' as _i10;
-import 'package:soulmate/domain/entities/user_model.dart' as _i4;
-import 'package:soulmate/domain/repositories/user_repository.dart' as _i2;
+import 'package:soulmate/data/datasources/auth_service.dart' as _i10;
+import 'package:soulmate/data/datasources/chat_database_service.dart' as _i3;
+import 'package:soulmate/data/datasources/database_service.dart' as _i12;
+import 'package:soulmate/data/datasources/feedback_service.dart' as _i4;
+import 'package:soulmate/data/datasources/user_database_service.dart' as _i2;
+import 'package:soulmate/domain/entities/chat_message.dart' as _i14;
+import 'package:soulmate/domain/entities/user.dart' as _i8;
+import 'package:soulmate/domain/repositories/chat_repository.dart' as _i6;
+import 'package:soulmate/domain/repositories/user_repository.dart' as _i5;
+import 'package:soulmate/domain/usecases/delete_chat_usecase.dart' as _i17;
+import 'package:soulmate/domain/usecases/get_active_chats_usecase.dart' as _i16;
+import 'package:soulmate/domain/usecases/get_chat_id_usecase.dart' as _i18;
+import 'package:soulmate/domain/usecases/get_current_user_usecase.dart' as _i22;
+import 'package:soulmate/domain/usecases/get_users_usecase.dart' as _i15;
+import 'package:soulmate/domain/usecases/save_feedback_usecase.dart' as _i19;
+import 'package:soulmate/domain/usecases/update_user_field_usecase.dart'
+    as _i21;
+import 'package:soulmate/domain/usecases/upload_profile_image_usecase.dart'
+    as _i20;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -30,33 +44,63 @@ import 'package:soulmate/domain/repositories/user_repository.dart' as _i2;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeUserDatabaseService_0 extends _i1.SmartFake
+    implements _i2.UserDatabaseService {
+  _FakeUserDatabaseService_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeChatDatabaseService_1 extends _i1.SmartFake
+    implements _i3.ChatDatabaseService {
+  _FakeChatDatabaseService_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeFeedbackService_2 extends _i1.SmartFake
+    implements _i4.FeedbackService {
+  _FakeFeedbackService_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeUserRepository_3 extends _i1.SmartFake
+    implements _i5.UserRepository {
+  _FakeUserRepository_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeChatRepository_4 extends _i1.SmartFake
+    implements _i6.ChatRepository {
+  _FakeChatRepository_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [UserRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserRepository extends _i1.Mock implements _i2.UserRepository {
+class MockUserRepository extends _i1.Mock implements _i5.UserRepository {
   MockUserRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> saveUser(_i4.User? user) =>
+  _i7.Future<void> saveUser(_i8.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#saveUser, [user]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<_i4.User?> getUser(String? uid) =>
+  _i7.Future<_i8.User?> getUser(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#getUser, [uid]),
-            returnValue: _i3.Future<_i4.User?>.value(),
+            returnValue: _i7.Future<_i8.User?>.value(),
           )
-          as _i3.Future<_i4.User?>);
+          as _i7.Future<_i8.User?>);
 
   @override
-  _i3.Future<List<_i4.User>> getUsers({
+  _i7.Future<List<_i8.User>> getUsers({
     String? gender,
     String? currentUserId,
     int? limit = 10,
@@ -67,112 +111,134 @@ class MockUserRepository extends _i1.Mock implements _i2.UserRepository {
               #currentUserId: currentUserId,
               #limit: limit,
             }),
-            returnValue: _i3.Future<List<_i4.User>>.value(<_i4.User>[]),
+            returnValue: _i7.Future<List<_i8.User>>.value(<_i8.User>[]),
           )
-          as _i3.Future<List<_i4.User>>);
+          as _i7.Future<List<_i8.User>>);
 
   @override
-  _i3.Future<void> updateUserField(String? uid, Map<String, dynamic>? data) =>
+  _i7.Future<void> updateUserField(String? uid, Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#updateUserField, [uid, data]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> saveFeedback(String? userId, String? message) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveFeedback, [userId, message]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<String> uploadProfileImage(String? userId, dynamic imageFile) =>
+      (super.noSuchMethod(
+            Invocation.method(#uploadProfileImage, [userId, imageFile]),
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#uploadProfileImage, [userId, imageFile]),
+              ),
+            ),
+          )
+          as _i7.Future<String>);
 }
 
 /// A class which mocks [AuthService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAuthService extends _i1.Mock implements _i5.AuthService {
+class MockAuthService extends _i1.Mock implements _i10.AuthService {
   MockAuthService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Stream<_i6.User?> get authStateChanges =>
+  _i7.Stream<_i11.User?> get authStateChanges =>
       (super.noSuchMethod(
             Invocation.getter(#authStateChanges),
-            returnValue: _i3.Stream<_i6.User?>.empty(),
+            returnValue: _i7.Stream<_i11.User?>.empty(),
           )
-          as _i3.Stream<_i6.User?>);
+          as _i7.Stream<_i11.User?>);
 
   @override
-  _i3.Future<_i6.UserCredential?> signInWithGoogle() =>
+  _i7.Future<_i11.UserCredential?> signInWithGoogle() =>
       (super.noSuchMethod(
             Invocation.method(#signInWithGoogle, []),
-            returnValue: _i3.Future<_i6.UserCredential?>.value(),
+            returnValue: _i7.Future<_i11.UserCredential?>.value(),
           )
-          as _i3.Future<_i6.UserCredential?>);
+          as _i7.Future<_i11.UserCredential?>);
 
   @override
-  _i3.Future<_i6.UserCredential?> signInWithApple() =>
+  _i7.Future<_i11.UserCredential?> signInWithApple() =>
       (super.noSuchMethod(
             Invocation.method(#signInWithApple, []),
-            returnValue: _i3.Future<_i6.UserCredential?>.value(),
+            returnValue: _i7.Future<_i11.UserCredential?>.value(),
           )
-          as _i3.Future<_i6.UserCredential?>);
+          as _i7.Future<_i11.UserCredential?>);
 
   @override
-  _i3.Future<_i6.UserCredential?> signInWithEmailAndPassword(
+  _i7.Future<_i11.UserCredential?> signInWithEmailAndPassword(
     String? email,
     String? password,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#signInWithEmailAndPassword, [email, password]),
-            returnValue: _i3.Future<_i6.UserCredential?>.value(),
+            returnValue: _i7.Future<_i11.UserCredential?>.value(),
           )
-          as _i3.Future<_i6.UserCredential?>);
+          as _i7.Future<_i11.UserCredential?>);
 
   @override
-  _i3.Future<_i6.UserCredential?> registerWithEmailAndPassword(
+  _i7.Future<_i11.UserCredential?> registerWithEmailAndPassword(
     String? email,
     String? password,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#registerWithEmailAndPassword, [email, password]),
-            returnValue: _i3.Future<_i6.UserCredential?>.value(),
+            returnValue: _i7.Future<_i11.UserCredential?>.value(),
           )
-          as _i3.Future<_i6.UserCredential?>);
+          as _i7.Future<_i11.UserCredential?>);
 
   @override
-  _i3.Future<void> sendPasswordResetEmail(String? email) =>
+  _i7.Future<void> sendPasswordResetEmail(String? email) =>
       (super.noSuchMethod(
             Invocation.method(#sendPasswordResetEmail, [email]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> updateEmail(String? newEmail) =>
+  _i7.Future<void> updateEmail(String? newEmail) =>
       (super.noSuchMethod(
             Invocation.method(#updateEmail, [newEmail]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> updatePassword(String? newPassword) =>
+  _i7.Future<void> updatePassword(String? newPassword) =>
       (super.noSuchMethod(
             Invocation.method(#updatePassword, [newPassword]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> deleteAccount() =>
+  _i7.Future<void> deleteAccount() =>
       (super.noSuchMethod(
             Invocation.method(#deleteAccount, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> confirmPasswordReset({
+  _i7.Future<void> confirmPasswordReset({
     required String? code,
     required String? newPassword,
   }) =>
@@ -181,79 +247,103 @@ class MockAuthService extends _i1.Mock implements _i5.AuthService {
               #code: code,
               #newPassword: newPassword,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> signOut() =>
+  _i7.Future<void> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [DatabaseService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
+class MockDatabaseService extends _i1.Mock implements _i12.DatabaseService {
   MockDatabaseService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<String> uploadProfileImage(String? userId, _i8.File? imageFile) =>
+  _i2.UserDatabaseService get userService =>
+      (super.noSuchMethod(
+            Invocation.getter(#userService),
+            returnValue: _FakeUserDatabaseService_0(
+              this,
+              Invocation.getter(#userService),
+            ),
+          )
+          as _i2.UserDatabaseService);
+
+  @override
+  _i3.ChatDatabaseService get chatService =>
+      (super.noSuchMethod(
+            Invocation.getter(#chatService),
+            returnValue: _FakeChatDatabaseService_1(
+              this,
+              Invocation.getter(#chatService),
+            ),
+          )
+          as _i3.ChatDatabaseService);
+
+  @override
+  _i4.FeedbackService get feedbackService =>
+      (super.noSuchMethod(
+            Invocation.getter(#feedbackService),
+            returnValue: _FakeFeedbackService_2(
+              this,
+              Invocation.getter(#feedbackService),
+            ),
+          )
+          as _i4.FeedbackService);
+
+  @override
+  _i7.Future<String> uploadProfileImage(String? userId, _i13.File? imageFile) =>
       (super.noSuchMethod(
             Invocation.method(#uploadProfileImage, [userId, imageFile]),
-            returnValue: _i3.Future<String>.value(
+            returnValue: _i7.Future<String>.value(
               _i9.dummyValue<String>(
                 this,
                 Invocation.method(#uploadProfileImage, [userId, imageFile]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i7.Future<String>);
 
   @override
-  _i3.Future<void> saveUser(_i4.User? user) =>
+  _i7.Future<void> saveUser(_i8.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#saveUser, [user]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> updateUserField(String? uid, Map<String, dynamic>? data) =>
+  _i7.Future<void> updateUserField(String? uid, Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#updateUserField, [uid, data]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> saveFeedback(String? userId, String? message) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveFeedback, [userId, message]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<_i4.User?> getUser(String? uid) =>
+  _i7.Future<_i8.User?> getUser(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#getUser, [uid]),
-            returnValue: _i3.Future<_i4.User?>.value(),
+            returnValue: _i7.Future<_i8.User?>.value(),
           )
-          as _i3.Future<_i4.User?>);
+          as _i7.Future<_i8.User?>);
 
   @override
-  _i3.Future<List<_i4.User>> getUsers({
+  _i7.Future<List<_i8.User>> getUsers({
     String? gender,
     String? currentUserId,
     int? limit = 10,
@@ -264,9 +354,9 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
               #currentUserId: currentUserId,
               #limit: limit,
             }),
-            returnValue: _i3.Future<List<_i4.User>>.value(<_i4.User>[]),
+            returnValue: _i7.Future<List<_i8.User>>.value(<_i8.User>[]),
           )
-          as _i3.Future<List<_i4.User>>);
+          as _i7.Future<List<_i8.User>>);
 
   @override
   String getChatId(String? userId1, String? userId2) =>
@@ -280,26 +370,26 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
           as String);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> getActiveChats(String? userId) =>
+  _i7.Future<List<Map<String, dynamic>>> getActiveChats(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getActiveChats, [userId]),
-            returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i7.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i3.Future<List<Map<String, dynamic>>>);
+          as _i7.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i3.Future<void> sendMessage(String? chatId, _i10.ChatMessage? message) =>
+  _i7.Future<void> sendMessage(String? chatId, _i14.ChatMessage? message) =>
       (super.noSuchMethod(
             Invocation.method(#sendMessage, [chatId, message]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> updateGameMessage(
+  _i7.Future<void> updateGameMessage(
     String? chatId,
     String? messageId,
     Map<String, dynamic>? gameData,
@@ -310,55 +400,325 @@ class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
               messageId,
               gameData,
             ]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Stream<Map<String, dynamic>?> getChatStream(String? chatId) =>
+  _i7.Stream<Map<String, dynamic>?> getChatStream(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getChatStream, [chatId]),
-            returnValue: _i3.Stream<Map<String, dynamic>?>.empty(),
+            returnValue: _i7.Stream<Map<String, dynamic>?>.empty(),
           )
-          as _i3.Stream<Map<String, dynamic>?>);
+          as _i7.Stream<Map<String, dynamic>?>);
 
   @override
-  _i3.Stream<List<_i10.ChatMessage>> getMessages(String? chatId) =>
+  _i7.Stream<List<_i14.ChatMessage>> getMessages(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#getMessages, [chatId]),
-            returnValue: _i3.Stream<List<_i10.ChatMessage>>.empty(),
+            returnValue: _i7.Stream<List<_i14.ChatMessage>>.empty(),
           )
-          as _i3.Stream<List<_i10.ChatMessage>>);
+          as _i7.Stream<List<_i14.ChatMessage>>);
 
   @override
-  _i3.Future<List<_i10.ChatMessage>> getMessageHistory(
+  _i7.Future<List<_i14.ChatMessage>> getMessageHistory(
     String? chatId, {
     int? limit = 10,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getMessageHistory, [chatId], {#limit: limit}),
-            returnValue: _i3.Future<List<_i10.ChatMessage>>.value(
-              <_i10.ChatMessage>[],
+            returnValue: _i7.Future<List<_i14.ChatMessage>>.value(
+              <_i14.ChatMessage>[],
             ),
           )
-          as _i3.Future<List<_i10.ChatMessage>>);
+          as _i7.Future<List<_i14.ChatMessage>>);
 
   @override
-  _i3.Future<void> deleteChat(String? chatId) =>
+  _i7.Future<void> deleteChat(String? chatId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteChat, [chatId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i3.Future<void> wipeAllData() =>
+  _i7.Future<void> markMessagesAsRead(String? chatId, String? currentUserId) =>
+      (super.noSuchMethod(
+            Invocation.method(#markMessagesAsRead, [chatId, currentUserId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> saveFeedback(String? userId, String? message) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveFeedback, [userId, message]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> wipeAllData() =>
       (super.noSuchMethod(
             Invocation.method(#wipeAllData, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i7.Future<void>);
+}
+
+/// A class which mocks [GetUsersUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGetUsersUseCase extends _i1.Mock implements _i15.GetUsersUseCase {
+  MockGetUsersUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.UserRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeUserRepository_3(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i5.UserRepository);
+
+  @override
+  _i7.Future<List<_i8.User>> call({
+    String? gender,
+    String? currentUserId,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {
+              #gender: gender,
+              #currentUserId: currentUserId,
+              #limit: limit,
+            }),
+            returnValue: _i7.Future<List<_i8.User>>.value(<_i8.User>[]),
+          )
+          as _i7.Future<List<_i8.User>>);
+}
+
+/// A class which mocks [GetActiveChatsUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGetActiveChatsUseCase extends _i1.Mock
+    implements _i16.GetActiveChatsUseCase {
+  MockGetActiveChatsUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i6.ChatRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeChatRepository_4(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i6.ChatRepository);
+
+  @override
+  _i7.Future<List<Map<String, dynamic>>> call(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [userId]),
+            returnValue: _i7.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i7.Future<List<Map<String, dynamic>>>);
+}
+
+/// A class which mocks [DeleteChatUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockDeleteChatUseCase extends _i1.Mock implements _i17.DeleteChatUseCase {
+  MockDeleteChatUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i6.ChatRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeChatRepository_4(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i6.ChatRepository);
+
+  @override
+  _i7.Future<void> call(String? chatId) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [chatId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+}
+
+/// A class which mocks [GetChatIdUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGetChatIdUseCase extends _i1.Mock implements _i18.GetChatIdUseCase {
+  MockGetChatIdUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i6.ChatRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeChatRepository_4(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i6.ChatRepository);
+
+  @override
+  _i7.Future<String> call(String? userId1, String? userId2) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [userId1, userId2]),
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#call, [userId1, userId2]),
+              ),
+            ),
+          )
+          as _i7.Future<String>);
+}
+
+/// A class which mocks [SaveFeedbackUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSaveFeedbackUseCase extends _i1.Mock
+    implements _i19.SaveFeedbackUseCase {
+  MockSaveFeedbackUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.UserRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeUserRepository_3(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i5.UserRepository);
+
+  @override
+  _i7.Future<void> call(String? userId, String? message) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [userId, message]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+}
+
+/// A class which mocks [UploadProfileImageUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockUploadProfileImageUseCase extends _i1.Mock
+    implements _i20.UploadProfileImageUseCase {
+  MockUploadProfileImageUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.UserRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeUserRepository_3(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i5.UserRepository);
+
+  @override
+  _i7.Future<String> call(String? userId, dynamic imageFile) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [userId, imageFile]),
+            returnValue: _i7.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#call, [userId, imageFile]),
+              ),
+            ),
+          )
+          as _i7.Future<String>);
+}
+
+/// A class which mocks [UpdateUserFieldUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockUpdateUserFieldUseCase extends _i1.Mock
+    implements _i21.UpdateUserFieldUseCase {
+  MockUpdateUserFieldUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.UserRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeUserRepository_3(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i5.UserRepository);
+
+  @override
+  _i7.Future<void> call(String? uid, Map<String, dynamic>? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [uid, data]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+}
+
+/// A class which mocks [GetCurrentUserUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGetCurrentUserUseCase extends _i1.Mock
+    implements _i22.GetCurrentUserUseCase {
+  MockGetCurrentUserUseCase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.UserRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeUserRepository_3(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i5.UserRepository);
+
+  @override
+  _i7.Future<_i8.User?> call(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [uid]),
+            returnValue: _i7.Future<_i8.User?>.value(),
+          )
+          as _i7.Future<_i8.User?>);
 }

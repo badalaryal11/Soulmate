@@ -3,7 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/domain/entities/user.dart';
 
 // Generate mocks for FirebaseFirestore, CollectionReference, DocumentReference, DocumentSnapshot, QuerySnapshot
 @GenerateMocks([

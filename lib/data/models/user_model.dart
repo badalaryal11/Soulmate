@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 import '../../core/constants/interests.dart';
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 
 class UserModel extends User {
   UserModel({

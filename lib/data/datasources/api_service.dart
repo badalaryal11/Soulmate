@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart'; // For compute
 import 'package:http/http.dart' as http;
 import 'package:soulmate/data/models/user_model.dart';
-import '../../domain/entities/user_model.dart' as domain;
+import '../../domain/entities/user.dart' as domain;
 import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 

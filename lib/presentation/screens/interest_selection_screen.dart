@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../core/constants/interests.dart';
 import '../providers/user_provider.dart';
 import '../../data/datasources/auth_service.dart';
-import '../../data/datasources/database_service.dart';
 import 'home_screen.dart';
 
 class InterestSelectionScreen extends StatefulWidget {
@@ -41,9 +40,11 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
     // Update interests in Firestore if logged in
     final currentUser = AuthService().currentUser;
     if (currentUser != null) {
-      await DatabaseService().updateUserField(currentUser.uid, {
-        'interests': _selectedInterests,
-      });
+      if (mounted) {
+        await context.read<UserProvider>().updateUserField(currentUser.uid, {
+          'interests': _selectedInterests,
+        });
+      }
     }
 
     if (!mounted) return;

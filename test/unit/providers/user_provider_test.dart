@@ -5,8 +5,17 @@ import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/domain/entities/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
+import 'package:soulmate/domain/usecases/get_users_usecase.dart';
+import 'package:soulmate/domain/usecases/get_active_chats_usecase.dart';
+import 'package:soulmate/domain/usecases/delete_chat_usecase.dart';
+import 'package:soulmate/domain/usecases/get_chat_id_usecase.dart';
+import 'package:soulmate/domain/usecases/save_feedback_usecase.dart';
+import 'package:soulmate/domain/usecases/upload_profile_image_usecase.dart';
+import 'package:soulmate/domain/usecases/update_user_field_usecase.dart';
+import 'package:soulmate/domain/usecases/get_current_user_usecase.dart';
 
 // Generate mocks
 @GenerateMocks([
@@ -14,24 +23,53 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
   AuthService,
   DatabaseService,
   firebase_auth.User,
+  GetUsersUseCase,
+  GetActiveChatsUseCase,
+  DeleteChatUseCase,
+  GetChatIdUseCase,
+  SaveFeedbackUseCase,
+  UploadProfileImageUseCase,
+  UpdateUserFieldUseCase,
+  GetCurrentUserUseCase,
 ])
 import 'user_provider_test.mocks.dart';
 
 void main() {
   late MockUserRepository mockUserRepository;
   late MockAuthService mockAuthService;
-  late MockDatabaseService mockDatabaseService;
+  late MockGetUsersUseCase mockGetUsersUseCase;
+  late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
+  late MockDeleteChatUseCase mockDeleteChatUseCase;
+  late MockGetChatIdUseCase mockGetChatIdUseCase;
+  late MockSaveFeedbackUseCase mockSaveFeedbackUseCase;
+  late MockUploadProfileImageUseCase mockUploadProfileImageUseCase;
+  late MockUpdateUserFieldUseCase mockUpdateUserFieldUseCase;
+  late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
   late UserProvider userProvider;
 
   setUp(() {
     mockUserRepository = MockUserRepository();
     mockAuthService = MockAuthService();
-    mockDatabaseService = MockDatabaseService();
+    mockGetUsersUseCase = MockGetUsersUseCase();
+    mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
+    mockDeleteChatUseCase = MockDeleteChatUseCase();
+    mockGetChatIdUseCase = MockGetChatIdUseCase();
+    mockSaveFeedbackUseCase = MockSaveFeedbackUseCase();
+    mockUploadProfileImageUseCase = MockUploadProfileImageUseCase();
+    mockUpdateUserFieldUseCase = MockUpdateUserFieldUseCase();
+    mockGetCurrentUserUseCase = MockGetCurrentUserUseCase();
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
       authService: mockAuthService,
-      databaseService: mockDatabaseService,
+      getUsersUseCase: mockGetUsersUseCase,
+      getActiveChatsUseCase: mockGetActiveChatsUseCase,
+      deleteChatUseCase: mockDeleteChatUseCase,
+      getChatIdUseCase: mockGetChatIdUseCase,
+      saveFeedbackUseCase: mockSaveFeedbackUseCase,
+      uploadProfileImageUseCase: mockUploadProfileImageUseCase,
+      updateUserFieldUseCase: mockUpdateUserFieldUseCase,
+      getCurrentUserUseCase: mockGetCurrentUserUseCase,
     );
   });
 
@@ -62,13 +100,7 @@ void main() {
         mockUserRepository.getUser('test_uid'),
       ).thenAnswer((_) async => user);
 
-      when(
-        mockDatabaseService.getActiveChats('test_uid'),
-      ).thenAnswer((_) async => []);
-
-      when(
-        mockDatabaseService.updateUserField(any, any),
-      ).thenAnswer((_) async => {});
+      when(mockGetActiveChatsUseCase(any)).thenAnswer((_) async => []);
 
       await userProvider.loadCurrentUser();
 

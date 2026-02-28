@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 
 import '../../data/datasources/chat_service.dart';

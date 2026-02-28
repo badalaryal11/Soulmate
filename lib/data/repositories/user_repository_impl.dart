@@ -1,7 +1,9 @@
-import '../../domain/entities/user_model.dart' as domain;
+import '../../domain/entities/user.dart' as domain;
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/database_service.dart';
 import '../datasources/api_service.dart';
+import '../../core/error/failures.dart';
+import '../../core/error/exceptions.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final DatabaseService _databaseService;
@@ -10,13 +12,28 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl(this._databaseService, this._apiService);
 
   @override
-  Future<void> saveUser(domain.User user) {
-    return _databaseService.saveUser(user);
+  Future<void> saveUser(domain.User user) async {
+    try {
+      await _databaseService.saveUser(user);
+    } on Exception catch (e) {
+      if (e is ServerException ||
+          e is CacheException ||
+          e is NetworkException) {
+        throw ServerFailure(e.toString());
+      }
+      throw ServerFailure(e.toString());
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
   }
 
   @override
-  Future<domain.User?> getUser(String uid) {
-    return _databaseService.getUser(uid);
+  Future<domain.User?> getUser(String uid) async {
+    try {
+      return await _databaseService.getUser(uid);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
   }
 
   @override
@@ -25,29 +42,55 @@ class UserRepositoryImpl implements UserRepository {
     String? currentUserId,
     int limit = 10,
   }) async {
-    // 1. Fetch from Firestore (Real Users)
-    final firestoreUsers = await _databaseService.getUsers(
-      gender: gender,
-      currentUserId: currentUserId,
-    );
+    try {
+      // 1. Fetch from Firestore (Real Users)
+      final firestoreUsers = await _databaseService.getUsers(
+        gender: gender,
+        currentUserId: currentUserId,
+      );
 
-    // 2. Fetch from API (Random Users + DummyJSON)
-    final apiUsers = await _apiService.fetchUsers(
-      results: limit > 100 ? limit : 100,
-      gender: gender,
-    );
+      // 2. Fetch from API (Random Users + DummyJSON)
+      final apiUsers = await _apiService.fetchUsers(
+        results: limit > 100 ? limit : 100,
+        gender: gender,
+      );
 
-    // 3. Combine (Prioritize Firestore)
-    final allUsers = [...firestoreUsers, ...apiUsers];
+      // 3. Combine (Prioritize Firestore)
+      final allUsers = [...firestoreUsers, ...apiUsers];
 
-    // 4. Shuffle mixed results
-    allUsers.shuffle();
+      // 4. Shuffle mixed results
+      allUsers.shuffle();
 
-    return allUsers;
+      return allUsers;
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
   }
 
   @override
-  Future<void> updateUserField(String uid, Map<String, dynamic> data) {
-    return _databaseService.updateUserField(uid, data);
+  Future<void> updateUserField(String uid, Map<String, dynamic> data) async {
+    try {
+      await _databaseService.updateUserField(uid, data);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> saveFeedback(String userId, String message) async {
+    try {
+      await _databaseService.saveFeedback(userId, message);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<String> uploadProfileImage(String userId, dynamic imageFile) async {
+    try {
+      return await _databaseService.uploadProfileImage(userId, imageFile);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
   }
 }

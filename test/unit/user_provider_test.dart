@@ -3,29 +3,71 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/domain/entities/user.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:soulmate/data/datasources/database_service.dart';
 
+import 'package:soulmate/domain/usecases/get_users_usecase.dart';
+import 'package:soulmate/domain/usecases/get_active_chats_usecase.dart';
+import 'package:soulmate/domain/usecases/delete_chat_usecase.dart';
+import 'package:soulmate/domain/usecases/get_chat_id_usecase.dart';
+import 'package:soulmate/domain/usecases/save_feedback_usecase.dart';
+import 'package:soulmate/domain/usecases/upload_profile_image_usecase.dart';
+import 'package:soulmate/domain/usecases/update_user_field_usecase.dart';
+import 'package:soulmate/domain/usecases/get_current_user_usecase.dart';
+
 // Generate mocks
-@GenerateMocks([UserRepository, AuthService, DatabaseService])
+@GenerateMocks([
+  UserRepository,
+  AuthService,
+  DatabaseService,
+  GetUsersUseCase,
+  GetActiveChatsUseCase,
+  DeleteChatUseCase,
+  GetChatIdUseCase,
+  SaveFeedbackUseCase,
+  UploadProfileImageUseCase,
+  UpdateUserFieldUseCase,
+  GetCurrentUserUseCase,
+])
 import 'user_provider_test.mocks.dart';
 
 void main() {
   late UserProvider userProvider;
   late MockUserRepository mockUserRepository;
   late MockAuthService mockAuthService;
-  late MockDatabaseService mockDatabaseService;
+  late MockGetUsersUseCase mockGetUsersUseCase;
+  late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
+  late MockDeleteChatUseCase mockDeleteChatUseCase;
+  late MockGetChatIdUseCase mockGetChatIdUseCase;
+  late MockSaveFeedbackUseCase mockSaveFeedbackUseCase;
+  late MockUploadProfileImageUseCase mockUploadProfileImageUseCase;
+  late MockUpdateUserFieldUseCase mockUpdateUserFieldUseCase;
+  late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
 
   setUp(() {
     mockUserRepository = MockUserRepository();
     mockAuthService = MockAuthService();
-    mockDatabaseService = MockDatabaseService();
+    mockGetUsersUseCase = MockGetUsersUseCase();
+    mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
+    mockDeleteChatUseCase = MockDeleteChatUseCase();
+    mockGetChatIdUseCase = MockGetChatIdUseCase();
+    mockSaveFeedbackUseCase = MockSaveFeedbackUseCase();
+    mockUploadProfileImageUseCase = MockUploadProfileImageUseCase();
+    mockUpdateUserFieldUseCase = MockUpdateUserFieldUseCase();
+    mockGetCurrentUserUseCase = MockGetCurrentUserUseCase();
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
       authService: mockAuthService,
-      databaseService: mockDatabaseService,
+      getUsersUseCase: mockGetUsersUseCase,
+      getActiveChatsUseCase: mockGetActiveChatsUseCase,
+      deleteChatUseCase: mockDeleteChatUseCase,
+      getChatIdUseCase: mockGetChatIdUseCase,
+      saveFeedbackUseCase: mockSaveFeedbackUseCase,
+      uploadProfileImageUseCase: mockUploadProfileImageUseCase,
+      updateUserFieldUseCase: mockUpdateUserFieldUseCase,
+      getCurrentUserUseCase: mockGetCurrentUserUseCase,
     );
   });
 
@@ -61,7 +103,7 @@ void main() {
       () async {
         when(mockAuthService.currentUser).thenReturn(null);
         when(
-          mockUserRepository.getUsers(
+          mockGetUsersUseCase(
             gender: anyNamed('gender'),
             currentUserId: anyNamed('currentUserId'),
           ),
@@ -70,7 +112,7 @@ void main() {
         await userProvider.loadUsers();
 
         verify(
-          mockUserRepository.getUsers(gender: null, currentUserId: null),
+          mockGetUsersUseCase(gender: null, currentUserId: null),
         ).called(1);
       },
     );
@@ -79,7 +121,7 @@ void main() {
       // Setup: Repository returns mixed users (simulating API that might return mixed or just to test client-side filter)
       when(mockAuthService.currentUser).thenReturn(null);
       when(
-        mockUserRepository.getUsers(
+        mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
         ),
@@ -103,7 +145,7 @@ void main() {
     test('loadUsers with "female" filters users correctly', () async {
       when(mockAuthService.currentUser).thenReturn(null);
       when(
-        mockUserRepository.getUsers(
+        mockGetUsersUseCase(
           gender: 'female',
           currentUserId: anyNamed('currentUserId'),
         ),
@@ -119,7 +161,7 @@ void main() {
     test('loadUsers with "everyone" returns all users', () async {
       when(mockAuthService.currentUser).thenReturn(null);
       when(
-        mockUserRepository.getUsers(
+        mockGetUsersUseCase(
           gender: 'everyone',
           currentUserId: anyNamed('currentUserId'),
         ),
@@ -135,7 +177,7 @@ void main() {
       final userMaleUpper = userMale.copyWith(gender: 'Male');
       when(mockAuthService.currentUser).thenReturn(null);
       when(
-        mockUserRepository.getUsers(
+        mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
         ),
@@ -152,7 +194,7 @@ void main() {
       final userMaleSpace = userMale.copyWith(gender: ' male ');
       when(mockAuthService.currentUser).thenReturn(null);
       when(
-        mockUserRepository.getUsers(
+        mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
         ),

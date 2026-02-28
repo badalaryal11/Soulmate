@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/auth_service.dart';
-import '../../data/datasources/database_service.dart';
 import 'interest_selection_screen.dart';
 import '../providers/user_provider.dart';
 
@@ -120,9 +119,11 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     // Update gender preference in Firestore if logged in
     final currentUser = AuthService().currentUser;
     if (currentUser != null && _selectedGender != null) {
-      await DatabaseService().updateUserField(currentUser.uid, {
-        'genderPreference': _selectedGender,
-      });
+      if (mounted) {
+        await context.read<UserProvider>().updateUserField(currentUser.uid, {
+          'genderPreference': _selectedGender,
+        });
+      }
     }
 
     if (!mounted) return;

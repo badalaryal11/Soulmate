@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/domain/entities/user.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter/foundation.dart';
 import 'user_provider_test.mocks.dart';
@@ -10,17 +10,38 @@ void main() {
   late UserProvider userProvider;
   late MockUserRepository mockUserRepository;
   late MockAuthService mockAuthService;
-  late MockDatabaseService mockDatabaseService;
+  late MockGetUsersUseCase mockGetUsersUseCase;
+  late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
+  late MockDeleteChatUseCase mockDeleteChatUseCase;
+  late MockGetChatIdUseCase mockGetChatIdUseCase;
+  late MockSaveFeedbackUseCase mockSaveFeedbackUseCase;
+  late MockUploadProfileImageUseCase mockUploadProfileImageUseCase;
+  late MockUpdateUserFieldUseCase mockUpdateUserFieldUseCase;
+  late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
 
   setUp(() {
     mockUserRepository = MockUserRepository();
     mockAuthService = MockAuthService();
-    mockDatabaseService = MockDatabaseService();
+    mockGetUsersUseCase = MockGetUsersUseCase();
+    mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
+    mockDeleteChatUseCase = MockDeleteChatUseCase();
+    mockGetChatIdUseCase = MockGetChatIdUseCase();
+    mockSaveFeedbackUseCase = MockSaveFeedbackUseCase();
+    mockUploadProfileImageUseCase = MockUploadProfileImageUseCase();
+    mockUpdateUserFieldUseCase = MockUpdateUserFieldUseCase();
+    mockGetCurrentUserUseCase = MockGetCurrentUserUseCase();
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
       authService: mockAuthService,
-      databaseService: mockDatabaseService,
+      getUsersUseCase: mockGetUsersUseCase,
+      getActiveChatsUseCase: mockGetActiveChatsUseCase,
+      deleteChatUseCase: mockDeleteChatUseCase,
+      getChatIdUseCase: mockGetChatIdUseCase,
+      saveFeedbackUseCase: mockSaveFeedbackUseCase,
+      uploadProfileImageUseCase: mockUploadProfileImageUseCase,
+      updateUserFieldUseCase: mockUpdateUserFieldUseCase,
+      getCurrentUserUseCase: mockGetCurrentUserUseCase,
     );
   });
 

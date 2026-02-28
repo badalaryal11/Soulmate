@@ -12,7 +12,8 @@ import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 import 'package:soulmate/data/datasources/daily_picks_service.dart';
 import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
-import 'package:soulmate/domain/entities/user_model.dart';
+import 'package:soulmate/presentation/widgets/filter_chip_widget.dart';
+import 'package:soulmate/domain/entities/user.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService? authService;
@@ -281,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _FilterChip(
+                      FilterChipWidget(
                         label: 'Male',
                         isSelected: provider.selectedGender == 'male',
                         onSelected: (bool selected) {
@@ -291,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         },
                       ),
-                      _FilterChip(
+                      FilterChipWidget(
                         label: 'Female',
                         isSelected: provider.selectedGender == 'female',
                         onSelected: (bool selected) {
@@ -304,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         },
                       ),
-                      _FilterChip(
+                      FilterChipWidget(
                         label: 'Everyone',
                         isSelected:
                             provider.selectedGender == 'everyone' ||
@@ -390,48 +391,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final valueToSave = gender == 'everyone' ? null : gender;
 
     final auth = widget.authService ?? AuthService();
-    final db = widget.databaseService ?? DatabaseService();
     final user = auth.currentUser;
     if (user != null) {
-      db.updateUserField(user.uid, {'genderPreference': valueToSave});
+      if (mounted) {
+        context.read<UserProvider>().updateUserField(user.uid, {
+          'genderPreference': valueToSave,
+        });
+      }
     }
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final Function(bool) onSelected;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: onSelected,
-      selectedColor: const Color(0xFFFE3C72).withValues(alpha: 0.2),
-      checkmarkColor: const Color(0xFFFE3C72),
-      labelStyle: TextStyle(
-        color: isSelected
-            ? const Color(0xFFFE3C72)
-            : Theme.of(context).textTheme.bodyMedium?.color,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.grey[800]
-          : Colors.grey[200],
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFFFE3C72) : Colors.transparent,
-        ),
-      ),
-    );
   }
 }

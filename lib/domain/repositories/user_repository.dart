@@ -1,4 +1,4 @@
-import '../entities/user_model.dart';
+import '../entities/user.dart';
 
 abstract class UserRepository {
   Future<void> saveUser(User user);
@@ -9,4 +9,6 @@ abstract class UserRepository {
     int limit = 10,
   });
   Future<void> updateUserField(String uid, Map<String, dynamic> data);
+  Future<void> saveFeedback(String userId, String message);
+  Future<String> uploadProfileImage(String userId, dynamic imageFile);
 }

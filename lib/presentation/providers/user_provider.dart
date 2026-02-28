@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
-import '../../data/repositories/user_repository_impl.dart';
 import '../../domain/usecases/get_users_usecase.dart';
-import '../../data/repositories/chat_repository_impl.dart';
 import '../../domain/usecases/get_active_chats_usecase.dart';
 import '../../domain/usecases/delete_chat_usecase.dart';
 import '../../domain/usecases/get_chat_id_usecase.dart';
-import '../../data/datasources/api_service.dart';
+import '../../domain/usecases/save_feedback_usecase.dart';
+import '../../domain/usecases/upload_profile_image_usecase.dart';
+import '../../domain/usecases/update_user_field_usecase.dart';
+import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../data/datasources/auth_service.dart';
-import '../../data/datasources/database_service.dart';
 import '../../data/datasources/image_generation_service.dart';
 
 enum UserStatus { initial, loading, loaded, error }
@@ -26,50 +26,32 @@ class UserProvider extends ChangeNotifier {
   final GetActiveChatsUseCase _getActiveChatsUseCase;
   final DeleteChatUseCase _deleteChatUseCase;
   final GetChatIdUseCase _getChatIdUseCase;
+  final SaveFeedbackUseCase _saveFeedbackUseCase;
+  final UploadProfileImageUseCase _uploadProfileImageUseCase;
+  final UpdateUserFieldUseCase _updateUserFieldUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
 
   UserProvider({
-    UserRepository? userRepository,
-    GetUsersUseCase? getUsersUseCase,
-    AuthService? authService,
-    DatabaseService? databaseService,
-    GetActiveChatsUseCase? getActiveChatsUseCase,
-    DeleteChatUseCase? deleteChatUseCase,
-    GetChatIdUseCase? getChatIdUseCase,
-  }) : _userRepository = _buildUserRepository(userRepository, databaseService),
-       _getUsersUseCase =
-           getUsersUseCase ??
-           GetUsersUseCase(
-             _buildUserRepository(userRepository, databaseService),
-           ),
-       _authService = authService ?? AuthService(),
-       _getActiveChatsUseCase =
-           getActiveChatsUseCase ??
-           GetActiveChatsUseCase(_buildChatRepository(databaseService)),
-       _deleteChatUseCase =
-           deleteChatUseCase ??
-           DeleteChatUseCase(_buildChatRepository(databaseService)),
-       _getChatIdUseCase =
-           getChatIdUseCase ??
-           GetChatIdUseCase(_buildChatRepository(databaseService));
-
-  // Shared default instances to avoid duplicate construction
-  static final DatabaseService _defaultDatabaseService = DatabaseService();
-  static final ApiService _defaultApiService = ApiService();
-
-  static UserRepository _buildUserRepository(
-    UserRepository? provided,
-    DatabaseService? dbService,
-  ) {
-    return provided ??
-        UserRepositoryImpl(
-          dbService ?? _defaultDatabaseService,
-          _defaultApiService,
-        );
-  }
-
-  static ChatRepositoryImpl _buildChatRepository(DatabaseService? dbService) {
-    return ChatRepositoryImpl(dbService ?? _defaultDatabaseService);
-  }
+    required UserRepository userRepository,
+    required GetUsersUseCase getUsersUseCase,
+    required AuthService authService,
+    required GetActiveChatsUseCase getActiveChatsUseCase,
+    required DeleteChatUseCase deleteChatUseCase,
+    required GetChatIdUseCase getChatIdUseCase,
+    required SaveFeedbackUseCase saveFeedbackUseCase,
+    required UploadProfileImageUseCase uploadProfileImageUseCase,
+    required UpdateUserFieldUseCase updateUserFieldUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+  }) : _userRepository = userRepository,
+       _getUsersUseCase = getUsersUseCase,
+       _authService = authService,
+       _getActiveChatsUseCase = getActiveChatsUseCase,
+       _deleteChatUseCase = deleteChatUseCase,
+       _getChatIdUseCase = getChatIdUseCase,
+       _saveFeedbackUseCase = saveFeedbackUseCase,
+       _uploadProfileImageUseCase = uploadProfileImageUseCase,
+       _updateUserFieldUseCase = updateUserFieldUseCase,
+       _getCurrentUserUseCase = getCurrentUserUseCase;
 
   final List<User> _users = [];
   final Set<String> _usedImageUrls =
@@ -129,7 +111,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> loadCurrentUser() async {
     final user = _authService.currentUser;
     if (user != null) {
-      _currentUser = await _userRepository.getUser(user.uid);
+      _currentUser = await _getCurrentUserUseCase(user.uid);
       if (_currentUser != null) {
         // Daily login logic (Streak & Coins)
         final today = DateTime.now();
@@ -407,5 +389,17 @@ class UserProvider extends ChangeNotifier {
       final chatId = await _getChatIdUseCase(_currentUser!.id, userId);
       await _deleteChatUseCase(chatId);
     }
+  }
+
+  Future<void> updateUserField(String uid, Map<String, dynamic> data) async {
+    await _updateUserFieldUseCase(uid, data);
+  }
+
+  Future<void> saveFeedback(String userId, String message) async {
+    await _saveFeedbackUseCase(userId, message);
+  }
+
+  Future<String> uploadProfileImage(String userId, dynamic imageFile) async {
+    return await _uploadProfileImageUseCase(userId, imageFile);
   }
 }

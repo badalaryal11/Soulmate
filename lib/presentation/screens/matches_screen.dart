@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
-import '../../domain/entities/user_model.dart';
+import '../../domain/entities/user.dart';
 import '../../data/datasources/auth_service.dart';
 import '../../data/datasources/image_generation_service.dart';
 import 'login_screen.dart';
