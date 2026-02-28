@@ -17,6 +17,7 @@ import 'domain/usecases/get_chat_id_usecase.dart';
 import 'domain/usecases/get_chat_stream_usecase.dart';
 import 'domain/usecases/get_message_history_usecase.dart';
 import 'domain/usecases/send_message_usecase.dart';
+import 'domain/usecases/mark_messages_as_read_usecase.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'data/datasources/notification_service.dart';
 import 'data/datasources/auth_service.dart';
@@ -186,6 +187,9 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
                 chatRepository,
               ),
               sendMessageUseCase: SendMessageUseCase(chatRepository),
+              markMessagesAsReadUseCase: MarkMessagesAsReadUseCase(
+                chatRepository,
+              ),
             );
           },
         ),

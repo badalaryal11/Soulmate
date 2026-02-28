@@ -115,6 +115,12 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   Future<void> loadMatches() async {}
+
+  @override
+  bool get canUndo => false;
+
+  @override
+  void undoSwipe() {}
 }
 
 void main() {

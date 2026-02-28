@@ -495,4 +495,38 @@ class DatabaseService {
       rethrow;
     }
   }
+
+  // Mark messages from the other user as read
+  Future<void> markMessagesAsRead(String chatId, String currentUserId) async {
+    try {
+      final messagesKey = 'chat_messages_$chatId';
+      final msgsStr = await _secureStorage.read(key: messagesKey);
+      if (msgsStr == null) return;
+
+      List<String> messagesJson = List<String>.from(jsonDecode(msgsStr));
+      bool changed = false;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      for (int i = 0; i < messagesJson.length; i++) {
+        final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
+        // Mark messages from the OTHER user (not current user) as read
+        if (msgMap['senderId'] != currentUserId && msgMap['isRead'] != true) {
+          msgMap['isRead'] = true;
+          msgMap['readAt'] = now;
+          messagesJson[i] = jsonEncode(msgMap);
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        await _secureStorage.write(
+          key: messagesKey,
+          value: jsonEncode(messagesJson),
+        );
+        _broadcastMessages(chatId);
+      }
+    } catch (e) {
+      debugPrint("Error marking messages as read: $e");
+    }
+  }
 }

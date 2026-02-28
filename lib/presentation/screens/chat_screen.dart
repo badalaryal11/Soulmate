@@ -5,6 +5,7 @@ import '../../domain/entities/user_model.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../data/datasources/image_generation_service.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../presentation/providers/user_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
 
@@ -21,7 +22,10 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -312,14 +316,40 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchQuery = '';
+                  _searchController.clear();
+                }
+              });
+            },
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'unmatch') {
                 _showUnmatchConfirmation();
+              } else if (value == 'share') {
+                Share.share(
+                  'Check out ${widget.user.firstName} on Soulmate! https://soulmate.app/profile/${widget.user.id}',
+                );
               }
             },
             itemBuilder: (BuildContext context) {
               return [
+                const PopupMenuItem<String>(
+                  value: 'share',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share, color: Colors.blue, size: 20),
+                      SizedBox(width: 8),
+                      Text('Share Profile'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem<String>(
                   value: 'unmatch',
                   child: Row(
@@ -338,6 +368,39 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_isSearching)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search messages...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]
+                        : Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase();
+                    });
+                  },
+                ),
+              ),
             Expanded(
               child: StreamBuilder<List<ChatMessage>>(
                 stream: chatProvider.messagesStream,
@@ -350,7 +413,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  final messages = snapshot.data ?? [];
+                  final allMessages = snapshot.data ?? [];
+                  final messages = _searchQuery.isEmpty
+                      ? allMessages
+                      : allMessages
+                            .where(
+                              (m) =>
+                                  m.text.toLowerCase().contains(_searchQuery),
+                            )
+                            .toList();
 
                   if (messages.isEmpty) {
                     return Center(
@@ -692,16 +763,31 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            _formatTime(message.timestamp),
-            style: TextStyle(
-              color: isMe
-                  ? Colors.white70
-                  : (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.black54),
-              fontSize: 10,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _formatTime(message.timestamp),
+                style: TextStyle(
+                  color: isMe
+                      ? Colors.white70
+                      : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.black54),
+                  fontSize: 10,
+                ),
+              ),
+              if (isMe) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  message.isRead ? Icons.done_all : Icons.done,
+                  size: 14,
+                  color: message.isRead
+                      ? const Color(0xFF4FC3F7)
+                      : Colors.white70,
+                ),
+              ],
+            ],
           ),
         ],
       ),

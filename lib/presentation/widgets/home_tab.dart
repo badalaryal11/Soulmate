@@ -175,6 +175,18 @@ class _HomeTabState extends State<HomeTab> {
                           widget.controller.swipe(CardSwiperDirection.left),
                     ),
                     _ActionButton(
+                      icon: Icons.undo,
+                      color: provider.canUndo
+                          ? Colors.amber
+                          : Colors.grey[400]!,
+                      onPressed: () {
+                        if (provider.canUndo) {
+                          provider.undoSwipe();
+                          widget.controller.undo();
+                        }
+                      },
+                    ),
+                    _ActionButton(
                       icon: Icons.favorite,
                       color: Colors.green,
                       onPressed: () =>

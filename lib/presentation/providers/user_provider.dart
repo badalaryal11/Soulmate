@@ -340,7 +340,18 @@ class UserProvider extends ChangeNotifier {
   final List<User> _matches = [];
   List<User> get matches => _matches;
 
+  // Undo support
+  User? _lastSwipedUser;
+  int? _lastSwipedIndex;
+  bool get canUndo => _lastSwipedUser != null;
+
   void userSwiped(int index, CardSwiperDirection direction) {
+    // Store undo state before processing
+    if (index < filteredUsers.length) {
+      _lastSwipedUser = filteredUsers[index];
+      _lastSwipedIndex = index;
+    }
+
     // Only count as a potential match if the user swiped RIGHT (Like)
     if (direction == CardSwiperDirection.right) {
       _swipeCount++;
@@ -357,6 +368,18 @@ class UserProvider extends ChangeNotifier {
     if (index >= filteredUsers.length - 5) {
       loadUsers(gender: _selectedGender);
     }
+
+    notifyListeners();
+  }
+
+  void undoSwipe() {
+    if (_lastSwipedUser == null || _lastSwipedIndex == null) return;
+
+    final insertIndex = _lastSwipedIndex!.clamp(0, filteredUsers.length);
+    _filteredUsers.insert(insertIndex, _lastSwipedUser!);
+    _lastSwipedUser = null;
+    _lastSwipedIndex = null;
+    notifyListeners();
   }
 
   void _triggerMatch(int index) {

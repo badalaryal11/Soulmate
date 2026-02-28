@@ -13,6 +13,7 @@ import '../../domain/usecases/get_chat_id_usecase.dart';
 import '../../domain/usecases/get_chat_stream_usecase.dart';
 import '../../domain/usecases/get_message_history_usecase.dart';
 import '../../domain/usecases/send_message_usecase.dart';
+import '../../domain/usecases/mark_messages_as_read_usecase.dart';
 
 class ChatProvider extends ChangeNotifier {
   final ChatService _chatService;
@@ -22,6 +23,7 @@ class ChatProvider extends ChangeNotifier {
   final GetChatStreamUseCase _getChatStreamUseCase;
   final GetMessageHistoryUseCase _getMessageHistoryUseCase;
   final SendMessageUseCase _sendMessageUseCase;
+  final MarkMessagesAsReadUseCase _markMessagesAsReadUseCase;
 
   ChatProvider({
     required ChatService chatService,
@@ -30,12 +32,14 @@ class ChatProvider extends ChangeNotifier {
     required GetChatStreamUseCase getChatStreamUseCase,
     required GetMessageHistoryUseCase getMessageHistoryUseCase,
     required SendMessageUseCase sendMessageUseCase,
+    required MarkMessagesAsReadUseCase markMessagesAsReadUseCase,
   }) : _chatService = chatService,
        _notificationService = notificationService,
        _getChatIdUseCase = getChatIdUseCase,
        _getChatStreamUseCase = getChatStreamUseCase,
        _getMessageHistoryUseCase = getMessageHistoryUseCase,
-       _sendMessageUseCase = sendMessageUseCase;
+       _sendMessageUseCase = sendMessageUseCase,
+       _markMessagesAsReadUseCase = markMessagesAsReadUseCase;
 
   late String _currentUserId;
   String? _chatId;
@@ -85,6 +89,9 @@ class ChatProvider extends ChangeNotifier {
 
     // Cancel "Miss you" notification as user is here
     _notificationService.cancelNotification(_chatId.hashCode);
+
+    // Mark incoming messages as read
+    _markMessagesAsReadUseCase(_chatId!, _currentUserId);
 
     // Note: To get XP, the current GetChatStreamUseCase only returns List<ChatMessage>.
     // To properly support XP in clean architecture without breaking domain boundaries,

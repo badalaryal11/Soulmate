@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../domain/entities/user_model.dart';
 import '../../data/datasources/image_generation_service.dart';
 import '../../core/utils/image_utils.dart';
@@ -16,6 +17,16 @@ class DetailsScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 400,
             pinned: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share, color: Colors.white),
+                onPressed: () {
+                  Share.share(
+                    'Check out ${user.firstName} on Soulmate! https://soulmate.app/profile/${user.id}',
+                  );
+                },
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(user.firstName),
               background: ImageUtils.getImageWidget(

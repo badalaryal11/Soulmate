@@ -6,6 +6,8 @@ class ChatMessage {
   final String? gameType;
   final Map<String, dynamic>? gameData;
   final String? stickerUrl;
+  final bool isRead;
+  final DateTime? readAt;
 
   ChatMessage({
     required this.id,
@@ -15,6 +17,8 @@ class ChatMessage {
     this.gameType,
     this.gameData,
     this.stickerUrl,
+    this.isRead = false,
+    this.readAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +29,8 @@ class ChatMessage {
       'gameType': gameType,
       'gameData': gameData,
       'stickerUrl': stickerUrl,
+      'isRead': isRead,
+      'readAt': readAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -39,6 +45,10 @@ class ChatMessage {
           ? Map<String, dynamic>.from(map['gameData'])
           : null,
       stickerUrl: map['stickerUrl'],
+      isRead: map['isRead'] ?? false,
+      readAt: map['readAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['readAt'])
+          : null,
     );
   }
 }

@@ -12,4 +12,5 @@ abstract class ChatRepository {
   );
   Future<String> getChatId(String userId1, String userId2);
   Future<void> deleteChat(String chatId);
+  Future<void> markMessagesAsRead(String chatId, String currentUserId);
 }

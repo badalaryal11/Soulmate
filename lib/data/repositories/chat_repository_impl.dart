@@ -45,4 +45,9 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<void> deleteChat(String chatId) {
     return _databaseService.deleteChat(chatId);
   }
+
+  @override
+  Future<void> markMessagesAsRead(String chatId, String currentUserId) {
+    return _databaseService.markMessagesAsRead(chatId, currentUserId);
+  }
 }
