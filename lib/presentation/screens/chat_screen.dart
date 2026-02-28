@@ -4,7 +4,6 @@ import '../../core/constants/stickers.dart';
 import '../../domain/entities/user_model.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../data/datasources/image_generation_service.dart';
-import '../../data/datasources/database_service.dart'; // Still needed for MessageBubble (Can be abstracted later)
 import 'package:provider/provider.dart';
 import '../../presentation/providers/user_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
@@ -23,8 +22,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final DatabaseService _databaseService =
-      DatabaseService(); // For MessageBubble compat
 
   @override
   void initState() {
@@ -406,7 +403,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         isMe: message.senderId == chatProvider.currentUser?.id,
                         currentUserId: chatProvider.currentUser?.id ?? '',
                         chatId: chatProvider.chatId ?? '',
-                        databaseService: _databaseService,
                         otherUser: widget.user,
                       );
                     },
@@ -589,7 +585,6 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final String currentUserId;
   final String chatId;
-  final DatabaseService databaseService;
   final User otherUser;
 
   const MessageBubble({
@@ -598,7 +593,6 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.currentUserId,
     required this.chatId,
-    required this.databaseService,
     required this.otherUser,
   });
 

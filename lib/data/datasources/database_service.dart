@@ -340,8 +340,8 @@ class DatabaseService {
     if (_messageStreamControllers.containsKey(chatId)) {
       final history = await getMessageHistory(
         chatId,
-        limit: 10000,
-      ); // effectively all for the stream
+        limit: 100,
+      ); // Cap to 100 most recent for performance
       _messageStreamControllers[chatId]!.add(history);
     }
   }

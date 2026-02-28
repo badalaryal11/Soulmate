@@ -6,15 +6,7 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeMode get themeMode => _themeMode;
 
-  bool get isDarkMode {
-    if (_themeMode == ThemeMode.system) {
-      // Default to light if system (or handle based on platform brightness if needed,
-      // but usually system handles it. Here we just return checking against dark explicit)
-      // Actually, for the switch, we might want to know if it's explicitly dark.
-      return _themeMode == ThemeMode.dark;
-    }
-    return _themeMode == ThemeMode.dark;
-  }
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
 
   ThemeProvider() {
     _loadTheme();

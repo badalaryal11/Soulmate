@@ -42,8 +42,24 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
 
-      // Ensure current user profile is loaded first to get preferences
+      // Load current user profile (preferences, streak, coins)
       await provider.loadCurrentUser();
+
+      // If no profile exists, redirect to Create Profile
+      if (mounted &&
+          provider.currentUser == null &&
+          provider.errorMessage == null) {
+        final auth = widget.authService ?? AuthService();
+        final authUser = auth.currentUser;
+        if (authUser != null) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => CreateProfileScreen(firebaseUser: authUser),
+            ),
+          );
+          return; // Exit early — no need to load users
+        }
+      }
 
       if (provider.users.isEmpty) {
         // Load users (filters will be applied based on loaded profile)
@@ -54,26 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted && provider.users.isNotEmpty) {
         _checkDailyPicks(provider.users);
       }
-
-      // Ensure current user profile is loaded for Edit Profile screen
-      provider.loadCurrentUser().then((_) {
-        if (mounted &&
-            provider.currentUser == null &&
-            provider.errorMessage == null) {
-          // User authenticated but no profile found (and no error occurred)
-          // Redirect to Create Profile
-          final auth = widget.authService ?? AuthService();
-          final authUser = auth.currentUser;
-          if (authUser != null) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) =>
-                    CreateProfileScreen(firebaseUser: authUser),
-              ),
-            );
-          }
-        }
-      });
     });
   }
 

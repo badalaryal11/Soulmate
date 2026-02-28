@@ -139,7 +139,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> sendIcebreaker() async {
     if (_chatId == null) return;
 
-    final history = await _getMessageHistoryUseCase(_chatId!, limit: 10000);
+    final history = await _getMessageHistoryUseCase(_chatId!, limit: 50);
     final sentTexts = history.map((m) => m.text).toSet();
 
     final unusedIcebreakers = _icebreakers

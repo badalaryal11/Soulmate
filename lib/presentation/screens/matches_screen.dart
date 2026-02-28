@@ -151,15 +151,17 @@ class MatchesScreen extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final user = matches[index];
-                    return Column(
-                      children: [
-                        _MessageListItem(
-                          user: user,
-                          onTap: () => _openChat(context, user),
-                        ),
-                        if (index < matches.length - 1)
-                          const Divider(height: 1), // Separator
-                      ],
+                    return RepaintBoundary(
+                      child: Column(
+                        children: [
+                          _MessageListItem(
+                            user: user,
+                            onTap: () => _openChat(context, user),
+                          ),
+                          if (index < matches.length - 1)
+                            const Divider(height: 1), // Separator
+                        ],
+                      ),
                     );
                   }, childCount: matches.length),
                 ),

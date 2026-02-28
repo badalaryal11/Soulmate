@@ -11,6 +11,10 @@ class ChatService {
   // Shared HTTP client for connection reuse
   static final http.Client _client = http.Client();
 
+  // Cached instances to avoid re-creation on every call
+  static GenerativeModel? _geminiModel;
+  static final Connectivity _connectivity = Connectivity();
+
   // API tokens loaded from .env
   static String get _hfApiToken => dotenv.env['HF_API_TOKEN'] ?? '';
   static String get _groqApiToken => dotenv.env['GROQ_API_KEY'] ?? '';
@@ -41,7 +45,7 @@ class ChatService {
 
   Future<String> sendMessage(List<Map<String, String>> initialMessages) async {
     // Check connectivity
-    final connectivityResult = await (Connectivity().checkConnectivity());
+    final connectivityResult = await _connectivity.checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.none)) {
       return "Error: No internet connection.";
     }
@@ -79,10 +83,11 @@ class ChatService {
     if (_geminiApiToken.isNotEmpty) {
       debugPrint("[Gemini] Attempting model: gemini-2.5-flash");
       try {
-        final model = GenerativeModel(
+        _geminiModel ??= GenerativeModel(
           model: 'gemini-2.5-flash',
           apiKey: _geminiApiToken,
         );
+        final model = _geminiModel!;
 
         List<Content> geminiHistory = [];
         for (var msg in messages) {

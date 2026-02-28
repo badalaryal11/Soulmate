@@ -162,6 +162,12 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Cache text themes to avoid re-computation on every rebuild
+    final poppinsLight = GoogleFonts.poppinsTextTheme();
+    final poppinsDark = GoogleFonts.poppinsTextTheme(
+      ThemeData.dark().textTheme,
+    );
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
@@ -195,16 +201,14 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFFFE3C72),
               ),
-              textTheme: GoogleFonts.poppinsTextTheme(),
+              textTheme: poppinsLight,
             ),
             darkTheme: ThemeData.dark().copyWith(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFFFE3C72),
                 brightness: Brightness.dark,
               ),
-              textTheme: GoogleFonts.poppinsTextTheme(
-                ThemeData.dark().textTheme,
-              ),
+              textTheme: poppinsDark,
             ),
             home: AuthService().currentUser != null
                 ? const HomeScreen()

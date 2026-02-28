@@ -35,37 +35,41 @@ class UserProvider extends ChangeNotifier {
     GetActiveChatsUseCase? getActiveChatsUseCase,
     DeleteChatUseCase? deleteChatUseCase,
     GetChatIdUseCase? getChatIdUseCase,
-  }) : _userRepository =
-           userRepository ??
-           UserRepositoryImpl(
-             databaseService ?? DatabaseService(),
-             ApiService(),
-           ),
+  }) : _userRepository = _buildUserRepository(userRepository, databaseService),
        _getUsersUseCase =
            getUsersUseCase ??
            GetUsersUseCase(
-             userRepository ??
-                 UserRepositoryImpl(
-                   databaseService ?? DatabaseService(),
-                   ApiService(),
-                 ),
+             _buildUserRepository(userRepository, databaseService),
            ),
        _authService = authService ?? AuthService(),
        _getActiveChatsUseCase =
            getActiveChatsUseCase ??
-           GetActiveChatsUseCase(
-             ChatRepositoryImpl(databaseService ?? DatabaseService()),
-           ),
+           GetActiveChatsUseCase(_buildChatRepository(databaseService)),
        _deleteChatUseCase =
            deleteChatUseCase ??
-           DeleteChatUseCase(
-             ChatRepositoryImpl(databaseService ?? DatabaseService()),
-           ),
+           DeleteChatUseCase(_buildChatRepository(databaseService)),
        _getChatIdUseCase =
            getChatIdUseCase ??
-           GetChatIdUseCase(
-             ChatRepositoryImpl(databaseService ?? DatabaseService()),
-           );
+           GetChatIdUseCase(_buildChatRepository(databaseService));
+
+  // Shared default instances to avoid duplicate construction
+  static final DatabaseService _defaultDatabaseService = DatabaseService();
+  static final ApiService _defaultApiService = ApiService();
+
+  static UserRepository _buildUserRepository(
+    UserRepository? provided,
+    DatabaseService? dbService,
+  ) {
+    return provided ??
+        UserRepositoryImpl(
+          dbService ?? _defaultDatabaseService,
+          _defaultApiService,
+        );
+  }
+
+  static ChatRepositoryImpl _buildChatRepository(DatabaseService? dbService) {
+    return ChatRepositoryImpl(dbService ?? _defaultDatabaseService);
+  }
 
   final List<User> _users = [];
   final Set<String> _usedImageUrls =
