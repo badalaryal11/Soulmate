@@ -21,8 +21,11 @@ class DetailsScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () {
-                  Share.share(
-                    'Check out ${user.firstName} on Soulmate! https://soulmate.app/profile/${user.id}',
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          'Check out ${user.firstName} on Soulmate! https://soulmate.app/profile/${user.id}',
+                    ),
                   );
                 },
               ),

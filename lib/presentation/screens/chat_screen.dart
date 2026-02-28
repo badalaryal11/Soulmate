@@ -333,8 +333,11 @@ class _ChatScreenState extends State<ChatScreen> {
               if (value == 'unmatch') {
                 _showUnmatchConfirmation();
               } else if (value == 'share') {
-                Share.share(
-                  'Check out ${widget.user.firstName} on Soulmate! https://soulmate.app/profile/${widget.user.id}',
+                SharePlus.instance.share(
+                  ShareParams(
+                    text:
+                        'Check out ${widget.user.firstName} on Soulmate! https://soulmate.app/profile/${widget.user.id}',
+                  ),
                 );
               }
             },
