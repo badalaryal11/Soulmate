@@ -21,6 +21,12 @@ void main() async {
   PaintingBinding.instance.imageCache.maximumSizeBytes =
       100 * 1024 * 1024; // 100MB Cache
 
+  // Lock orientation to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   // Enable edge-to-edge mode (moved from SplashScreen)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
