@@ -33,7 +33,7 @@ import '../../domain/usecases/sign_out_usecase.dart';
 import '../../domain/usecases/send_password_reset_usecase.dart';
 import '../../domain/usecases/confirm_password_reset_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
-import '../../data/datasources/daily_picks_service.dart';
+
 import '../../presentation/providers/user_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
 
@@ -121,9 +121,6 @@ class ServiceLocator {
 
   /// User repository for screens that need direct user data operations.
   static UserRepository get userRepository => _userRepository;
-
-  /// DailyPicksService — exposed via ServiceLocator only.
-  static DailyPicksService get dailyPicksService => DailyPicksService();
 
   /// Debug-only: wipe all Firestore data.
   static Future<void> wipeAllData() => _databaseService.wipeAllData();

@@ -7,10 +7,8 @@ import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
-import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
 import 'package:soulmate/presentation/widgets/filter_chip_widget.dart';
-import 'package:soulmate/domain/entities/user.dart';
 
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 
@@ -61,38 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Load users (filters will be applied based on loaded profile)
         await provider.loadUsers();
       }
-
-      // DAILY PICKS FEATURE
-      if (mounted && provider.users.isNotEmpty) {
-        _checkDailyPicks(provider.users);
-      }
     });
-  }
-
-  Future<void> _checkDailyPicks(List<dynamic> users) async {
-    // Cast to List<User> safely
-    final userList = users.whereType<User>().toList();
-    if (userList.isEmpty) return;
-
-    final picks = await ServiceLocator.dailyPicksService.getDailyPicks(
-      userList,
-    );
-    if (picks.isNotEmpty && mounted) {
-      // Using a small delay to ensure the UI is ready and it feels natural
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (context) => DailyPicksWidget(
-              users: picks,
-              onClose: () => Navigator.pop(context),
-            ),
-          );
-        }
-      });
-    }
   }
 
   int _selectedIndex = 0;
