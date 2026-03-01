@@ -150,12 +150,9 @@ class DetailsScreen extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: [
-                        _InterestChip(label: 'Music'),
-                        _InterestChip(label: 'Travel'),
-                        _InterestChip(label: 'Movies'),
-                        _InterestChip(label: 'Coffee'),
-                      ],
+                      children: user.interests
+                          .map((interest) => _InterestChip(label: interest))
+                          .toList(),
                     ),
                     const SizedBox(height: 50),
                   ],

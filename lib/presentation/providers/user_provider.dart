@@ -274,38 +274,34 @@ class UserProvider extends ChangeNotifier {
 
     try {
       final chatDocs = await _getActiveChatsUseCase(_currentUser!.id);
-      final List<User> loadedMatches = [];
 
+      // Build a list of (otherUserId, streak) pairs
+      final List<(String, int)> chatMeta = [];
       for (var chat in chatDocs) {
         final participants = List<String>.from(chat['participants'] ?? []);
         final otherUserId = participants.firstWhere(
           (id) => id != _currentUser!.id,
           orElse: () => '',
         );
-
         if (otherUserId.isNotEmpty) {
-          // Fetch user profile
-          // Optimization: Check if we have it in _users first?
-          // Check _users list?
-          User? user;
-          try {
-            user = _users.firstWhere((u) => u.id == otherUserId);
-          } catch (e) {
-            // Not found locally
-          }
-
-          user ??= await _userRepository.getUser(otherUserId);
-
-          if (user != null) {
-            // Inject streak
-            final streak = chat['streak'] ?? 0;
-            loadedMatches.add(user.copyWith(streak: streak));
-          }
+          chatMeta.add((otherUserId, chat['streak'] ?? 0));
         }
       }
 
+      // Resolve users: check local cache first, fetch missing in parallel
+      final Map<String, User> localCache = {for (final u in _users) u.id: u};
+
+      final futures = chatMeta.map((meta) async {
+        final (userId, streak) = meta;
+        final user =
+            localCache[userId] ?? await _userRepository.getUser(userId);
+        return user?.copyWith(streak: streak);
+      });
+
+      final results = await Future.wait(futures);
+
       _matches.clear();
-      _matches.addAll(loadedMatches);
+      _matches.addAll(results.whereType<User>());
       notifyListeners();
     } catch (e) {
       debugPrint("Error loading matches: $e");
@@ -329,9 +325,11 @@ class UserProvider extends ChangeNotifier {
 
   void userSwiped(int index, CardSwiperDirection direction) {
     // Store undo state before processing
+    bool stateChanged = false;
     if (index < filteredUsers.length) {
       _lastSwipedUser = filteredUsers[index];
       _lastSwipedIndex = index;
+      stateChanged = true;
     }
 
     // Only count as a potential match if the user swiped RIGHT (Like)
@@ -351,7 +349,7 @@ class UserProvider extends ChangeNotifier {
       loadUsers(gender: _selectedGender);
     }
 
-    notifyListeners();
+    if (stateChanged) notifyListeners();
   }
 
   void undoSwipe() {

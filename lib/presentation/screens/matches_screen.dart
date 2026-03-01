@@ -116,9 +116,11 @@ class MatchesScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: matches.length,
                     itemBuilder: (context, index) {
-                      return _MatchAvatarItem(
-                        user: matches[index],
-                        onTap: () => _openChat(context, matches[index]),
+                      return RepaintBoundary(
+                        child: _MatchAvatarItem(
+                          user: matches[index],
+                          onTap: () => _openChat(context, matches[index]),
+                        ),
                       );
                     },
                   ),

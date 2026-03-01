@@ -187,6 +187,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -223,7 +224,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = context.watch<ChatProvider>();
+    final chatProvider = context.read<ChatProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -267,49 +268,54 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   GestureDetector(
                     onTap: _showGamificationDetails,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                    child: Selector<ChatProvider, (String, int)>(
+                      selector: (_, p) => (p.relationshipLevel, p.xp),
+                      builder: (context, data, _) {
+                        final (level, xp) = data;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.favorite,
-                              color: Color(0xFFFE3C72),
-                              size: 14,
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.favorite,
+                                  color: Color(0xFFFE3C72),
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$level (Lvl ${(xp / 10).floor()})',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${chatProvider.relationshipLevel} (Lvl ${(chatProvider.xp / 10).floor()})',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black87,
-                                fontWeight: FontWeight.w600,
+                            const SizedBox(height: 4),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: SizedBox(
+                                width: 120,
+                                height: 6,
+                                child: LinearProgressIndicator(
+                                  value: chatProvider.calculateProgress(xp),
+                                  backgroundColor: Colors.grey[200],
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        Color(0xFFFE3C72),
+                                      ),
+                                ),
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: SizedBox(
-                            width: 120,
-                            height: 6,
-                            child: LinearProgressIndicator(
-                              value: chatProvider.calculateProgress(
-                                chatProvider.xp,
-                              ),
-                              backgroundColor: Colors.grey[200],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFFFE3C72),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -407,79 +413,88 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             Expanded(
-              child: StreamBuilder<List<ChatMessage>>(
-                stream: chatProvider.messagesStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  final allMessages = snapshot.data ?? [];
-                  final messages = _searchQuery.isEmpty
-                      ? allMessages
-                      : allMessages
-                            .where(
-                              (m) =>
-                                  m.text.toLowerCase().contains(_searchQuery),
-                            )
-                            .toList();
-
-                  if (messages.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Say hello to ${widget.user.firstName}!',
-                        style: TextStyle(color: Colors.grey[400]),
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    reverse: true, // Start from bottom
-                    controller: _scrollController,
-                    itemCount:
-                        messages.length + (chatProvider.isTyping ? 1 : 0),
-                    findChildIndexCallback: (Key key) {
-                      if (key == const ValueKey('typing_indicator')) {
-                        return chatProvider.isTyping ? 0 : null;
+              child: Selector<ChatProvider, (Stream<List<ChatMessage>>?, bool)>(
+                selector: (_, p) => (p.messagesStream, p.isTyping),
+                builder: (context, data, _) {
+                  final (stream, isTyping) = data;
+                  return StreamBuilder<List<ChatMessage>>(
+                    stream: stream,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
                       }
-                      if (key is ValueKey<String>) {
-                        int index = messages.indexWhere(
-                          (m) => m.id == key.value,
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final allMessages = snapshot.data ?? [];
+                      final messages = _searchQuery.isEmpty
+                          ? allMessages
+                          : allMessages
+                                .where(
+                                  (m) => m.text.toLowerCase().contains(
+                                    _searchQuery,
+                                  ),
+                                )
+                                .toList();
+
+                      if (messages.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Say hello to ${widget.user.firstName}!',
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
                         );
-                        if (index != -1) {
-                          return chatProvider.isTyping ? index + 1 : index;
-                        }
                       }
-                      return null;
-                    },
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    itemBuilder: (context, index) {
-                      if (chatProvider.isTyping) {
-                        if (index == 0) {
-                          return TypingBubble(
-                            key: const ValueKey('typing_indicator'),
-                            user: widget.user,
+
+                      final currentUserId = chatProvider.currentUser?.id ?? '';
+                      final chatId = chatProvider.chatId ?? '';
+
+                      return ListView.builder(
+                        reverse: true,
+                        controller: _scrollController,
+                        itemCount: messages.length + (isTyping ? 1 : 0),
+                        findChildIndexCallback: (Key key) {
+                          if (key == const ValueKey('typing_indicator')) {
+                            return isTyping ? 0 : null;
+                          }
+                          if (key is ValueKey<String>) {
+                            int index = messages.indexWhere(
+                              (m) => m.id == key.value,
+                            );
+                            if (index != -1) {
+                              return isTyping ? index + 1 : index;
+                            }
+                          }
+                          return null;
+                        },
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemBuilder: (context, index) {
+                          if (isTyping) {
+                            if (index == 0) {
+                              return TypingBubble(
+                                key: const ValueKey('typing_indicator'),
+                                user: widget.user,
+                              );
+                            }
+                            index -= 1;
+                          }
+                          final message = messages[index];
+                          return RepaintBoundary(
+                            child: MessageBubble(
+                              key: ValueKey(message.id),
+                              message: message,
+                              isMe: message.senderId == currentUserId,
+                              currentUserId: currentUserId,
+                              chatId: chatId,
+                              otherUser: widget.user,
+                            ),
                           );
-                        }
-                        index -= 1;
-                      }
-                      // messages are already ordered descending from firestore
-                      // so index 0 is latest
-                      final message = messages[index];
-                      return MessageBubble(
-                        key: ValueKey(message.id),
-                        message: message,
-                        isMe: message.senderId == chatProvider.currentUser?.id,
-                        currentUserId: chatProvider.currentUser?.id ?? '',
-                        chatId: chatProvider.chatId ?? '',
-                        otherUser: widget.user,
+                        },
                       );
                     },
                   );
