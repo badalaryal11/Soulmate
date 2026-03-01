@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user.dart';
@@ -108,13 +109,35 @@ class _Avatar extends StatelessWidget {
         radius: 50,
         backgroundColor: Colors.grey[200],
         child: ClipOval(
-          child: ImageUtils.getImageWidget(
-            imageUrl.isEmpty ? 'assets/images/logo_transparent.png' : imageUrl,
-            width: 100,
-            height: 100,
-            memCacheWidth: 200,
-            memCacheHeight: 200,
-          ),
+          child: imageUrl.isEmpty || imageUrl.startsWith('assets/')
+              ? ImageUtils.getImageWidget(
+                  imageUrl.isEmpty
+                      ? 'assets/images/logo_transparent.png'
+                      : imageUrl,
+                  width: 100,
+                  height: 100,
+                )
+              : CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 200,
+                  memCacheHeight: 200,
+                  fadeInDuration: const Duration(milliseconds: 150),
+                  fadeOutDuration: Duration.zero,
+                  placeholder: (context, url) => Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey[200],
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.person, color: Colors.grey),
+                  ),
+                ),
         ),
       ),
     );

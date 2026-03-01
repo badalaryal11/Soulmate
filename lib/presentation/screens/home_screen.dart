@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
+import 'package:soulmate/core/utils/image_generation_service.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
 import 'package:soulmate/presentation/widgets/filter_chip_widget.dart';
 
@@ -31,6 +33,20 @@ class _HomeScreenState extends State<HomeScreen> {
       // Set up match listener
       provider.onMatchFound = (user) {
         if (mounted) {
+          // Precache images so the match screen loads instantly
+          final matchedImageUrl = user.imageUrl.isNotEmpty
+              ? user.imageUrl
+              : ImageGenerationService.generateProfileImageUrl(user);
+          final currentImageUrl = provider.currentUser?.imageUrl ?? '';
+
+          if (matchedImageUrl.isNotEmpty) {
+            precacheImage(CachedNetworkImageProvider(matchedImageUrl), context);
+          }
+          if (currentImageUrl.isNotEmpty &&
+              !currentImageUrl.startsWith('assets/')) {
+            precacheImage(CachedNetworkImageProvider(currentImageUrl), context);
+          }
+
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
           );
