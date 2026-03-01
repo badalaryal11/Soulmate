@@ -43,7 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
             precacheImage(CachedNetworkImageProvider(matchedImageUrl), context);
           }
           if (currentImageUrl.isNotEmpty &&
-              !currentImageUrl.startsWith('assets/')) {
+              !currentImageUrl.startsWith('assets/') &&
+              !currentImageUrl.startsWith('file://')) {
             precacheImage(CachedNetworkImageProvider(currentImageUrl), context);
           }
 

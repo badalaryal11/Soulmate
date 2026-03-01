@@ -109,7 +109,10 @@ class _Avatar extends StatelessWidget {
         radius: 50,
         backgroundColor: Colors.grey[200],
         child: ClipOval(
-          child: imageUrl.isEmpty || imageUrl.startsWith('assets/')
+          child:
+              imageUrl.isEmpty ||
+                  imageUrl.startsWith('assets/') ||
+                  imageUrl.startsWith('file://')
               ? ImageUtils.getImageWidget(
                   imageUrl.isEmpty
                       ? 'assets/images/logo_transparent.png'
