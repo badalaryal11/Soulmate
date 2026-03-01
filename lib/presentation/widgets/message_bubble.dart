@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../core/utils/image_utils.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;

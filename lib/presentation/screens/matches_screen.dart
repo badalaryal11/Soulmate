@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 import '../../domain/entities/user.dart';
-import '../../data/datasources/auth_service.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/utils/image_generation_service.dart';
 import 'login_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
@@ -28,7 +28,7 @@ class MatchesScreen extends StatelessWidget {
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == 'logout') {
-                await AuthService().signOut();
+                await ServiceLocator.authRepository.signOut();
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(

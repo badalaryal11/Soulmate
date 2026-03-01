@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mockito/mockito.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +9,6 @@ import 'package:soulmate/domain/entities/user.dart' as model;
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../unit/providers/user_provider_test.mocks.dart';
 
 // Manual Mock for UserProvider
 class MockUserProvider extends ChangeNotifier implements UserProvider {
@@ -135,16 +134,10 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
 
 void main() {
   late MockUserProvider mockUserProvider;
-  late MockAuthService mockAuthService;
-  late MockDatabaseService mockDatabaseService;
 
   setUp(() {
     mockUserProvider = MockUserProvider();
-    mockAuthService = MockAuthService();
-    mockDatabaseService = MockDatabaseService();
     GoogleFonts.config.allowRuntimeFetching = false;
-
-    when(mockAuthService.currentUser).thenReturn(null);
 
     mockUserProvider.currentUser = model.User(
       id: 'test_current_user',
@@ -163,12 +156,7 @@ void main() {
   Widget createHomeScreen() {
     return ChangeNotifierProvider<UserProvider>.value(
       value: mockUserProvider,
-      child: MaterialApp(
-        home: HomeScreen(
-          authService: mockAuthService,
-          databaseService: mockDatabaseService,
-        ),
-      ),
+      child: MaterialApp(home: const HomeScreen()),
     );
   }
 

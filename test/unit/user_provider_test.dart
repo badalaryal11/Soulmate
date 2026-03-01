@@ -4,8 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/domain/entities/user.dart';
-import 'package:soulmate/data/datasources/auth_service.dart';
-import 'package:soulmate/data/datasources/database_service.dart';
+import 'package:soulmate/domain/repositories/auth_repository.dart';
 
 import 'package:soulmate/domain/usecases/get_users_usecase.dart';
 import 'package:soulmate/domain/usecases/get_active_chats_usecase.dart';
@@ -19,8 +18,7 @@ import 'package:soulmate/domain/usecases/get_current_user_usecase.dart';
 // Generate mocks
 @GenerateMocks([
   UserRepository,
-  AuthService,
-  DatabaseService,
+  AuthRepository,
   GetUsersUseCase,
   GetActiveChatsUseCase,
   DeleteChatUseCase,
@@ -35,7 +33,7 @@ import 'user_provider_test.mocks.dart';
 void main() {
   late UserProvider userProvider;
   late MockUserRepository mockUserRepository;
-  late MockAuthService mockAuthService;
+  late MockAuthRepository mockAuthRepository;
   late MockGetUsersUseCase mockGetUsersUseCase;
   late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
   late MockDeleteChatUseCase mockDeleteChatUseCase;
@@ -47,7 +45,7 @@ void main() {
 
   setUp(() {
     mockUserRepository = MockUserRepository();
-    mockAuthService = MockAuthService();
+    mockAuthRepository = MockAuthRepository();
     mockGetUsersUseCase = MockGetUsersUseCase();
     mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
     mockDeleteChatUseCase = MockDeleteChatUseCase();
@@ -59,7 +57,7 @@ void main() {
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
-      authService: mockAuthService,
+      authRepository: mockAuthRepository,
       getUsersUseCase: mockGetUsersUseCase,
       getActiveChatsUseCase: mockGetActiveChatsUseCase,
       deleteChatUseCase: mockDeleteChatUseCase,
@@ -101,7 +99,7 @@ void main() {
     test(
       'Initial load with no gender preference should fetch with null gender',
       () async {
-        when(mockAuthService.currentUser).thenReturn(null);
+        when(mockAuthRepository.currentUser).thenReturn(null);
         when(
           mockGetUsersUseCase(
             gender: anyNamed('gender'),
@@ -119,7 +117,7 @@ void main() {
 
     test('loadUsers with "male" filters users correctly', () async {
       // Setup: Repository returns mixed users (simulating API that might return mixed or just to test client-side filter)
-      when(mockAuthService.currentUser).thenReturn(null);
+      when(mockAuthRepository.currentUser).thenReturn(null);
       when(
         mockGetUsersUseCase(
           gender: 'male',
@@ -143,7 +141,7 @@ void main() {
     });
 
     test('loadUsers with "female" filters users correctly', () async {
-      when(mockAuthService.currentUser).thenReturn(null);
+      when(mockAuthRepository.currentUser).thenReturn(null);
       when(
         mockGetUsersUseCase(
           gender: 'female',
@@ -159,7 +157,7 @@ void main() {
     });
 
     test('loadUsers with "everyone" returns all users', () async {
-      when(mockAuthService.currentUser).thenReturn(null);
+      when(mockAuthRepository.currentUser).thenReturn(null);
       when(
         mockGetUsersUseCase(
           gender: 'everyone',
@@ -175,7 +173,7 @@ void main() {
 
     test('Filtering is case insensitive', () async {
       final userMaleUpper = userMale.copyWith(gender: 'Male');
-      when(mockAuthService.currentUser).thenReturn(null);
+      when(mockAuthRepository.currentUser).thenReturn(null);
       when(
         mockGetUsersUseCase(
           gender: 'male',
@@ -192,7 +190,7 @@ void main() {
     test('Trimming whitespace in gender string', () async {
       // This test is expected to fail with current implementation if we don't trim
       final userMaleSpace = userMale.copyWith(gender: ' male ');
-      when(mockAuthService.currentUser).thenReturn(null);
+      when(mockAuthRepository.currentUser).thenReturn(null);
       when(
         mockGetUsersUseCase(
           gender: 'male',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../data/datasources/auth_service.dart';
+import '../../core/di/service_locator.dart';
 import '../providers/user_provider.dart';
 import 'gender_selection_screen.dart';
 
@@ -106,7 +106,7 @@ class _UserGenderSelectionScreenState extends State<UserGenderSelectionScreen> {
   }
 
   Future<void> _handleContinue() async {
-    final currentUser = AuthService().currentUser;
+    final currentUser = ServiceLocator.authRepository.currentUser;
     if (currentUser != null && _selectedGender != null) {
       if (mounted) {
         await context.read<UserProvider>().updateUserField(currentUser.uid, {

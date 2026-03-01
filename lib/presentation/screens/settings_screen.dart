@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:soulmate/core/di/service_locator.dart';
-import 'package:soulmate/data/datasources/auth_service.dart';
-import 'package:soulmate/data/datasources/database_service.dart';
+import 'package:soulmate/domain/repositories/auth_repository.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
@@ -11,17 +10,13 @@ import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final AuthService? authService;
-  final DatabaseService? databaseService;
-
-  const SettingsScreen({super.key, this.authService, this.databaseService});
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
-    final auth = authService ?? ServiceLocator.authService;
-    final db = databaseService ?? ServiceLocator.databaseService;
+    final auth = ServiceLocator.authRepository;
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.email_outlined),
             title: Text('Update Email', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showUpdateEmailDialog(context, auth, db),
+            onTap: () => _showUpdateEmailDialog(context, auth),
           ),
           ListTile(
             leading: const Icon(Icons.lock_outline),
@@ -125,7 +120,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.feedback_outlined),
             title: Text('Contact Us', style: GoogleFonts.poppins()),
-            onTap: () => _showFeedbackDialog(context, auth, db),
+            onTap: () => _showFeedbackDialog(context, auth),
           ),
           const Divider(),
 
@@ -164,12 +159,7 @@ class SettingsScreen extends StatelessWidget {
               await auth.signOut();
               if (context.mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(
-                      authService: authService,
-                      databaseService: databaseService,
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                   (route) => false,
                 );
               }
@@ -196,8 +186,7 @@ class SettingsScreen extends StatelessWidget {
 
   void _showUpdateEmailDialog(
     BuildContext context,
-    AuthService authService,
-    DatabaseService dbService,
+    AuthRepository authRepository,
   ) {
     final emailController = TextEditingController();
     showDialog(
@@ -221,10 +210,10 @@ class SettingsScreen extends StatelessWidget {
 
               try {
                 // 1. Update Auth (sends verification)
-                await authService.updateEmail(newEmail);
+                await authRepository.updateEmail(newEmail);
 
                 // 2. Update Firestore immediately so UI reflects change
-                final user = authService.currentUser;
+                final user = authRepository.currentUser;
                 if (user != null) {
                   if (context.mounted) {
                     await context.read<UserProvider>().updateUserField(
@@ -262,7 +251,7 @@ class SettingsScreen extends StatelessWidget {
 
   void _showChangePasswordDialog(
     BuildContext context,
-    AuthService authService,
+    AuthRepository authRepository,
   ) {
     final passwordController = TextEditingController();
     showDialog(
@@ -282,7 +271,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               try {
-                await authService.updatePassword(
+                await authRepository.updatePassword(
                   passwordController.text.trim(),
                 );
                 if (context.mounted) {
@@ -309,7 +298,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context, AuthService authService) {
+  void _showDeleteAccountDialog(
+    BuildContext context,
+    AuthRepository authRepository,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -325,7 +317,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               try {
-                await authService.deleteAccount();
+                await authRepository.deleteAccount();
                 if (context.mounted) {
                   Navigator.pop(context);
                   Navigator.of(context).pushAndRemoveUntil(
@@ -418,8 +410,7 @@ class SettingsScreen extends StatelessWidget {
 
   void _showFeedbackDialog(
     BuildContext context,
-    AuthService authService,
-    DatabaseService dbService,
+    AuthRepository authRepository,
   ) {
     final feedbackController = TextEditingController();
     showDialog(
@@ -455,7 +446,7 @@ class SettingsScreen extends StatelessWidget {
               final message = feedbackController.text.trim();
               if (message.isNotEmpty) {
                 try {
-                  final userId = authService.currentUser?.uid ?? 'anonymous';
+                  final userId = authRepository.currentUser?.uid ?? 'anonymous';
                   if (context.mounted) {
                     await context.read<UserProvider>().saveFeedback(
                       userId,
@@ -490,7 +481,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showWipeDataDialog(BuildContext context, AuthService authService) {
+  void _showWipeDataDialog(
+    BuildContext context,
+    AuthRepository authRepository,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -518,7 +512,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(context); // Close dialog
               try {
-                await DatabaseService().wipeAllData();
+                await ServiceLocator.wipeAllData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -526,7 +520,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   );
                   // Logout user
-                  await authService.signOut();
+                  await authRepository.signOut();
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(

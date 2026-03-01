@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../data/datasources/auth_service.dart';
+import '../../core/di/service_locator.dart';
 import 'interest_selection_screen.dart';
 import '../providers/user_provider.dart';
 
@@ -117,7 +117,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     userProvider.loadUsers(gender: genderToLoad);
 
     // Update gender preference in Firestore if logged in
-    final currentUser = AuthService().currentUser;
+    final currentUser = ServiceLocator.authRepository.currentUser;
     if (currentUser != null && _selectedGender != null) {
       if (mounted) {
         await context.read<UserProvider>().updateUserField(currentUser.uid, {

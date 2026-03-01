@@ -6,20 +6,16 @@ import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
-import 'package:soulmate/data/datasources/auth_service.dart';
-import 'package:soulmate/data/datasources/database_service.dart';
-import 'package:soulmate/presentation/screens/create_profile_screen.dart';
-import 'package:soulmate/data/datasources/daily_picks_service.dart';
+import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/presentation/widgets/daily_picks_widget.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
 import 'package:soulmate/presentation/widgets/filter_chip_widget.dart';
 import 'package:soulmate/domain/entities/user.dart';
 
-class HomeScreen extends StatefulWidget {
-  final AuthService? authService;
-  final DatabaseService? databaseService;
+import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 
-  const HomeScreen({super.key, this.authService, this.databaseService});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -50,8 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted &&
           provider.currentUser == null &&
           provider.errorMessage == null) {
-        final auth = widget.authService ?? AuthService();
-        final authUser = auth.currentUser;
+        final authUser = ServiceLocator.authRepository.currentUser;
         if (authUser != null) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -79,7 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final userList = users.whereType<User>().toList();
     if (userList.isEmpty) return;
 
-    final picks = await DailyPicksService().getDailyPicks(userList);
+    final picks = await ServiceLocator.dailyPicksService.getDailyPicks(
+      userList,
+    );
     if (picks.isNotEmpty && mounted) {
       // Using a small delay to ensure the UI is ready and it feels natural
       Future.delayed(const Duration(seconds: 1), () {
@@ -390,8 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Determine the value to save: 'male', 'female', or null (for everyone)
     final valueToSave = gender == 'everyone' ? null : gender;
 
-    final auth = widget.authService ?? AuthService();
-    final user = auth.currentUser;
+    final user = ServiceLocator.authRepository.currentUser;
     if (user != null) {
       if (mounted) {
         context.read<UserProvider>().updateUserField(user.uid, {

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/user.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 import '../screens/details_screen.dart';
 
 class ProfileCard extends StatelessWidget {

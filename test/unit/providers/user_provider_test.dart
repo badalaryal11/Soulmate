@@ -3,8 +3,8 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:soulmate/presentation/providers/user_provider.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
-import 'package:soulmate/data/datasources/auth_service.dart';
-import 'package:soulmate/data/datasources/database_service.dart';
+import 'package:soulmate/domain/repositories/auth_repository.dart';
+
 import 'package:soulmate/domain/entities/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -20,8 +20,7 @@ import 'package:soulmate/domain/usecases/get_current_user_usecase.dart';
 // Generate mocks
 @GenerateMocks([
   UserRepository,
-  AuthService,
-  DatabaseService,
+  AuthRepository,
   firebase_auth.User,
   GetUsersUseCase,
   GetActiveChatsUseCase,
@@ -36,7 +35,7 @@ import 'user_provider_test.mocks.dart';
 
 void main() {
   late MockUserRepository mockUserRepository;
-  late MockAuthService mockAuthService;
+  late MockAuthRepository mockAuthRepository;
   late MockGetUsersUseCase mockGetUsersUseCase;
   late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
   late MockDeleteChatUseCase mockDeleteChatUseCase;
@@ -49,7 +48,7 @@ void main() {
 
   setUp(() {
     mockUserRepository = MockUserRepository();
-    mockAuthService = MockAuthService();
+    mockAuthRepository = MockAuthRepository();
     mockGetUsersUseCase = MockGetUsersUseCase();
     mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
     mockDeleteChatUseCase = MockDeleteChatUseCase();
@@ -61,7 +60,7 @@ void main() {
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
-      authService: mockAuthService,
+      authRepository: mockAuthRepository,
       getUsersUseCase: mockGetUsersUseCase,
       getActiveChatsUseCase: mockGetActiveChatsUseCase,
       deleteChatUseCase: mockDeleteChatUseCase,
@@ -81,7 +80,7 @@ void main() {
     test('loadCurrentUser updates status and user', () async {
       final mockFirebaseUser = MockUser();
       when(mockFirebaseUser.uid).thenReturn('test_uid');
-      when(mockAuthService.currentUser).thenReturn(mockFirebaseUser);
+      when(mockAuthRepository.currentUser).thenReturn(mockFirebaseUser);
 
       final user = User(
         id: 'test_uid',
@@ -107,7 +106,7 @@ void main() {
       expect(userProvider.currentUser?.id, user.id);
       expect(userProvider.currentUser?.email, user.email);
       expect(userProvider.currentUserInterests, ['Coding']);
-      verify(mockAuthService.currentUser).called(1);
+      verify(mockAuthRepository.currentUser).called(1);
       verify(mockUserRepository.getUser('test_uid')).called(1);
     });
 

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/datasources/notification_service.dart';
+import '../../domain/repositories/notification_repository.dart';
 
 class NotificationProvider extends ChangeNotifier {
   bool _areNotificationsEnabled = true;
   SharedPreferences? _prefs;
+  final NotificationRepository _notificationRepository;
 
   bool get areNotificationsEnabled => _areNotificationsEnabled;
 
-  NotificationProvider() {
+  NotificationProvider({required NotificationRepository notificationRepository})
+    : _notificationRepository = notificationRepository {
     _loadPreferences();
   }
 
@@ -29,7 +31,7 @@ class NotificationProvider extends ChangeNotifier {
     await prefs.setBool('notifications_enabled', isEnabled);
 
     if (!isEnabled) {
-      await NotificationService().cancelAll();
+      await _notificationRepository.cancelAll();
     }
   }
 }

@@ -5,8 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 
-import '../../data/datasources/chat_service.dart';
-import '../../data/datasources/notification_service.dart';
+import '../../domain/repositories/ai_chat_repository.dart';
+import '../../domain/repositories/notification_repository.dart';
 import '../../core/config/dating_persona.dart';
 
 import '../../domain/usecases/get_chat_id_usecase.dart';
@@ -14,32 +14,37 @@ import '../../domain/usecases/get_chat_stream_usecase.dart';
 import '../../domain/usecases/get_message_history_usecase.dart';
 import '../../domain/usecases/send_message_usecase.dart';
 import '../../domain/usecases/mark_messages_as_read_usecase.dart';
+import '../../domain/usecases/send_ai_message_usecase.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final ChatService _chatService;
-  final NotificationService _notificationService;
+  // ignore: unused_field — reserved for future direct repository operations
+  final AiChatRepository _aiChatRepository;
+  final NotificationRepository _notificationRepository;
 
   final GetChatIdUseCase _getChatIdUseCase;
   final GetChatStreamUseCase _getChatStreamUseCase;
   final GetMessageHistoryUseCase _getMessageHistoryUseCase;
   final SendMessageUseCase _sendMessageUseCase;
   final MarkMessagesAsReadUseCase _markMessagesAsReadUseCase;
+  final SendAiMessageUseCase _sendAiMessageUseCase;
 
   ChatProvider({
-    required ChatService chatService,
-    required NotificationService notificationService,
+    required AiChatRepository aiChatRepository,
+    required NotificationRepository notificationRepository,
     required GetChatIdUseCase getChatIdUseCase,
     required GetChatStreamUseCase getChatStreamUseCase,
     required GetMessageHistoryUseCase getMessageHistoryUseCase,
     required SendMessageUseCase sendMessageUseCase,
     required MarkMessagesAsReadUseCase markMessagesAsReadUseCase,
-  }) : _chatService = chatService,
-       _notificationService = notificationService,
+    required SendAiMessageUseCase sendAiMessageUseCase,
+  }) : _aiChatRepository = aiChatRepository,
+       _notificationRepository = notificationRepository,
        _getChatIdUseCase = getChatIdUseCase,
        _getChatStreamUseCase = getChatStreamUseCase,
        _getMessageHistoryUseCase = getMessageHistoryUseCase,
        _sendMessageUseCase = sendMessageUseCase,
-       _markMessagesAsReadUseCase = markMessagesAsReadUseCase;
+       _markMessagesAsReadUseCase = markMessagesAsReadUseCase,
+       _sendAiMessageUseCase = sendAiMessageUseCase;
 
   late String _currentUserId;
   String? _chatId;
@@ -88,7 +93,7 @@ class ChatProvider extends ChangeNotifier {
     _messagesStream = _getChatStreamUseCase(_chatId!);
 
     // Cancel "Miss you" notification as user is here
-    _notificationService.cancelNotification(_chatId.hashCode);
+    _notificationRepository.cancelNotification(_chatId.hashCode);
 
     // Mark incoming messages as read
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
@@ -221,8 +226,8 @@ class ChatProvider extends ChangeNotifier {
 
       // Schedule Proactive Notification only for user-sent messages
       try {
-        await _notificationService.cancelNotification(_chatId.hashCode);
-        await _notificationService.scheduleNotification(
+        await _notificationRepository.cancelNotification(_chatId.hashCode);
+        await _notificationRepository.scheduleNotification(
           id: _chatId.hashCode,
           title: '${_otherUser!.firstName} misses you! 🥺',
           body:
@@ -269,7 +274,7 @@ class ChatProvider extends ChangeNotifier {
 
     // Send to Chat Service
     try {
-      final responseText = await _chatService.sendMessage(apiMessages);
+      final responseText = await _sendAiMessageUseCase(apiMessages);
 
       _isTyping = false;
       notifyListeners();

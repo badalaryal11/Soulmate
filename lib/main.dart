@@ -51,7 +51,7 @@ void main() async {
     cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
   );
 
-  await ServiceLocator.notificationService.initialize();
+  await ServiceLocator.notificationRepository.initialize();
   runApp(const SoulmateApp());
 }
 
@@ -170,7 +170,11 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
           create: (_) => ServiceLocator.createUserProvider(),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(
+            notificationRepository: ServiceLocator.notificationRepository,
+          ),
+        ),
         ChangeNotifierProvider(
           create: (_) => ServiceLocator.createChatProvider(),
         ),
@@ -195,7 +199,7 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
               ),
               textTheme: poppinsDark,
             ),
-            home: ServiceLocator.authService.currentUser != null
+            home: ServiceLocator.authRepository.currentUser != null
                 ? const HomeScreen()
                 : const LoginScreen(),
           );

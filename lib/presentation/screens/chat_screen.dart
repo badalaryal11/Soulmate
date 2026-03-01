@@ -3,7 +3,7 @@ import '../../core/utils/image_utils.dart';
 import '../../core/constants/stickers.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../presentation/providers/user_provider.dart';

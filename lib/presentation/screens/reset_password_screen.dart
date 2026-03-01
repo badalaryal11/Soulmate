@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/datasources/auth_service.dart';
+import '../../core/di/service_locator.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String oobCode;
@@ -51,8 +51,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = AuthService();
-      await authService.confirmPasswordReset(
+      await ServiceLocator.authRepository.confirmPasswordReset(
         code: widget.oobCode,
         newPassword: _passwordController.text.trim(),
       );

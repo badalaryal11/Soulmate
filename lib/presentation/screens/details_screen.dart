@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../domain/entities/user.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 import '../../core/utils/image_utils.dart';
 
 class DetailsScreen extends StatelessWidget {

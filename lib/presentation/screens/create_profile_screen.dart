@@ -2,25 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../domain/entities/user.dart';
-import '../../data/datasources/database_service.dart';
+import '../../domain/repositories/user_repository.dart';
+import '../../core/di/service_locator.dart';
 import 'gender_selection_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   final firebase_auth.User firebaseUser;
-  final DatabaseService? databaseService;
 
-  const CreateProfileScreen({
-    super.key,
-    required this.firebaseUser,
-    this.databaseService,
-  });
+  const CreateProfileScreen({super.key, required this.firebaseUser});
 
   @override
   State<CreateProfileScreen> createState() => _CreateProfileScreenState();
 }
 
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
-  late final DatabaseService _databaseService;
+  late final UserRepository _userRepository;
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _firstNameController = TextEditingController();
@@ -35,7 +31,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _databaseService = widget.databaseService ?? DatabaseService();
+    _userRepository = ServiceLocator.userRepository;
 
     // Pre-fill from Firebase User if available
     final nameParts = (widget.firebaseUser.displayName ?? '').split(' ');
@@ -62,34 +58,24 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      String imageUrl = widget.firebaseUser.photoURL ?? '';
-
-      // Fallback if no image available
-      if (imageUrl.isEmpty) {
-        imageUrl =
-            'https://ui-avatars.com/api/?name=${_firstNameController.text}+${_lastNameController.text}&background=random';
-      }
-
-      final newUser = User(
+      final user = User(
         id: widget.firebaseUser.uid,
         email: widget.firebaseUser.email ?? '',
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
+        bio: _bioController.text.trim(),
+        gender: _selectedGender,
         age: _age,
         city: _cityController.text.trim(),
-        country: '', // Optional or auto-detect later
-        imageUrl: imageUrl,
-        gender: _selectedGender, // Normalized roughly
-        interests: [], // Will be set in next screens or defaults
-        bio: _bioController.text.trim(),
-        genderPreference: null, // Set in next screen
+        country: '',
+        interests: [],
+        imageUrl:
+            widget.firebaseUser.photoURL ?? 'assets/images/default_avatar.png',
       );
 
-      await _databaseService.saveUser(newUser);
+      await _userRepository.saveUser(user);
 
       if (!mounted) return;
-
-      // Navigate to Gender Selection (Preference)
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
       );
@@ -99,197 +85,168 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Error saving profile: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Create Profile',
-          style: GoogleFonts.poppins(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.onSurface,
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar Placeholder
-              Center(
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.grey[200],
-                  backgroundImage: widget.firebaseUser.photoURL != null
-                      ? NetworkImage(widget.firebaseUser.photoURL!)
-                      : null,
-                  child: widget.firebaseUser.photoURL == null
-                      ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                      : null,
+              // Header
+              Text(
+                'Tell us about yourself',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 8),
+              Text(
+                'This information will be shown on your profile.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
 
-              // Name Fields
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _firstNameController,
-                      label: 'First Name',
-                      validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
-                    ),
+              // First Name
+              TextFormField(
+                controller: _firstNameController,
+                validator: (v) =>
+                    v != null && v.trim().isEmpty ? 'Required' : null,
+                decoration: InputDecoration(
+                  labelText: 'First Name',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _lastNameController,
-                      label: 'Last Name',
-                    ),
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: 16),
 
-              // Age and Gender
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      initialValue: _age,
-                      decoration: _buildInputDecoration('Age'),
-                      items: List.generate(83, (index) => 18 + index)
-                          .map(
-                            (age) => DropdownMenuItem(
-                              value: age,
-                              child: Text('$age'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) => setState(() => _age = val!),
-                    ),
+              // Last Name
+              TextFormField(
+                controller: _lastNameController,
+                validator: (v) =>
+                    v != null && v.trim().isEmpty ? 'Required' : null,
+                decoration: InputDecoration(
+                  labelText: 'Last Name',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedGender,
-                      decoration: _buildInputDecoration('Gender'),
-                      items: ['Male', 'Female', 'Non-binary']
-                          .map(
-                            (g) => DropdownMenuItem(value: g, child: Text(g)),
-                          )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedGender = val!),
-                    ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Bio
+              TextFormField(
+                controller: _bioController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Bio',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 16),
 
               // City
-              _buildTextField(
+              TextFormField(
                 controller: _cityController,
-                label: 'City',
-                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bio
-              _buildTextField(
-                controller: _bioController,
-                label: 'Bio',
-                maxLines: 3,
-                validator: (v) =>
-                    v?.isEmpty ?? true ? 'Tell us about yourself' : null,
-              ),
-
-              const SizedBox(height: 32),
-
-              // Save Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: const Color(0xFFFE3C72),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
+                decoration: InputDecoration(
+                  labelText: 'City',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+              ),
+              const SizedBox(height: 16),
+
+              // Gender Dropdown
+              DropdownButtonFormField<String>(
+                initialValue: _selectedGender,
+                items: ['Male', 'Female', 'Other'].map((g) {
+                  return DropdownMenuItem(value: g, child: Text(g));
+                }).toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedGender = v);
+                },
+                decoration: InputDecoration(
+                  labelText: 'Gender',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Age Slider
+              Text(
+                'Age: $_age',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Slider(
+                value: _age.toDouble(),
+                min: 18,
+                max: 100,
+                divisions: 82,
+                label: _age.toString(),
+                onChanged: (v) => setState(() => _age = v.round()),
+              ),
+              const SizedBox(height: 24),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE3C72),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'Continue',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    : Text(
-                        'Continue',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      validator: validator,
-      decoration: _buildInputDecoration(label),
-      style: GoogleFonts.poppins(),
-    );
-  }
-
-  InputDecoration _buildInputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: GoogleFonts.poppins(color: Colors.grey),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFFE3C72)),
-      ),
-      filled: true,
-      fillColor: Theme.of(context).cardColor,
     );
   }
 }

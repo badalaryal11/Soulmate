@@ -3,7 +3,7 @@ import '../../core/utils/image_utils.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 import 'profile_card.dart';
 
 class HomeTab extends StatefulWidget {

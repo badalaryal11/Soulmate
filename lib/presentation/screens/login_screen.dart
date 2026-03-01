@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:soulmate/data/datasources/auth_service.dart';
-import 'package:soulmate/data/datasources/database_service.dart';
+import 'package:soulmate/core/di/service_locator.dart';
+import 'package:soulmate/domain/repositories/auth_repository.dart';
+import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/domain/entities/user.dart';
 import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
@@ -10,10 +11,7 @@ import 'package:soulmate/presentation/screens/register_screen.dart';
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final AuthService? authService;
-  final DatabaseService? databaseService;
-
-  const LoginScreen({super.key, this.authService, this.databaseService});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,8 +20,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late final AuthService _authService;
-  late final DatabaseService _databaseService;
+  late final AuthRepository _authRepository;
+  late final UserRepository _userRepository;
   bool _rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -31,8 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _authService = widget.authService ?? AuthService();
-    _databaseService = widget.databaseService ?? DatabaseService();
+    _authRepository = ServiceLocator.authRepository;
+    _userRepository = ServiceLocator.userRepository;
   }
 
   @override
@@ -328,23 +326,21 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final credential = await _authService.signInWithGoogle();
+      final credential = await _authRepository.signInWithGoogle();
 
       if (credential != null && credential.user != null) {
         final firebaseUser = credential.user!;
 
         // Check if user exists in Firestore
-        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
+        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
           // User does not exist, redirect to Create Profile
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => CreateProfileScreen(
-                firebaseUser: firebaseUser,
-                databaseService: _databaseService,
-              ),
+              builder: (context) =>
+                  CreateProfileScreen(firebaseUser: firebaseUser),
             ),
           );
         } else {
@@ -384,23 +380,21 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final credential = await _authService.signInWithApple();
+      final credential = await _authRepository.signInWithApple();
 
       if (credential != null && credential.user != null) {
         final firebaseUser = credential.user!;
 
         // Check if user exists in Firestore
-        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
+        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
           // New user — redirect to Create Profile
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => CreateProfileScreen(
-                firebaseUser: firebaseUser,
-                databaseService: _databaseService,
-              ),
+              builder: (context) =>
+                  CreateProfileScreen(firebaseUser: firebaseUser),
             ),
           );
         } else {
@@ -443,14 +437,14 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final credential = await _authService.signInWithEmailAndPassword(
+      final credential = await _authRepository.signInWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
       if (credential != null && credential.user != null) {
         final firebaseUser = credential.user!;
-        User? existingUser = await _databaseService.getUser(firebaseUser.uid);
+        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
 
         if (existingUser == null) {
           // Account exists in Auth but not in Firestore (e.g. registration interrupted)
@@ -458,10 +452,8 @@ class _LoginScreenState extends State<LoginScreen> {
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => CreateProfileScreen(
-                firebaseUser: firebaseUser,
-                databaseService: _databaseService,
-              ),
+              builder: (context) =>
+                  CreateProfileScreen(firebaseUser: firebaseUser),
             ),
           );
           return;
@@ -541,7 +533,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email != null && email.isNotEmpty) {
       try {
-        await _authService.sendPasswordResetEmail(email);
+        await _authRepository.sendPasswordResetEmail(email);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

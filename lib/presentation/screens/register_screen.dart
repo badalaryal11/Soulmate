@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/datasources/auth_service.dart';
+import '../../core/di/service_locator.dart';
 import 'create_profile_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -36,12 +36,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         debugPrint("Starting registration...");
-        final authService =
-            AuthService(); // Changed from Provider.of to direct instantiation
-        final credential = await authService.registerWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
+        final credential = await ServiceLocator.authRepository
+            .registerWithEmailAndPassword(
+              _emailController.text.trim(),
+              _passwordController.text.trim(),
+            );
         debugPrint("Auth successful: ${credential?.user?.uid}");
 
         if (credential != null && credential.user != null) {

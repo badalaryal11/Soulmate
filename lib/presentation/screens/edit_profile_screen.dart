@@ -6,8 +6,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 
 import '../../domain/entities/user.dart';
-import '../../data/datasources/database_service.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/utils/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'interest_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
@@ -435,7 +435,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       // Save to Firestore
-      await DatabaseService().saveUser(userForFirestore);
+      await ServiceLocator.userRepository.saveUser(userForFirestore);
 
       // Update Provider
       if (mounted) {

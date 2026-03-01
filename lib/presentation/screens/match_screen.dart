@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user.dart';
-import '../../data/datasources/image_generation_service.dart';
+import '../../core/utils/image_generation_service.dart';
 import '../providers/user_provider.dart';
 import 'chat_screen.dart';
 

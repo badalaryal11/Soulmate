@@ -9,7 +9,7 @@ import 'user_provider_test.mocks.dart';
 void main() {
   late UserProvider userProvider;
   late MockUserRepository mockUserRepository;
-  late MockAuthService mockAuthService;
+  late MockAuthRepository mockAuthRepository;
   late MockGetUsersUseCase mockGetUsersUseCase;
   late MockGetActiveChatsUseCase mockGetActiveChatsUseCase;
   late MockDeleteChatUseCase mockDeleteChatUseCase;
@@ -21,7 +21,7 @@ void main() {
 
   setUp(() {
     mockUserRepository = MockUserRepository();
-    mockAuthService = MockAuthService();
+    mockAuthRepository = MockAuthRepository();
     mockGetUsersUseCase = MockGetUsersUseCase();
     mockGetActiveChatsUseCase = MockGetActiveChatsUseCase();
     mockDeleteChatUseCase = MockDeleteChatUseCase();
@@ -33,7 +33,7 @@ void main() {
 
     userProvider = UserProvider(
       userRepository: mockUserRepository,
-      authService: mockAuthService,
+      authRepository: mockAuthRepository,
       getUsersUseCase: mockGetUsersUseCase,
       getActiveChatsUseCase: mockGetActiveChatsUseCase,
       deleteChatUseCase: mockDeleteChatUseCase,
@@ -66,7 +66,7 @@ void main() {
           ),
         );
 
-        when(mockAuthService.currentUser).thenReturn(null);
+        when(mockAuthRepository.currentUser).thenReturn(null);
         when(
           mockUserRepository.getUsers(
             gender: anyNamed('gender'),
