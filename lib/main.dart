@@ -14,6 +14,7 @@ import 'core/di/service_locator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -44,6 +45,11 @@ void main() async {
     debugPrint("Error loading .env file: $e");
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid: const AndroidPlayIntegrityProvider(),
+    providerApple: const AppleDeviceCheckProvider(),
+  );
 
   // Configure Firestore cache to prevent unbounded local storage growth
   FirebaseFirestore.instance.settings = const Settings(

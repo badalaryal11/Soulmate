@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/utils/image_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
@@ -16,19 +16,14 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  bool _isFirstImagePrecached = false;
+  int _lastPrecachedRevision = -1;
+
   @override
   void initState() {
     super.initState();
-    // Aggressive Initial Pre-caching
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<UserProvider>(context, listen: false);
-      if (provider.filteredUsers.isNotEmpty) {
-        // Pre-cache the first 8 images immediately
-        for (int i = 0; i < 8 && i < provider.filteredUsers.length; i++) {
-          _precacheUserImage(context, provider.filteredUsers[i]);
-        }
-      }
-    });
+    // Pre-caching is now handled dynamically in the build method
+    // when provider.filteredUsers becomes available or updates.
   }
 
   @override
@@ -104,6 +99,45 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
               ],
+            ),
+          );
+        }
+
+        // Trigger precaching when users are loaded or filters change
+        if (_lastPrecachedRevision != provider.filterRevision) {
+          _lastPrecachedRevision = provider.filterRevision;
+          _isFirstImagePrecached = false;
+
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
+
+            final futures = <Future>[];
+            for (int i = 0; i < 8 && i < provider.filteredUsers.length; i++) {
+              futures.add(
+                _precacheUserImage(context, provider.filteredUsers[i]),
+              );
+            }
+
+            if (futures.isNotEmpty) {
+              try {
+                // Wait for up to 3 seconds for the first image
+                await futures.first.timeout(const Duration(seconds: 3));
+              } catch (_) {}
+            }
+
+            if (mounted) {
+              setState(() {
+                _isFirstImagePrecached = true;
+              });
+            }
+          });
+        }
+
+        // Wait for first image to precache
+        if (provider.filteredUsers.isNotEmpty && !_isFirstImagePrecached) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFE3C72)),
             ),
           );
         }
@@ -202,7 +236,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  void _precacheUserImage(BuildContext context, dynamic user) {
+  Future<void> _precacheUserImage(BuildContext context, dynamic user) async {
     if (user == null) return;
 
     String? url;
@@ -213,11 +247,13 @@ class _HomeTabState extends State<HomeTab> {
     }
 
     if (url != null && url.isNotEmpty) {
-      // PROPER OPTIMIZATION:
-      // Match the `ProfileCard` cache configuration EXACTLY.
-      final provider = ImageUtils.getImageProvider(url, maxWidth: 300);
-      if (provider != null) {
-        precacheImage(ResizeImage(provider, width: 300, height: 450), context);
+      try {
+        await precacheImage(
+          CachedNetworkImageProvider(url, maxWidth: 300, maxHeight: 450),
+          context,
+        );
+      } catch (e) {
+        debugPrint('Image precache error: $e');
       }
     }
   }
