@@ -92,13 +92,26 @@ class UserDatabaseService {
     }
   }
 
-  /// Get a single user by ID.
+  /// Get a single user by ID. Tries cache first for speed, falls back to server.
   Future<domain.User?> getUser(String uid) async {
+    try {
+      // Try cache first for faster reads
+      DocumentSnapshot doc = await _firestore
+          .collection(_usersCollection)
+          .doc(uid)
+          .get(const GetOptions(source: Source.cache));
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+    } catch (_) {
+      // Cache miss — fall through to server
+    }
+
     try {
       DocumentSnapshot doc = await _firestore
           .collection(_usersCollection)
           .doc(uid)
-          .get();
+          .get(const GetOptions(source: Source.server));
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }

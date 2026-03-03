@@ -86,7 +86,7 @@ class ApiService {
               Uri.parse(url),
               headers: {'Accept-Encoding': 'gzip, deflate, br'},
             )
-            .timeout(const Duration(seconds: 10));
+            .timeout(const Duration(seconds: 5));
 
         if (response.statusCode == 200) {
           // Offload parsing to background isolate
@@ -101,7 +101,7 @@ class ApiService {
         if (attempts >= maxAttempts) {
           return [];
         }
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
     return [];
@@ -129,7 +129,7 @@ class ApiService {
               Uri.parse(url),
               headers: {'Accept-Encoding': 'gzip, deflate, br'},
             )
-            .timeout(const Duration(seconds: 10));
+            .timeout(const Duration(seconds: 5));
 
         if (response.statusCode == 200) {
           // Offload parsing to background isolate
@@ -146,7 +146,7 @@ class ApiService {
         if (attempts >= maxAttempts) {
           return [];
         }
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
     return [];

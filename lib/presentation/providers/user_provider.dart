@@ -159,11 +159,16 @@ class UserProvider extends ChangeNotifier {
 
         if (shouldUpdate) {
           final newLastLogin = today.toIso8601String();
-          await _userRepository.updateUserField(_currentUser!.id, {
-            'streak': newStreak,
-            'coins': newCoins,
-            'lastLoginDate': newLastLogin,
-          });
+          // Fire-and-forget: don't block startup on this write
+          _userRepository
+              .updateUserField(_currentUser!.id, {
+                'streak': newStreak,
+                'coins': newCoins,
+                'lastLoginDate': newLastLogin,
+              })
+              .catchError((e) {
+                debugPrint("Failed to update streak/coins: $e");
+              });
           _currentUser = _currentUser!.copyWith(
             streak: newStreak,
             coins: newCoins,
