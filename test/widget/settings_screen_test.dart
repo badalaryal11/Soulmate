@@ -38,7 +38,7 @@ void main() {
           value: mockNotificationProvider,
         ),
       ],
-      child: MaterialApp(home: const SettingsScreen()),
+      child: const MaterialApp(home: SettingsScreen()),
     );
   }
 

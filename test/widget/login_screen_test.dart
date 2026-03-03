@@ -11,7 +11,7 @@ void main() {
   });
 
   Widget createLoginScreen() {
-    return MaterialApp(home: const LoginScreen());
+    return const MaterialApp(home: LoginScreen());
   }
 
   testWidgets('LoginScreen renders correctly', (WidgetTester tester) async {

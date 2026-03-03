@@ -75,6 +75,16 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache critical application assets
+    precacheImage(
+      const AssetImage('assets/images/logo_transparent.png'),
+      context,
+    );
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();

@@ -156,7 +156,7 @@ void main() {
   Widget createHomeScreen() {
     return ChangeNotifierProvider<UserProvider>.value(
       value: mockUserProvider,
-      child: MaterialApp(home: const HomeScreen()),
+      child: const MaterialApp(home: HomeScreen()),
     );
   }
 

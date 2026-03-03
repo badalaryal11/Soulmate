@@ -41,17 +41,20 @@ class UserRepositoryImpl implements UserRepository {
     String? gender,
     String? currentUserId,
     int limit = 10,
+    bool refresh = false,
   }) async {
     try {
       // 1. Fetch from Firestore (Real Users)
       final firestoreUsers = await _databaseService.getUsers(
         gender: gender,
         currentUserId: currentUserId,
+        limit: limit,
+        refresh: refresh,
       );
 
       // 2. Fetch from API (Random Users + DummyJSON)
       final apiUsers = await _apiService.fetchUsers(
-        results: limit > 100 ? limit : 100,
+        results: limit,
         gender: gender,
       );
 

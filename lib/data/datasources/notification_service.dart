@@ -22,7 +22,7 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
     final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
+        const DarwinInitializationSettings(
           requestSoundPermission: true,
           requestBadgePermission: true,
           requestAlertPermission: true,

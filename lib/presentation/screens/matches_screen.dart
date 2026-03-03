@@ -57,10 +57,9 @@ class MatchesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<UserProvider>(
-        builder: (context, provider, child) {
-          final matches = provider.matches;
-
+      body: Selector<UserProvider, List<User>>(
+        selector: (context, provider) => provider.matches,
+        builder: (context, matches, child) {
           if (matches.isEmpty) {
             return Center(
               child: Column(
@@ -126,8 +125,8 @@ class MatchesScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: const Padding(
+              const SliverToBoxAdapter(
+                child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Divider(height: 1),
                 ),

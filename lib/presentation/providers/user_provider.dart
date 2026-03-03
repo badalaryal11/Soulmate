@@ -213,6 +213,7 @@ class UserProvider extends ChangeNotifier {
       final newUsers = await _getUsersUseCase.call(
         gender: _selectedGender,
         currentUserId: _currentUser?.id,
+        refresh: clearList,
       );
 
       // Strict Deduplication Logic

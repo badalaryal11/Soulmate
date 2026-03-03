@@ -34,7 +34,10 @@ class ApiService {
   static const String _dummyJsonUrl = 'https://dummyjson.com/users';
   static const String _randomUserUrl = 'https://randomuser.me/api/';
 
-  Future<List<domain.User>> fetchUsers({int results = 50, String? gender}) async {
+  Future<List<domain.User>> fetchUsers({
+    int results = 50,
+    String? gender,
+  }) async {
     // Split results between the two APIs
     // Ensure at least 1 user from each if results is small, otherwise split roughly 50/50
     int halfLimit = (results / 2).ceil();
@@ -79,7 +82,10 @@ class ApiService {
 
         developer.log('Fetching DummyJSON users: $url');
         final response = await _client
-            .get(Uri.parse(url))
+            .get(
+              Uri.parse(url),
+              headers: {'Accept-Encoding': 'gzip, deflate, br'},
+            )
             .timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {
@@ -119,7 +125,10 @@ class ApiService {
 
         developer.log('Fetching RandomUser.me users: $url');
         final response = await _client
-            .get(Uri.parse(url))
+            .get(
+              Uri.parse(url),
+              headers: {'Accept-Encoding': 'gzip, deflate, br'},
+            )
             .timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {

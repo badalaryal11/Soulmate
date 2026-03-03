@@ -13,6 +13,7 @@ import 'interest_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/utils/image_utils.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -388,10 +389,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Device upload - save locally instead of Firebase Storage
           final appDir = await getApplicationDocumentsDirectory();
           final fileName =
-              '${_currentUser!.id}_avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+              '${_currentUser!.id}_avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
           final localFile = File('${appDir.path}/$fileName');
-          await _imageFile!.copy(localFile.path);
-          localDisplayImageUrl = 'file://${localFile.path}';
+
+          final compressed = await FlutterImageCompress.compressAndGetFile(
+            _imageFile!.absolute.path,
+            localFile.path,
+            quality: 75,
+            format: CompressFormat.webp,
+          );
+
+          if (compressed != null) {
+            localDisplayImageUrl = 'file://${compressed.path}';
+          } else {
+            await _imageFile!.copy(localFile.path);
+            localDisplayImageUrl = 'file://${localFile.path}';
+          }
         }
       } else if (_generatedAvatarUrl != null) {
         localDisplayImageUrl = _generatedAvatarUrl!;

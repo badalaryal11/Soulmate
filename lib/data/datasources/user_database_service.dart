@@ -109,20 +109,37 @@ class UserDatabaseService {
     }
   }
 
+  DocumentSnapshot? _lastUserDoc;
+  String? _lastGenderFilter;
+
   /// Get multiple users with optional gender filtering.
   Future<List<domain.User>> getUsers({
     String? gender,
     String? currentUserId,
     int limit = 10,
+    bool refresh = false,
   }) async {
     try {
+      if (refresh || gender != _lastGenderFilter) {
+        _lastUserDoc = null;
+        _lastGenderFilter = gender;
+      }
+
       Query query = _firestore.collection(_usersCollection);
 
       if (gender != null && gender != 'everyone') {
         query = query.where('gender', isEqualTo: gender);
       }
 
+      if (_lastUserDoc != null) {
+        query = query.startAfterDocument(_lastUserDoc!);
+      }
+
       QuerySnapshot snapshot = await query.limit(limit).get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _lastUserDoc = snapshot.docs.last;
+      }
 
       return snapshot.docs
           .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))

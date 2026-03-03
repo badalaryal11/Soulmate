@@ -594,10 +594,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       chatProvider.sendMessage(_controller.text);
                       _controller.clear();
                     },
-                    child: CircleAvatar(
-                      backgroundColor: const Color(0xFFFE3C72),
+                    child: const CircleAvatar(
+                      backgroundColor: Color(0xFFFE3C72),
                       radius: 24,
-                      child: const Icon(
+                      child: Icon(
                         Icons.send,
                         color: Colors.white,
                         size: 20,
