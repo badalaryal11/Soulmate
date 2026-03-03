@@ -16,15 +16,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  bool _isFirstImagePrecached = false;
   int _lastPrecachedRevision = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-caching is now handled dynamically in the build method
-    // when provider.filteredUsers becomes available or updates.
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,43 +95,16 @@ class _HomeTabState extends State<HomeTab> {
           );
         }
 
-        // Trigger precaching when users are loaded or filters change
+        // Fire-and-forget precaching of upcoming images (no UI blocking)
         if (_lastPrecachedRevision != provider.filterRevision) {
           _lastPrecachedRevision = provider.filterRevision;
-          _isFirstImagePrecached = false;
 
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
-
-            final futures = <Future>[];
             for (int i = 0; i < 8 && i < provider.filteredUsers.length; i++) {
-              futures.add(
-                _precacheUserImage(context, provider.filteredUsers[i]),
-              );
-            }
-
-            if (futures.isNotEmpty) {
-              try {
-                // Wait for up to 3 seconds for the first image
-                await futures.first.timeout(const Duration(seconds: 3));
-              } catch (_) {}
-            }
-
-            if (mounted) {
-              setState(() {
-                _isFirstImagePrecached = true;
-              });
+              _precacheUserImage(context, provider.filteredUsers[i]);
             }
           });
-        }
-
-        // Wait for first image to precache
-        if (provider.filteredUsers.isNotEmpty && !_isFirstImagePrecached) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFE3C72)),
-            ),
-          );
         }
 
         return SafeArea(

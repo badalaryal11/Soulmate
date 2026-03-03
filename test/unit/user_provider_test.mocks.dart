@@ -80,12 +80,14 @@ class MockUserRepository extends _i1.Mock implements _i2.UserRepository {
     String? gender,
     String? currentUserId,
     int? limit = 10,
+    bool? refresh = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getUsers, [], {
               #gender: gender,
               #currentUserId: currentUserId,
               #limit: limit,
+              #refresh: refresh,
             }),
             returnValue: _i4.Future<List<_i5.User>>.value(<_i5.User>[]),
           )
@@ -262,12 +264,14 @@ class MockGetUsersUseCase extends _i1.Mock implements _i9.GetUsersUseCase {
     String? gender,
     String? currentUserId,
     int? limit = 10,
+    bool? refresh = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {
               #gender: gender,
               #currentUserId: currentUserId,
               #limit: limit,
+              #refresh: refresh,
             }),
             returnValue: _i4.Future<List<_i5.User>>.value(<_i5.User>[]),
           )
