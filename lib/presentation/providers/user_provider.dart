@@ -56,6 +56,7 @@ class UserProvider extends ChangeNotifier {
   final List<User> _users = [];
   final Set<String> _usedImageUrls =
       {}; // Track displayed images to prevent duplicates
+  final Set<String> _seenUserIds = {}; // Track displayed users by ID
   UserStatus _status = UserStatus.initial;
   String? _errorMessage;
 
@@ -198,6 +199,8 @@ class UserProvider extends ChangeNotifier {
     if (clearList) {
       _users.clear();
       _filteredUsers.clear();
+      _usedImageUrls.clear();
+      _seenUserIds.clear();
       _filterRevision++; // Force swiper reset on full reload/filter change
     }
 
@@ -216,9 +219,12 @@ class UserProvider extends ChangeNotifier {
         refresh: clearList,
       );
 
-      // Strict Deduplication Logic
+      // Strict Deduplication Logic — by user ID and image URL
       final List<User> uniqueUsers = [];
       for (var user in newUsers) {
+        // Skip if we've already seen this user
+        if (_seenUserIds.contains(user.id)) continue;
+
         String finalUrl = user.imageUrl;
 
         // Ensure URL is valid (fallback to generated if empty/invalid)
@@ -227,15 +233,14 @@ class UserProvider extends ChangeNotifier {
           finalUrl = ImageGenerationService.generateProfileImageUrl(user);
         }
 
-        // Check for duplicates
+        // Check for duplicate images
         int retryCount = 0;
         while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
-          // Regeneration strategy:
-          // Use ImageGenerationService fallback to get an alternative URL
           finalUrl = ImageGenerationService.getFallbackUrl(user, finalUrl);
           retryCount++;
         }
 
+        _seenUserIds.add(user.id);
         _usedImageUrls.add(finalUrl);
         uniqueUsers.add(user.copyWith(imageUrl: finalUrl));
       }
