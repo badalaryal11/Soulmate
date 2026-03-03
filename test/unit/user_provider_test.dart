@@ -104,13 +104,18 @@ void main() {
           mockGetUsersUseCase(
             gender: anyNamed('gender'),
             currentUserId: anyNamed('currentUserId'),
+            refresh: anyNamed('refresh'),
           ),
         ).thenAnswer((_) async => []);
 
         await userProvider.loadUsers();
 
         verify(
-          mockGetUsersUseCase(gender: null, currentUserId: null),
+          mockGetUsersUseCase(
+            gender: null,
+            currentUserId: null,
+            refresh: false,
+          ),
         ).called(1);
       },
     );
@@ -122,6 +127,7 @@ void main() {
         mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
+          refresh: anyNamed('refresh'),
         ),
       ).thenAnswer((_) async => [userMale, userFemale]);
 
@@ -146,6 +152,7 @@ void main() {
         mockGetUsersUseCase(
           gender: 'female',
           currentUserId: anyNamed('currentUserId'),
+          refresh: anyNamed('refresh'),
         ),
       ).thenAnswer((_) async => [userMale, userFemale]);
 
@@ -162,6 +169,7 @@ void main() {
         mockGetUsersUseCase(
           gender: 'everyone',
           currentUserId: anyNamed('currentUserId'),
+          refresh: anyNamed('refresh'),
         ),
       ).thenAnswer((_) async => [userMale, userFemale]);
 
@@ -178,6 +186,7 @@ void main() {
         mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
+          refresh: anyNamed('refresh'),
         ),
       ).thenAnswer((_) async => [userMaleUpper]);
 
@@ -195,6 +204,7 @@ void main() {
         mockGetUsersUseCase(
           gender: 'male',
           currentUserId: anyNamed('currentUserId'),
+          refresh: anyNamed('refresh'),
         ),
       ).thenAnswer((_) async => [userMaleSpace]);
 

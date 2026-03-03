@@ -54,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
 
-      // Load current user profile (preferences, streak, coins)
+      // Start loading cards immediately (don't wait for profile)
+      provider.loadUsers();
+
+      // Load current user profile in parallel
       await provider.loadCurrentUser();
 
       // If no profile exists, redirect to Create Profile
@@ -68,13 +71,17 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => CreateProfileScreen(firebaseUser: authUser),
             ),
           );
-          return; // Exit early — no need to load users
+          return;
         }
       }
 
-      if (provider.users.isEmpty) {
-        // Load users (filters will be applied based on loaded profile)
-        await provider.loadUsers();
+      // Refresh with correct gender preference if the profile loaded one
+      if (provider.currentUser?.genderPreference != null &&
+          provider.users.isNotEmpty) {
+        provider.loadUsers(
+          gender: provider.currentUser!.genderPreference,
+          clearList: true,
+        );
       }
     });
   }

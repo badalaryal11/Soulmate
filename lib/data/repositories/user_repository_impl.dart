@@ -44,21 +44,21 @@ class UserRepositoryImpl implements UserRepository {
     bool refresh = false,
   }) async {
     try {
-      // 1. Fetch from Firestore (Real Users)
-      final firestoreUsers = await _databaseService.getUsers(
-        gender: gender,
-        currentUserId: currentUserId,
-        limit: limit,
-        refresh: refresh,
-      );
+      // Fetch from Firestore and API concurrently
+      final results = await Future.wait([
+        _databaseService.getUsers(
+          gender: gender,
+          currentUserId: currentUserId,
+          limit: limit,
+          refresh: refresh,
+        ),
+        _apiService.fetchUsers(results: limit, gender: gender),
+      ]);
 
-      // 2. Fetch from API (Random Users + DummyJSON)
-      final apiUsers = await _apiService.fetchUsers(
-        results: limit,
-        gender: gender,
-      );
+      final firestoreUsers = results[0];
+      final apiUsers = results[1];
 
-      // 3. Combine (Prioritize Firestore)
+      // Combine (Prioritize Firestore)
       final allUsers = [...firestoreUsers, ...apiUsers];
 
       // 4. Shuffle mixed results

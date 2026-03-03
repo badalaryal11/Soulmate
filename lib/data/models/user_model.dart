@@ -4,6 +4,37 @@ import '../../core/constants/interests.dart';
 import '../../domain/entities/user.dart';
 
 class UserModel extends User {
+  static const List<String> _bioPool = [
+    'Adventure seeker 🌍 | Always planning the next trip',
+    'Dog lover & bookworm 📚 | Cozy nights > wild nights',
+    'Fitness junkie 💪 | Weekend chef 🍳',
+    'Creative soul 🎨 | Music is my therapy',
+    'Coffee addict ☕ | Sunset chaser 🌅',
+    'Tech nerd by day, foodie by night 🍕',
+    'Living life one hike at a time 🏔️',
+    'Yoga enthusiast 🧘 | Plant parent 🌿',
+    'Film buff 🎬 | Amateur photographer 📸',
+    'Spontaneous traveler ✈️ | Storyteller at heart',
+    'Gym mornings, Netflix evenings 🎧',
+    'Aspiring chef 👨‍🍳 | Board game champion 🎲',
+    'Nature lover 🌻 | Star gazer at night ✨',
+    'Dancing through life 💃 | Karaoke king 🎤',
+    'Old soul with a young heart 💛',
+    'Football fanatic ⚽ | Pizza connoisseur 🍕',
+    'Ocean vibes 🌊 | Beach bum at heart',
+    'Cat person 🐱 | Tea over coffee, always',
+    'Weekend warrior 🚴 | Trail runner',
+    'Art gallery hopper 🖼️ | Wine enthusiast 🍷',
+    'Podcast addict 🎙️ | Early bird 🌅',
+    'Thrill seeker 🎢 | Road trip lover 🚗',
+    'Minimalist living ✨ | Big dreamer',
+    'Guitar player 🎸 | Campfire storyteller 🔥',
+  ];
+
+  static String _pickBio(String id) {
+    return _bioPool[id.hashCode.abs() % _bioPool.length];
+  }
+
   UserModel({
     required super.id,
     required super.email,
@@ -50,8 +81,7 @@ class UserModel extends User {
         imageUrl: picture['large'] ?? '',
         gender: json['gender'] ?? '',
         interests: userInterests,
-        bio:
-            "Explorer of the world | Coffee enthusiast", // RandomUser doesn't have bio/company usually
+        bio: _pickBio(login['uuid'] ?? login['username'] ?? ''),
         streak: 0,
         coins: 0,
         lastLoginDate: DateTime.now().toIso8601String(),
@@ -92,7 +122,7 @@ class UserModel extends User {
         interests: userInterests,
         bio: json['company']?['title'] != null
             ? '${json['company']['title']} at ${json['company']['name']}'
-            : "Here to find my soulmate!",
+            : _pickBio(json['id'].toString()),
         streak: 0,
         coins: 0,
         lastLoginDate: DateTime.now().toIso8601String(),
