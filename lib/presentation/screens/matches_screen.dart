@@ -57,9 +57,9 @@ class MatchesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Selector<UserProvider, List<User>>(
-        selector: (context, provider) => provider.matches,
-        builder: (context, matches, child) {
+      body: Consumer<UserProvider>(
+        builder: (context, provider, child) {
+          final matches = provider.matches;
           if (matches.isEmpty) {
             return Center(
               child: Column(
