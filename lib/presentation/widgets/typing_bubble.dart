@@ -43,20 +43,12 @@ class TypingBubble extends StatelessWidget {
                 bottomLeft: Radius.circular(0),
               ),
             ),
-            child: const SizedBox(
-              width: 40,
-              height: 20,
-              child: Center(
-                child: SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFFE3C72),
-                    ),
-                  ),
-                ),
+            child: Text(
+              'typing...',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontStyle: FontStyle.italic,
+                fontSize: 14,
               ),
             ),
           ),
