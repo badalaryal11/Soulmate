@@ -400,6 +400,24 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleFavorite(String targetUserId) async {
+    if (_currentUser == null) return;
+
+    final currentFavorites = List<String>.from(_currentUser!.favoriteUserIds);
+    if (currentFavorites.contains(targetUserId)) {
+      currentFavorites.remove(targetUserId);
+    } else {
+      currentFavorites.add(targetUserId);
+    }
+
+    _currentUser = _currentUser!.copyWith(favoriteUserIds: currentFavorites);
+    notifyListeners();
+
+    await updateUserField(_currentUser!.id, {
+      'favoriteUserIds': currentFavorites,
+    });
+  }
+
   Future<void> updateUserField(String uid, Map<String, dynamic> data) async {
     await _updateUserFieldUseCase(uid, data);
   }

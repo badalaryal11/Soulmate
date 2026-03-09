@@ -337,9 +337,13 @@ class _ChatScreenState extends State<ChatScreen> {
             },
           ),
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'unmatch') {
                 _showUnmatchConfirmation();
+              } else if (value == 'favorite') {
+                await context.read<UserProvider>().toggleFavorite(
+                  widget.user.id,
+                );
               } else if (value == 'share') {
                 SharePlus.instance.share(
                   ShareParams(
@@ -350,7 +354,28 @@ class _ChatScreenState extends State<ChatScreen> {
               }
             },
             itemBuilder: (BuildContext context) {
+              final isFav = context.select<UserProvider, bool>(
+                (p) =>
+                    p.currentUser?.favoriteUserIds.contains(widget.user.id) ??
+                    false,
+              );
               return [
+                PopupMenuItem<String>(
+                  value: 'favorite',
+                  child: Row(
+                    children: [
+                      Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: const Color(0xFFFE3C72),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isFav ? 'Remove from Favorites' : 'Add to Favorites',
+                      ),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem<String>(
                   value: 'share',
                   child: Row(
@@ -597,11 +622,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: const CircleAvatar(
                       backgroundColor: Color(0xFFFE3C72),
                       radius: 24,
-                      child: Icon(
-                        Icons.send,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.send, color: Colors.white, size: 20),
                     ),
                   ),
                 ],

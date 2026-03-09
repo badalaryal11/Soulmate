@@ -53,6 +53,7 @@ class UserModel extends User {
     super.lastLoginDate,
     super.prompts = const [],
     super.badges = const [],
+    super.favoriteUserIds = const [],
   });
 
   // Factory for RandomUser API
@@ -87,6 +88,7 @@ class UserModel extends User {
         lastLoginDate: DateTime.now().toIso8601String(),
         prompts: [],
         badges: [],
+        favoriteUserIds: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -128,6 +130,7 @@ class UserModel extends User {
         lastLoginDate: DateTime.now().toIso8601String(),
         prompts: [],
         badges: [],
+        favoriteUserIds: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -160,6 +163,7 @@ class UserModel extends User {
       'lastLoginDate': lastLoginDate,
       'prompts': prompts,
       'badges': badges,
+      'favoriteUserIds': favoriteUserIds,
     };
   }
 
@@ -188,6 +192,7 @@ class UserModel extends User {
             [],
       ),
       badges: List<String>.from(map['badges'] ?? []),
+      favoriteUserIds: List<String>.from(map['favoriteUserIds'] ?? []),
     );
   }
 }
