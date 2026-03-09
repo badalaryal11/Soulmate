@@ -86,6 +86,7 @@ void main() {
         'lastLoginDate': null,
         'prompts': [],
         'badges': [],
+        'favoriteUserIds': [],
       };
 
       verify(mockDocumentReference.set(expectedMap, any)).called(1);

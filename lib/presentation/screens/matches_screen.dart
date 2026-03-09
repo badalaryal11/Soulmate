@@ -99,20 +99,37 @@ class MatchesScreen extends StatelessWidget {
 
           return CustomScrollView(
             slivers: [
-              if (favorites.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                    child: Text(
-                      'Favorites',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFE3C72),
-                      ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Text(
+                    'Favorites',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFFE3C72),
                     ),
                   ),
                 ),
+              ),
+              if (favorites.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      'No favorites yet',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                )
+              else
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: 100,
@@ -131,13 +148,12 @@ class MatchesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: Divider(height: 1),
-                  ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Divider(height: 1),
                 ),
-              ],
+              ),
 
               SliverToBoxAdapter(
                 child: Padding(
