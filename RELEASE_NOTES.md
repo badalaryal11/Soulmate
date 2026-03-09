@@ -2,6 +2,21 @@
 
 ---
 
+## v1.2.0 — Favorites & UI Streamlining (March 9, 2026)
+
+### ⭐ New Favorites Feature
+* **Save your top matches** — You can now add users to your Favorites directly from the chat screen to keep track of your best connections.
+* **Dedicated Favorites Section** — Easily access your saved profiles through the new Favorites section added to the Matches screen.
+
+### 🧹 UI Cleanups & Removals
+* **Removed Undo Button** — The undo action button and its associated logic have been removed from the home tab for a cleaner swiping experience.
+* **Removed Profile Sharing** — The profile sharing functionality has been removed from the chat screen to focus on private conversations.
+
+### ⚙️ Under-the-Hood Improvements
+* **Smarter Profile Loading** — The app now prioritizes loading your current user profile first. This ensures your gender preferences are correctly applied before fetching and displaying other users, improving the relevance of your initial matches.
+
+---
+
 ## v1.1.0 — Performance & Network Optimization (March 3, 2026)
 
 ### ⚡ Faster Card Loading
