@@ -92,45 +92,53 @@ class MatchesScreen extends StatelessWidget {
             );
           }
 
+          final favorites = matches.where((user) {
+            return provider.currentUser?.favoriteUserIds.contains(user.id) ??
+                false;
+          }).toList();
+
           return CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                  child: Text(
-                    'New Matches',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFFE3C72),
+              if (favorites.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Text(
+                      'Favorites',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFE3C72),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: matches.length,
-                    itemBuilder: (context, index) {
-                      return RepaintBoundary(
-                        child: _MatchAvatarItem(
-                          user: matches[index],
-                          onTap: () => _openChat(context, matches[index]),
-                        ),
-                      );
-                    },
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: favorites.length,
+                      itemBuilder: (context, index) {
+                        return RepaintBoundary(
+                          child: _MatchAvatarItem(
+                            user: favorites[index],
+                            onTap: () => _openChat(context, favorites[index]),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Divider(height: 1),
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Divider(height: 1),
+                  ),
                 ),
-              ),
+              ],
+
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -22,7 +22,10 @@ class MockNotificationProvider extends Mock implements NotificationProvider {
   bool get areNotificationsEnabled => true;
 }
 
-class MockUserProvider extends Mock implements UserProvider {}
+class MockUserProvider extends Mock implements UserProvider {
+  @override
+  Future<void> toggleFavorite(String targetUserId) async {}
+}
 
 void main() {
   late MockThemeProvider mockThemeProvider;

@@ -113,6 +113,9 @@ class MockUserProvider extends ChangeNotifier implements UserProvider {
   Future<void> saveFeedback(String userId, String message) async {}
 
   @override
+  Future<void> toggleFavorite(String targetUserId) async {}
+
+  @override
   Future<String> uploadProfileImage(String userId, dynamic imageFile) async =>
       '';
 

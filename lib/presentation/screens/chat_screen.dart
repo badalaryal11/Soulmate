@@ -5,7 +5,6 @@ import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../core/utils/image_generation_service.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../presentation/providers/user_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
 import '../../presentation/widgets/message_bubble.dart';
@@ -225,6 +224,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatProvider = context.read<ChatProvider>();
+    final isFav = context.select<UserProvider, bool>(
+      (p) => p.currentUser?.favoriteUserIds.contains(widget.user.id) ?? false,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -344,21 +346,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 await context.read<UserProvider>().toggleFavorite(
                   widget.user.id,
                 );
-              } else if (value == 'share') {
-                SharePlus.instance.share(
-                  ShareParams(
-                    text:
-                        'Check out ${widget.user.firstName} on Soulmate! https://soulmate.app/profile/${widget.user.id}',
-                  ),
-                );
               }
             },
             itemBuilder: (BuildContext context) {
-              final isFav = context.select<UserProvider, bool>(
-                (p) =>
-                    p.currentUser?.favoriteUserIds.contains(widget.user.id) ??
-                    false,
-              );
               return [
                 PopupMenuItem<String>(
                   value: 'favorite',
@@ -373,16 +363,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text(
                         isFav ? 'Remove from Favorites' : 'Add to Favorites',
                       ),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'share',
-                  child: Row(
-                    children: [
-                      Icon(Icons.share, color: Colors.blue, size: 20),
-                      SizedBox(width: 8),
-                      Text('Share Profile'),
                     ],
                   ),
                 ),
