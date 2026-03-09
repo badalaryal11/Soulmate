@@ -54,10 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
 
-      // Start loading cards immediately (don't wait for profile)
-      provider.loadUsers();
-
-      // Load current user profile in parallel
+      // Load current user profile first
       await provider.loadCurrentUser();
 
       // If no profile exists, redirect to Create Profile
@@ -75,11 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      // Refresh with correct gender preference if the profile loaded one
-      if (provider.currentUser?.genderPreference != null &&
-          provider.users.isNotEmpty) {
+      // Now load users with the correct gender preference from the start
+      if (mounted) {
         provider.loadUsers(
-          gender: provider.currentUser!.genderPreference,
+          gender: provider.currentUser?.genderPreference,
           clearList: true,
         );
       }

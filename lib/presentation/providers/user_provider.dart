@@ -209,10 +209,10 @@ class UserProvider extends ChangeNotifier {
       _filterRevision++; // Force swiper reset on full reload/filter change
     }
 
-    // Optimization: Silent loading
-    // Only set loading status if it's the initial load or a full refresh (users empty)
+    // Optimization: Handle loading state
+    // Always show loading spinner if the users list is empty
     // If we have users and are just fetching more, don't show loading state
-    if (_users.isEmpty && !clearList) {
+    if (_users.isEmpty) {
       _status = UserStatus.loading;
       notifyListeners();
     }

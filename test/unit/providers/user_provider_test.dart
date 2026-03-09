@@ -95,9 +95,7 @@ void main() {
         interests: ['Coding'],
       );
 
-      when(
-        mockUserRepository.getUser('test_uid'),
-      ).thenAnswer((_) async => user);
+      when(mockGetCurrentUserUseCase('test_uid')).thenAnswer((_) async => user);
 
       when(mockGetActiveChatsUseCase(any)).thenAnswer((_) async => []);
 
@@ -107,7 +105,7 @@ void main() {
       expect(userProvider.currentUser?.email, user.email);
       expect(userProvider.currentUserInterests, ['Coding']);
       verify(mockAuthRepository.currentUser).called(1);
-      verify(mockUserRepository.getUser('test_uid')).called(1);
+      verify(mockGetCurrentUserUseCase('test_uid')).called(1);
     });
 
     test('loadUsers updates status and users list', () async {
@@ -127,7 +125,7 @@ void main() {
       ];
 
       when(
-        mockUserRepository.getUsers(gender: anyNamed('gender')),
+        mockGetUsersUseCase.call(gender: anyNamed('gender')),
       ).thenAnswer((_) async => users);
 
       await userProvider.loadUsers();
@@ -135,7 +133,7 @@ void main() {
       expect(userProvider.status, UserStatus.loaded);
       expect(userProvider.users.length, 1);
       expect(userProvider.users.first.id, '1');
-      verify(mockUserRepository.getUsers(gender: anyNamed('gender'))).called(1);
+      verify(mockGetUsersUseCase.call(gender: anyNamed('gender'))).called(1);
     });
   });
 }

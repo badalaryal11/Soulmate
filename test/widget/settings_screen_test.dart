@@ -7,6 +7,8 @@ import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
 
+import 'package:soulmate/presentation/providers/user_provider.dart';
+
 // We need a mock for ThemeProvider and NotificationProvider since they are ChangeNotifiers
 class MockThemeProvider extends Mock implements ThemeProvider {
   @override
@@ -20,13 +22,17 @@ class MockNotificationProvider extends Mock implements NotificationProvider {
   bool get areNotificationsEnabled => true;
 }
 
+class MockUserProvider extends Mock implements UserProvider {}
+
 void main() {
   late MockThemeProvider mockThemeProvider;
   late MockNotificationProvider mockNotificationProvider;
+  late MockUserProvider mockUserProvider;
 
   setUp(() {
     mockThemeProvider = MockThemeProvider();
     mockNotificationProvider = MockNotificationProvider();
+    mockUserProvider = MockUserProvider();
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
@@ -37,6 +43,7 @@ void main() {
         ChangeNotifierProvider<NotificationProvider>.value(
           value: mockNotificationProvider,
         ),
+        ChangeNotifierProvider<UserProvider>.value(value: mockUserProvider),
       ],
       child: const MaterialApp(home: SettingsScreen()),
     );
