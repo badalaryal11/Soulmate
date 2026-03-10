@@ -2,6 +2,20 @@
 
 ---
 
+## v1.3.0 — Architecture & Scalability Refactor (March 10, 2026)
+
+### 🏗️ Provider Scalability Refactoring
+* **Segregated Monolithic Provider** — Replaced the massive monolithic `UserProvider` with four highly focused providers (`CurrentUserProvider`, `ProfileManagementProvider`, `DiscoveryProvider`, and `MatchProvider`), deeply adhering to the Interface Segregation Principle.
+* **Reduced UI Rebuilds** — By decoupling state domains, UI components now solely rebuild when *their* specific state changes, completely eliminating cross-contamination rebuilds (e.g., swiping on a profile no longer rebuilds the Chat or Settings screens).
+
+### ⚡ Advanced Performance & Network Polish
+* **Smarter Image Prefetching** — Reduced the look-ahead image buffer from 8 cards to 3 cards, drastically saving network bandwidth and preventing excessive background HTTP requests while maintaining a buttery-smooth swipe experience.
+* **Strict Image Memory Caching** — Enforced hard limits on downsampling 4K photos inside `CachedNetworkImage` and bounded the global Flutter `imageCache` to 100MB, eliminating Out-Of-Memory (OOM) crashes on older devices.
+* **Race Condition Fixes** — Added robust locking mechanisms (`_isLoadingUsers`, `_SimpleMutex`) to prevent duplicate backend calls when users swipe too quickly, and fortified concurrent read/write logic to the local `FlutterSecureStorage` chat database.
+* **Optimized Rendering & Fonts** — Enabled the new Impeller rendering engine for Android in `AndroidManifest.xml` to squash shader compilation jank, and restricted `GoogleFonts` runtime HTTP fetching to ensure rapid offline font loading natively.
+
+---
+
 ## v1.2.0 — Favorites & UI Streamlining (March 9, 2026)
 
 ### ⭐ New Favorites Feature
