@@ -65,6 +65,13 @@ class MatchProvider extends ChangeNotifier {
     }
   }
 
+  void addMatch(User user) {
+    if (!_matches.any((m) => m.id == user.id)) {
+      _matches.insert(0, user);
+      notifyListeners();
+    }
+  }
+
   Future<void> unmatchUser(String userId) async {
     _matches.removeWhere((user) => user.id == userId);
     notifyListeners();

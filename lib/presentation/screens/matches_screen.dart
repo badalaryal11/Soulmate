@@ -60,37 +60,6 @@ class MatchesScreen extends StatelessWidget {
       body: Consumer<MatchProvider>(
         builder: (context, provider, child) {
           final matches = provider.matches;
-          if (matches.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.favorite_border,
-                    size: 80,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No matches yet.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      color: Colors.grey[500],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Keep swiping to find your soulmate!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
 
           final favorites = matches.where((user) {
             return provider.currentUser?.favoriteUserIds.contains(user.id) ??
@@ -168,29 +137,63 @@ class MatchesScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final user = matches[index];
-                    return RepaintBoundary(
-                      child: Column(
-                        children: [
-                          _MessageListItem(
-                            user: user,
-                            onTap: () => _openChat(context, user),
+              if (matches.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.favorite_border,
+                          size: 80,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No matches yet.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
                           ),
-                          if (index < matches.length - 1)
-                            const Divider(height: 1), // Separator
-                        ],
-                      ),
-                    );
-                  }, childCount: matches.length),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Keep swiping to find your soulmate!',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final user = matches[index];
+                      return RepaintBoundary(
+                        child: Column(
+                          children: [
+                            _MessageListItem(
+                              user: user,
+                              onTap: () => _openChat(context, user),
+                            ),
+                            if (index < matches.length - 1)
+                              const Divider(height: 1), // Separator
+                          ],
+                        ),
+                      );
+                    }, childCount: matches.length),
+                  ),
                 ),
-              ),
               const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
             ],
           );

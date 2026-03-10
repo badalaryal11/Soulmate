@@ -7,6 +7,7 @@ import 'package:soulmate/presentation/providers/current_user_provider.dart';
 import 'package:soulmate/presentation/providers/discovery_provider.dart';
 import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
+import 'package:soulmate/presentation/providers/match_provider.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
@@ -52,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
             precacheImage(CachedNetworkImageProvider(currentImageUrl), context);
           }
 
+          context.read<MatchProvider>().addMatch(user);
+
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
           );
@@ -60,6 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Load current user profile first
       await currentUserProvider.loadCurrentUser();
+
+      if (mounted) {
+        context.read<MatchProvider>().loadMatches();
+      }
 
       // If no profile exists, redirect to Create Profile
       if (mounted && currentUserProvider.currentUser == null) {
