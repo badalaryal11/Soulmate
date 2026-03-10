@@ -3,6 +3,7 @@ import '../../core/utils/image_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
+import '../providers/current_user_provider.dart';
 import 'chat_screen.dart';
 import '../../domain/entities/user.dart';
 import '../../core/di/service_locator.dart';
@@ -57,12 +58,14 @@ class MatchesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<MatchProvider>(
-        builder: (context, provider, child) {
-          final matches = provider.matches;
+      body: Consumer2<MatchProvider, CurrentUserProvider>(
+        builder: (context, matchProvider, currentUserProvider, child) {
+          final matches = matchProvider.matches;
 
           final favorites = matches.where((user) {
-            return provider.currentUser?.favoriteUserIds.contains(user.id) ??
+            return currentUserProvider.currentUser?.favoriteUserIds.contains(
+                  user.id,
+                ) ??
                 false;
           }).toList();
 
