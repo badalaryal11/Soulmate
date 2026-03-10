@@ -101,7 +101,7 @@ class _HomeTabState extends State<HomeTab> {
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
-            for (int i = 0; i < 8 && i < provider.filteredUsers.length; i++) {
+            for (int i = 0; i < 3 && i < provider.filteredUsers.length; i++) {
               _precacheUserImage(context, provider.filteredUsers[i]);
             }
           });
@@ -145,8 +145,8 @@ class _HomeTabState extends State<HomeTab> {
                     // and `currentIndex + 3` (just in case).
 
                     if (currentIndex != null) {
-                      // Aggressive Pre-caching: Look ahead 8 cards
-                      for (int i = 1; i <= 8; i++) {
+                      // Optimized Pre-caching: Look ahead exactly 3 cards
+                      for (int i = 1; i <= 3; i++) {
                         final nextIndex = currentIndex + i;
                         if (nextIndex < provider.filteredUsers.length) {
                           _precacheUserImage(

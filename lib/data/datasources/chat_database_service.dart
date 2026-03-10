@@ -6,9 +6,31 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../domain/entities/chat_message.dart';
 import '../models/chat_message_model.dart';
 
+/// A simple asynchronous mutex to serialize operations.
+class _SimpleMutex {
+  Future<void>? _lastOperation;
+
+  Future<T> synchronized<T>(Future<T> Function() action) async {
+    final previousOperation = _lastOperation;
+    final completer = Completer<void>();
+    _lastOperation = completer.future;
+
+    if (previousOperation != null) {
+      await previousOperation;
+    }
+
+    try {
+      return await action();
+    } finally {
+      completer.complete();
+    }
+  }
+}
+
 /// Handles all chat/message operations using secure local storage.
 class ChatDatabaseService {
   final FlutterSecureStorage _secureStorage;
+  final _SimpleMutex _mutex = _SimpleMutex();
 
   // Local Streams for chat data
   final Map<String, StreamController<Map<String, dynamic>?>>
@@ -58,84 +80,86 @@ class ChatDatabaseService {
 
   /// Send a message to a chat.
   Future<void> sendMessage(String chatId, ChatMessage message) async {
-    try {
-      // Save Message
-      final messagesKey = 'chat_messages_$chatId';
-      final msgsStr = await _secureStorage.read(key: messagesKey);
-      List<String> messagesJson = msgsStr != null
-          ? List<String>.from(jsonDecode(msgsStr))
-          : [];
+    return _mutex.synchronized(() async {
+      try {
+        // Save Message
+        final messagesKey = 'chat_messages_$chatId';
+        final msgsStr = await _secureStorage.read(key: messagesKey);
+        List<String> messagesJson = msgsStr != null
+            ? List<String>.from(jsonDecode(msgsStr))
+            : [];
 
-      final msgMap = ChatMessageModel.fromEntity(message).toMap();
-      msgMap['id'] = message.id; // Include ID in map for local storage
-      messagesJson.insert(
-        0,
-        jsonEncode(msgMap),
-      ); // Store newest first to match descending order
-      await _secureStorage.write(
-        key: messagesKey,
-        value: jsonEncode(messagesJson),
-      );
+        final msgMap = ChatMessageModel.fromEntity(message).toMap();
+        msgMap['id'] = message.id; // Include ID in map for local storage
+        messagesJson.insert(
+          0,
+          jsonEncode(msgMap),
+        ); // Store newest first to match descending order
+        await _secureStorage.write(
+          key: messagesKey,
+          value: jsonEncode(messagesJson),
+        );
 
-      // Update Stream
-      _broadcastMessages(chatId);
+        // Update Stream
+        _broadcastMessages(chatId);
 
-      // Update Metadata
-      final chatsJson =
-          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
-      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+        // Update Metadata
+        final chatsJson =
+            await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+        final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
-      final chatData = allChats[chatId] as Map<String, dynamic>? ?? {};
+        final chatData = allChats[chatId] as Map<String, dynamic>? ?? {};
 
-      int currentStreak = chatData['streak'] ?? 0;
-      int lastTime = chatData['lastMessageTime'] ?? 0;
-      int currentXp = chatData['xp'] ?? 0;
+        int currentStreak = chatData['streak'] ?? 0;
+        int lastTime = chatData['lastMessageTime'] ?? 0;
+        int currentXp = chatData['xp'] ?? 0;
 
-      final now = DateTime.now();
-      final lastMsgDate = DateTime.fromMillisecondsSinceEpoch(
-        lastTime == 0 ? now.millisecondsSinceEpoch : lastTime,
-      );
-      final difference = now.difference(lastMsgDate).inHours;
+        final now = DateTime.now();
+        final lastMsgDate = DateTime.fromMillisecondsSinceEpoch(
+          lastTime == 0 ? now.millisecondsSinceEpoch : lastTime,
+        );
+        final difference = now.difference(lastMsgDate).inHours;
 
-      final isSameDay =
-          now.year == lastMsgDate.year &&
-          now.month == lastMsgDate.month &&
-          now.day == lastMsgDate.day;
-      final isYesterday =
-          now.difference(lastMsgDate).inDays == 1 ||
-          (now.day != lastMsgDate.day && difference < 48);
+        final isSameDay =
+            now.year == lastMsgDate.year &&
+            now.month == lastMsgDate.month &&
+            now.day == lastMsgDate.day;
+        final isYesterday =
+            now.difference(lastMsgDate).inDays == 1 ||
+            (now.day != lastMsgDate.day && difference < 48);
 
-      if (!isSameDay && lastTime != 0) {
-        if (isYesterday || currentStreak == 0) {
-          currentStreak++;
-        } else if (difference >= 48) {
-          currentStreak = 1; // Reset
+        if (!isSameDay && lastTime != 0) {
+          if (isYesterday || currentStreak == 0) {
+            currentStreak++;
+          } else if (difference >= 48) {
+            currentStreak = 1; // Reset
+          }
+        } else if (lastTime == 0) {
+          currentStreak = 1;
         }
-      } else if (lastTime == 0) {
-        currentStreak = 1;
+
+        final updatedData = {
+          ...chatData,
+          'lastMessage': message.text,
+          'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
+          'participants': chatId.split('_'),
+          'xp': currentXp + 1,
+          'streak': currentStreak,
+        };
+
+        allChats[chatId] = updatedData;
+        await _secureStorage.write(
+          key: 'chats_metadata',
+          value: jsonEncode(allChats),
+        );
+
+        // Broadcast Metadata change
+        _broadcastChatMetadata(chatId, updatedData);
+      } catch (e) {
+        debugPrint("Error sending message: $e");
+        rethrow;
       }
-
-      final updatedData = {
-        ...chatData,
-        'lastMessage': message.text,
-        'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
-        'participants': chatId.split('_'),
-        'xp': currentXp + 1,
-        'streak': currentStreak,
-      };
-
-      allChats[chatId] = updatedData;
-      await _secureStorage.write(
-        key: 'chats_metadata',
-        value: jsonEncode(allChats),
-      );
-
-      // Broadcast Metadata change
-      _broadcastChatMetadata(chatId, updatedData);
-    } catch (e) {
-      debugPrint("Error sending message: $e");
-      rethrow;
-    }
+    });
   }
 
   /// Update game data on a specific message.
@@ -144,31 +168,33 @@ class ChatDatabaseService {
     String messageId,
     Map<String, dynamic> gameData,
   ) async {
-    try {
-      final messagesKey = 'chat_messages_$chatId';
-      final msgsStr = await _secureStorage.read(key: messagesKey);
-      List<String> messagesJson = msgsStr != null
-          ? List<String>.from(jsonDecode(msgsStr))
-          : [];
+    return _mutex.synchronized(() async {
+      try {
+        final messagesKey = 'chat_messages_$chatId';
+        final msgsStr = await _secureStorage.read(key: messagesKey);
+        List<String> messagesJson = msgsStr != null
+            ? List<String>.from(jsonDecode(msgsStr))
+            : [];
 
-      for (int i = 0; i < messagesJson.length; i++) {
-        final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
-        if (msgMap['id'] == messageId) {
-          msgMap['gameData'] = gameData;
-          messagesJson[i] = jsonEncode(msgMap);
-          break;
+        for (int i = 0; i < messagesJson.length; i++) {
+          final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
+          if (msgMap['id'] == messageId) {
+            msgMap['gameData'] = gameData;
+            messagesJson[i] = jsonEncode(msgMap);
+            break;
+          }
         }
-      }
 
-      await _secureStorage.write(
-        key: messagesKey,
-        value: jsonEncode(messagesJson),
-      );
-      _broadcastMessages(chatId);
-    } catch (e) {
-      debugPrint("Error updating game message: $e");
-      rethrow;
-    }
+        await _secureStorage.write(
+          key: messagesKey,
+          value: jsonEncode(messagesJson),
+        );
+        _broadcastMessages(chatId);
+      } catch (e) {
+        debugPrint("Error updating game message: $e");
+        rethrow;
+      }
+    });
   }
 
   /// Get a stream of chat metadata changes.
@@ -232,73 +258,77 @@ class ChatDatabaseService {
 
   /// Delete a chat and all its messages.
   Future<void> deleteChat(String chatId) async {
-    try {
-      // Delete messages
-      await _secureStorage.delete(key: 'chat_messages_$chatId');
+    return _mutex.synchronized(() async {
+      try {
+        // Delete messages
+        await _secureStorage.delete(key: 'chat_messages_$chatId');
 
-      // Delete metadata
-      final chatsJson =
-          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
-      final Map<String, dynamic> allChats = jsonDecode(chatsJson);
-      if (allChats.containsKey(chatId)) {
-        allChats.remove(chatId);
-        await _secureStorage.write(
-          key: 'chats_metadata',
-          value: jsonEncode(allChats),
-        );
-      }
+        // Delete metadata
+        final chatsJson =
+            await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+        final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+        if (allChats.containsKey(chatId)) {
+          allChats.remove(chatId);
+          await _secureStorage.write(
+            key: 'chats_metadata',
+            value: jsonEncode(allChats),
+          );
+        }
 
-      // Close and remove stream controllers to prevent memory leaks
-      if (_chatStreamControllers.containsKey(chatId)) {
-        await _chatStreamControllers[chatId]!.close();
-        _chatStreamControllers.remove(chatId);
-      } else {
-        _broadcastChatMetadata(chatId, null);
-      }
+        // Close and remove stream controllers to prevent memory leaks
+        if (_chatStreamControllers.containsKey(chatId)) {
+          await _chatStreamControllers[chatId]!.close();
+          _chatStreamControllers.remove(chatId);
+        } else {
+          _broadcastChatMetadata(chatId, null);
+        }
 
-      if (_messageStreamControllers.containsKey(chatId)) {
-        await _messageStreamControllers[chatId]!.close();
-        _messageStreamControllers.remove(chatId);
-      } else {
-        _broadcastMessages(chatId);
+        if (_messageStreamControllers.containsKey(chatId)) {
+          await _messageStreamControllers[chatId]!.close();
+          _messageStreamControllers.remove(chatId);
+        } else {
+          _broadcastMessages(chatId);
+        }
+      } catch (e) {
+        debugPrint("Error deleting chat: $e");
+        rethrow;
       }
-    } catch (e) {
-      debugPrint("Error deleting chat: $e");
-      rethrow;
-    }
+    });
   }
 
   /// Mark messages from the other user as read.
   Future<void> markMessagesAsRead(String chatId, String currentUserId) async {
-    try {
-      final messagesKey = 'chat_messages_$chatId';
-      final msgsStr = await _secureStorage.read(key: messagesKey);
-      if (msgsStr == null) return;
+    return _mutex.synchronized(() async {
+      try {
+        final messagesKey = 'chat_messages_$chatId';
+        final msgsStr = await _secureStorage.read(key: messagesKey);
+        if (msgsStr == null) return;
 
-      List<String> messagesJson = List<String>.from(jsonDecode(msgsStr));
-      bool changed = false;
-      final now = DateTime.now().millisecondsSinceEpoch;
+        List<String> messagesJson = List<String>.from(jsonDecode(msgsStr));
+        bool changed = false;
+        final now = DateTime.now().millisecondsSinceEpoch;
 
-      for (int i = 0; i < messagesJson.length; i++) {
-        final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
-        if (msgMap['senderId'] != currentUserId && msgMap['isRead'] != true) {
-          msgMap['isRead'] = true;
-          msgMap['readAt'] = now;
-          messagesJson[i] = jsonEncode(msgMap);
-          changed = true;
+        for (int i = 0; i < messagesJson.length; i++) {
+          final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
+          if (msgMap['senderId'] != currentUserId && msgMap['isRead'] != true) {
+            msgMap['isRead'] = true;
+            msgMap['readAt'] = now;
+            messagesJson[i] = jsonEncode(msgMap);
+            changed = true;
+          }
         }
-      }
 
-      if (changed) {
-        await _secureStorage.write(
-          key: messagesKey,
-          value: jsonEncode(messagesJson),
-        );
-        _broadcastMessages(chatId);
+        if (changed) {
+          await _secureStorage.write(
+            key: messagesKey,
+            value: jsonEncode(messagesJson),
+          );
+          _broadcastMessages(chatId);
+        }
+      } catch (e) {
+        debugPrint("Error marking messages as read: $e");
       }
-    } catch (e) {
-      debugPrint("Error marking messages as read: $e");
-    }
+    });
   }
 
   /// Delete all chat data from secure storage.

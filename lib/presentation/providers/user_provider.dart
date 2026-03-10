@@ -59,6 +59,7 @@ class UserProvider extends ChangeNotifier {
   final Set<String> _seenUserIds = {}; // Track displayed users by ID
   UserStatus _status = UserStatus.initial;
   String? _errorMessage;
+  bool _isLoadingUsers = false;
 
   List<User> get users => _users;
   UserStatus get status => _status;
@@ -217,6 +218,9 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
     }
 
+    if (_isLoadingUsers) return;
+    _isLoadingUsers = true;
+
     try {
       final newUsers = await _getUsersUseCase.call(
         gender: _selectedGender,
@@ -276,8 +280,10 @@ class UserProvider extends ChangeNotifier {
         _errorMessage = e.toString();
       }
       // If we have users, maybe show a snackbar (omitted for now to keep flow smooth)
+    } finally {
+      _isLoadingUsers = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> loadMatches() async {
