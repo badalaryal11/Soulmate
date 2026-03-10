@@ -19,22 +19,24 @@
 - **User Profiles**:
     - **Comprehensive Management**: A dedicated unified Profile Tab to update bios, interests, and preferences effortlessly.
     - **Device Uploads & AI Avatars**: Upload your own profile pictures directly from your device, or let our AI generate a unique avatar proxy image for you.
-- **Performance Optimized**:
-    - Strict memory cache constraints to prevent Out-Of-Memory (OOM) crashes on mobile devices.
-    - Streamlined memory handling with leak-proof chat streams.
+- **Performance & Architecture**:
+    - **Clean Architecture Principles**: Organized into Domain, Data, and Presentation layers for highly maintainable code.
+    - **Segregated State Management**: Moved away from monolithic providers to domain-specific providers (`CurrentUserProvider`, `DiscoveryProvider`, `MatchProvider`, `ProfileManagementProvider`) for optimal UI rebuilding.
+    - **Caching & Memory Bounds**: Strict memory cache constraints prevent Out-Of-Memory (OOM) crashes on mobile devices, working alongside an aggressive 40MB local Firestore cache.
+    - **Optimized Rendering**: Leverages Impeller for Android rendering to eradicate shader compilation jank.
 
 ## Tech Stack
 
 - **Frontend**: [Flutter](https://flutter.dev/) (Dart)
 - **Backend & Services**: [Firebase](https://firebase.google.com/)
   - **Firebase Auth**: User authentication securely handled.
-  - **Cloud Firestore**: Real-time database for user metadata and activity tracking.
+  - **Cloud Firestore**: Real-time database for user metadata, chats, matches, and read receipts.
   - **Firebase Storage**: For user uploaded images.
 - **Local Storage**: `flutter_secure_storage` for encrypted on-device message caching.
-- **State Management**: [Provider](https://pub.dev/packages/provider)
+- **State Management**: [Provider](https://pub.dev/packages/provider) (leveraging `ChangeNotifierProxyProvider` for dependency injection)
 - **Key Packages**:
   - `flutter_card_swiper`: For fluid swipe animations.
-  - `cached_network_image`: Efficient, aggressively-optimized image loading and caching.
+  - `cached_network_image`: Efficient, aggressively-optimized image loading and memory caching.
   - `google_generative_ai`: Powering the conversational matchmaking AI.
 
 ## Getting Started
