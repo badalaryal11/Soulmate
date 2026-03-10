@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import '../providers/discovery_provider.dart';
 import '../../core/utils/image_generation_service.dart';
 import 'profile_card.dart';
 
@@ -20,15 +20,16 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
+    return Consumer<DiscoveryProvider>(
       builder: (context, provider, child) {
-        if ((provider.status == UserStatus.loading ||
-                provider.status == UserStatus.initial) &&
+        if ((provider.status == DiscoveryStatus.loading ||
+                provider.status == DiscoveryStatus.initial) &&
             provider.users.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (provider.status == UserStatus.error && provider.users.isEmpty) {
+        if (provider.status == DiscoveryStatus.error &&
+            provider.users.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

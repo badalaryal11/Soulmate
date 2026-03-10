@@ -5,7 +5,9 @@ import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../core/utils/image_generation_service.dart';
 import 'package:provider/provider.dart';
-import '../../presentation/providers/user_provider.dart';
+import '../../presentation/providers/current_user_provider.dart';
+import '../../presentation/providers/match_provider.dart';
+import '../../presentation/providers/profile_management_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
 import '../../presentation/widgets/message_bubble.dart';
 import '../../presentation/widgets/typing_bubble.dart';
@@ -33,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     // Initialize provider logic
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentUser = context.read<UserProvider>().currentUser;
+      final currentUser = context.read<CurrentUserProvider>().currentUser;
       if (currentUser != null) {
         final chatProvider = context.read<ChatProvider>();
         chatProvider.onSoulmateLevelReached = () {
@@ -207,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> {
           TextButton(
             onPressed: () async {
               // Unmatch logic
-              await context.read<UserProvider>().unmatchUser(widget.user.id);
+              await context.read<MatchProvider>().unmatchUser(widget.user.id);
               if (context.mounted) {
                 Navigator.pop(context); // Close dialog
                 Navigator.pop(context); // Close chat screen
@@ -224,7 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatProvider = context.read<ChatProvider>();
-    final isFav = context.select<UserProvider, bool>(
+    final isFav = context.select<CurrentUserProvider, bool>(
       (p) => p.currentUser?.favoriteUserIds.contains(widget.user.id) ?? false,
     );
 
@@ -343,7 +345,7 @@ class _ChatScreenState extends State<ChatScreen> {
               if (value == 'unmatch') {
                 _showUnmatchConfirmation();
               } else if (value == 'favorite') {
-                await context.read<UserProvider>().toggleFavorite(
+                await context.read<ProfileManagementProvider>().toggleFavorite(
                   widget.user.id,
                 );
               }

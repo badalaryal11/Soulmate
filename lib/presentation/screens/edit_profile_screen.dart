@@ -8,7 +8,7 @@ import 'dart:io';
 import '../../domain/entities/user.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/utils/image_generation_service.dart';
-import '../providers/user_provider.dart';
+import '../providers/current_user_provider.dart';
 import 'interest_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -66,7 +66,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = Provider.of<CurrentUserProvider>(
+      context,
+      listen: false,
+    );
 
     if (userProvider.currentUser == null) {
       await userProvider.loadCurrentUser();
@@ -452,7 +455,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Update Provider
       if (mounted) {
-        Provider.of<UserProvider>(
+        Provider.of<CurrentUserProvider>(
           context,
           listen: false,
         ).updateLocalUser(userForFirestore);

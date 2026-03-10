@@ -34,8 +34,11 @@ import '../../domain/usecases/send_password_reset_usecase.dart';
 import '../../domain/usecases/confirm_password_reset_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
 
-import '../../presentation/providers/user_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
+import '../../presentation/providers/current_user_provider.dart';
+import '../../presentation/providers/profile_management_provider.dart';
+import '../../presentation/providers/match_provider.dart';
+import '../../presentation/providers/discovery_provider.dart';
 
 /// Centralized dependency injection for the application.
 ///
@@ -80,19 +83,47 @@ class ServiceLocator {
     );
   }
 
-  /// Create a fully-wired [UserProvider].
-  static UserProvider createUserProvider() {
-    return UserProvider(
-      userRepository: _userRepository,
-      getUsersUseCase: GetUsersUseCase(_userRepository),
+  /// Create [CurrentUserProvider]
+  static CurrentUserProvider createCurrentUserProvider() {
+    return CurrentUserProvider(
       authRepository: _authRepository,
-      getActiveChatsUseCase: GetActiveChatsUseCase(_chatRepository),
-      deleteChatUseCase: DeleteChatUseCase(_chatRepository),
-      getChatIdUseCase: GetChatIdUseCase(_chatRepository),
+      getCurrentUserUseCase: GetCurrentUserUseCase(_userRepository),
+      userRepository: _userRepository,
+    );
+  }
+
+  /// Create [ProfileManagementProvider]
+  static ProfileManagementProvider createProfileManagementProvider(
+    CurrentUserProvider currentUserProvider,
+  ) {
+    return ProfileManagementProvider(
+      updateUserFieldUseCase: UpdateUserFieldUseCase(_userRepository),
       saveFeedbackUseCase: SaveFeedbackUseCase(_userRepository),
       uploadProfileImageUseCase: UploadProfileImageUseCase(_userRepository),
-      updateUserFieldUseCase: UpdateUserFieldUseCase(_userRepository),
-      getCurrentUserUseCase: GetCurrentUserUseCase(_userRepository),
+      currentUserProvider: currentUserProvider,
+    );
+  }
+
+  /// Create [MatchProvider]
+  static MatchProvider createMatchProvider(
+    CurrentUserProvider currentUserProvider,
+  ) {
+    return MatchProvider(
+      getActiveChatsUseCase: GetActiveChatsUseCase(_chatRepository),
+      getChatIdUseCase: GetChatIdUseCase(_chatRepository),
+      deleteChatUseCase: DeleteChatUseCase(_chatRepository),
+      userRepository: _userRepository,
+      currentUserProvider: currentUserProvider,
+    );
+  }
+
+  /// Create [DiscoveryProvider]
+  static DiscoveryProvider createDiscoveryProvider(
+    CurrentUserProvider currentUserProvider,
+  ) {
+    return DiscoveryProvider(
+      getUsersUseCase: GetUsersUseCase(_userRepository),
+      currentUserProvider: currentUserProvider,
     );
   }
 

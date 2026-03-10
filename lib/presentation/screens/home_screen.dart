@@ -3,7 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
-import 'package:soulmate/presentation/providers/user_provider.dart';
+import 'package:soulmate/presentation/providers/current_user_provider.dart';
+import 'package:soulmate/presentation/providers/discovery_provider.dart';
+import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_screen.dart';
@@ -28,16 +30,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = context.read<UserProvider>();
+      final currentUserProvider = context.read<CurrentUserProvider>();
+      final discoveryProvider = context.read<DiscoveryProvider>();
 
       // Set up match listener
-      provider.onMatchFound = (user) {
+      discoveryProvider.onMatchFound = (user) {
         if (mounted) {
           // Precache images so the match screen loads instantly
           final matchedImageUrl = user.imageUrl.isNotEmpty
               ? user.imageUrl
               : ImageGenerationService.generateProfileImageUrl(user);
-          final currentImageUrl = provider.currentUser?.imageUrl ?? '';
+          final currentImageUrl =
+              currentUserProvider.currentUser?.imageUrl ?? '';
 
           if (matchedImageUrl.isNotEmpty) {
             precacheImage(CachedNetworkImageProvider(matchedImageUrl), context);
@@ -55,12 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
       };
 
       // Load current user profile first
-      await provider.loadCurrentUser();
+      await currentUserProvider.loadCurrentUser();
 
       // If no profile exists, redirect to Create Profile
-      if (mounted &&
-          provider.currentUser == null &&
-          provider.errorMessage == null) {
+      if (mounted && currentUserProvider.currentUser == null) {
         final authUser = ServiceLocator.authRepository.currentUser;
         if (authUser != null) {
           Navigator.of(context).pushReplacement(
@@ -74,8 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Now load users with the correct gender preference from the start
       if (mounted) {
-        provider.loadUsers(
-          gender: provider.currentUser?.genderPreference,
+        discoveryProvider.loadUsers(
+          gender: currentUserProvider.currentUser?.genderPreference,
           clearList: true,
         );
       }
@@ -110,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               actions: [
-                Consumer<UserProvider>(
+                Consumer<CurrentUserProvider>(
                   builder: (context, provider, child) {
                     final user = provider.currentUser;
                     if (user == null) return const SizedBox.shrink();
@@ -250,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Consumer<UserProvider>(
+        return Consumer<DiscoveryProvider>(
           builder: (context, provider, child) {
             return Container(
               padding: const EdgeInsets.all(24),
@@ -377,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = ServiceLocator.authRepository.currentUser;
     if (user != null) {
       if (mounted) {
-        context.read<UserProvider>().updateUserField(user.uid, {
+        context.read<ProfileManagementProvider>().updateUserField(user.uid, {
           'genderPreference': valueToSave,
         });
       }

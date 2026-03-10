@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/di/service_locator.dart';
 import 'interest_selection_screen.dart';
-import '../providers/user_provider.dart';
+import '../providers/discovery_provider.dart';
+import '../providers/profile_management_provider.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
   const GenderSelectionScreen({super.key});
@@ -113,16 +114,17 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     // Pass null for 'everyone' to load all users
     final genderToLoad = _selectedGender == 'everyone' ? null : _selectedGender;
 
-    final userProvider = context.read<UserProvider>();
-    userProvider.loadUsers(gender: genderToLoad);
+    final discoveryProvider = context.read<DiscoveryProvider>();
+    discoveryProvider.loadUsers(gender: genderToLoad);
 
     // Update gender preference in Firestore if logged in
     final currentUser = ServiceLocator.authRepository.currentUser;
     if (currentUser != null && _selectedGender != null) {
       if (mounted) {
-        await context.read<UserProvider>().updateUserField(currentUser.uid, {
-          'genderPreference': _selectedGender,
-        });
+        await context.read<ProfileManagementProvider>().updateUserField(
+          currentUser.uid,
+          {'genderPreference': _selectedGender},
+        );
       }
     }
 

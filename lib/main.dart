@@ -12,6 +12,10 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'core/di/service_locator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'presentation/providers/current_user_provider.dart';
+import 'presentation/providers/profile_management_provider.dart';
+import 'presentation/providers/match_provider.dart';
+import 'presentation/providers/discovery_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -187,7 +191,32 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ServiceLocator.createUserProvider(),
+          create: (_) => ServiceLocator.createCurrentUserProvider(),
+        ),
+        ChangeNotifierProxyProvider<
+          CurrentUserProvider,
+          ProfileManagementProvider
+        >(
+          create: (context) => ServiceLocator.createProfileManagementProvider(
+            Provider.of<CurrentUserProvider>(context, listen: false),
+          ),
+          update: (_, currentUser, previous) =>
+              previous ??
+              ServiceLocator.createProfileManagementProvider(currentUser),
+        ),
+        ChangeNotifierProxyProvider<CurrentUserProvider, MatchProvider>(
+          create: (context) => ServiceLocator.createMatchProvider(
+            Provider.of<CurrentUserProvider>(context, listen: false),
+          ),
+          update: (_, currentUser, previous) =>
+              previous ?? ServiceLocator.createMatchProvider(currentUser),
+        ),
+        ChangeNotifierProxyProvider<CurrentUserProvider, DiscoveryProvider>(
+          create: (context) => ServiceLocator.createDiscoveryProvider(
+            Provider.of<CurrentUserProvider>(context, listen: false),
+          ),
+          update: (_, currentUser, previous) =>
+              previous ?? ServiceLocator.createDiscoveryProvider(currentUser),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(

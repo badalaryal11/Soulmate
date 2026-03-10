@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/utils/image_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import '../providers/match_provider.dart';
 import 'chat_screen.dart';
 import '../../domain/entities/user.dart';
 import '../../core/di/service_locator.dart';
@@ -57,7 +57,7 @@ class MatchesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<UserProvider>(
+      body: Consumer<MatchProvider>(
         builder: (context, provider, child) {
           final matches = provider.matches;
           if (matches.isEmpty) {

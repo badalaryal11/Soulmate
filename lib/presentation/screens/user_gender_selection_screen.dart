@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/di/service_locator.dart';
-import '../providers/user_provider.dart';
+import '../providers/profile_management_provider.dart';
 import 'gender_selection_screen.dart';
 
 class UserGenderSelectionScreen extends StatefulWidget {
@@ -109,9 +109,13 @@ class _UserGenderSelectionScreenState extends State<UserGenderSelectionScreen> {
     final currentUser = ServiceLocator.authRepository.currentUser;
     if (currentUser != null && _selectedGender != null) {
       if (mounted) {
-        await context.read<UserProvider>().updateUserField(currentUser.uid, {
-          'gender': _selectedGender, // Update 'gender', not 'genderPreference'
-        });
+        await context.read<ProfileManagementProvider>().updateUserField(
+          currentUser.uid,
+          {
+            'gender':
+                _selectedGender, // Update 'gender', not 'genderPreference'
+          },
+        );
       }
     }
 

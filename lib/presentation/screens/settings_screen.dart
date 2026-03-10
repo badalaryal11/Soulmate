@@ -5,7 +5,7 @@ import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/domain/repositories/auth_repository.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
-import 'package:soulmate/presentation/providers/user_provider.dart';
+import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
 
@@ -216,10 +216,9 @@ class SettingsScreen extends StatelessWidget {
                 final user = authRepository.currentUser;
                 if (user != null) {
                   if (context.mounted) {
-                    await context.read<UserProvider>().updateUserField(
-                      user.uid,
-                      {'email': newEmail},
-                    );
+                    await context
+                        .read<ProfileManagementProvider>()
+                        .updateUserField(user.uid, {'email': newEmail});
                   }
                 }
 
@@ -448,10 +447,9 @@ class SettingsScreen extends StatelessWidget {
                 try {
                   final userId = authRepository.currentUser?.uid ?? 'anonymous';
                   if (context.mounted) {
-                    await context.read<UserProvider>().saveFeedback(
-                      userId,
-                      message,
-                    );
+                    await context
+                        .read<ProfileManagementProvider>()
+                        .saveFeedback(userId, message);
                   }
 
                   if (context.mounted) {

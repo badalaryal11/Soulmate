@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user.dart';
 import '../../core/utils/image_generation_service.dart';
-import '../providers/user_provider.dart';
+import '../providers/current_user_provider.dart';
 import 'chat_screen.dart';
 
 class MatchScreen extends StatelessWidget {
@@ -35,7 +35,7 @@ class MatchScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Consumer<UserProvider>(
+              Consumer<CurrentUserProvider>(
                 builder: (context, userProvider, child) {
                   final currentUser = userProvider.currentUser;
                   return _Avatar(imageUrl: currentUser?.imageUrl ?? '');

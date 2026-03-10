@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'package:soulmate/presentation/providers/user_provider.dart';
+import 'package:soulmate/presentation/providers/current_user_provider.dart';
 import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
 import 'package:soulmate/core/utils/image_utils.dart';
@@ -30,7 +30,7 @@ class ProfileTab extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<UserProvider>(
+      body: Consumer<CurrentUserProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.currentUser;
 

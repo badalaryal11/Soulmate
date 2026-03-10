@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/interests.dart';
-import '../providers/user_provider.dart';
+import '../providers/profile_management_provider.dart';
 import '../../core/di/service_locator.dart';
 import 'home_screen.dart';
 
@@ -34,16 +34,14 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   }
 
   Future<void> _handleContinue() async {
-    final userProvider = context.read<UserProvider>();
-    userProvider.setInterests(_selectedInterests);
-
     // Update interests in Firestore if logged in
     final currentUser = ServiceLocator.authRepository.currentUser;
     if (currentUser != null) {
       if (mounted) {
-        await context.read<UserProvider>().updateUserField(currentUser.uid, {
-          'interests': _selectedInterests,
-        });
+        await context.read<ProfileManagementProvider>().updateUserField(
+          currentUser.uid,
+          {'interests': _selectedInterests},
+        );
       }
     }
 
