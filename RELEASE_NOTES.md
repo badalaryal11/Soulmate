@@ -2,6 +2,13 @@
 
 ---
 
+## v1.4.0 — Personalization & Aesthetics (March 11, 2026)
+
+### 🎨 Theme Customization
+* **Dark & Light Mode Toggle** — Introduced a new theme mode toggle in the settings, allowing users to seamlessly switch between Dark and Light modes to suit their visual preferences.
+
+---
+
 ## v1.3.0 — Architecture & Scalability Refactor (March 10, 2026)
 
 ### 🏗️ Provider Scalability Refactoring
