@@ -7,6 +7,8 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/constants/stickers.dart';
 
+import '../../core/utils/rate_limiter.dart';
+
 class ChatService {
   // Shared HTTP client for connection reuse
   static final http.Client _client = http.Client();
@@ -48,6 +50,15 @@ class ChatService {
     final connectivityResult = await _connectivity.checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.none)) {
       return "Error: No internet connection.";
+    }
+
+    // Rate limit AI requests to prevent spam (max 1 per 2 seconds, burst up to 3)
+    if (!RateLimiter.check(
+      'chat_ai_generation',
+      const Duration(seconds: 2),
+      maxBurst: 3,
+    )) {
+      return "Whoa there! You're messaging too fast. Give me a second to catch up! 😅";
     }
 
     final StringBuffer errorLog = StringBuffer();

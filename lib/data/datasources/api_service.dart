@@ -5,6 +5,7 @@ import 'package:soulmate/data/models/user_model.dart';
 import '../../domain/entities/user.dart' as domain;
 import 'image_generation_service.dart';
 import 'dart:developer' as developer;
+import '../../core/utils/rate_limiter.dart';
 
 // Top-level function for compute
 List<domain.User> parseDummyJsonUsers(String responseBody) {
@@ -38,6 +39,12 @@ class ApiService {
     int results = 50,
     String? gender,
   }) async {
+    // Prevent aggressive UI refreshing from hammering the API
+    if (!RateLimiter.check('fetch_users_api', const Duration(seconds: 3))) {
+      developer.log('Api fetch throttled by RateLimiter');
+      return [];
+    }
+
     // Split results between the two APIs
     // Ensure at least 1 user from each if results is small, otherwise split roughly 50/50
     int halfLimit = (results / 2).ceil();

@@ -4,6 +4,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../core/utils/image_generation_service.dart';
 import 'current_user_provider.dart';
+import '../../core/utils/rate_limiter.dart';
 
 enum DiscoveryStatus { initial, loading, loaded, error }
 
@@ -168,9 +169,15 @@ class DiscoveryProvider extends ChangeNotifier {
     if (direction == CardSwiperDirection.right) {
       _swipeCount++;
       if (_swipeCount >= _nextMatchThreshold) {
-        _triggerMatch(index);
-        _swipeCount = 0;
-        _nextMatchThreshold = 5 + (DateTime.now().millisecond % 5);
+        // Prevent rapid swiping from queuing up multiple matches simultaneously
+        if (RateLimiter.check(
+          'swipe_match_trigger',
+          const Duration(seconds: 1),
+        )) {
+          _triggerMatch(index);
+          _swipeCount = 0;
+          _nextMatchThreshold = 5 + (DateTime.now().millisecond % 5);
+        }
       }
     }
 
