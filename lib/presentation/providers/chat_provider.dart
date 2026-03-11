@@ -161,7 +161,8 @@ class ChatProvider extends ChangeNotifier {
     if (_chatId == null) return;
 
     final history = await _getMessageHistoryUseCase(_chatId!, limit: 50);
-    final sentTexts = history.map((m) => m.text).toSet();
+    // Micro-optimization: Use collection for-loop to build the Set directly without an intermediate Iterable
+    final sentTexts = {for (var m in history) m.text};
 
     final unusedIcebreakers = _icebreakers
         .where((i) => !sentTexts.contains(i))

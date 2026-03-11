@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_active_chats_usecase.dart';
 import '../../domain/usecases/get_chat_id_usecase.dart';
@@ -40,11 +41,10 @@ class MatchProvider extends ChangeNotifier {
       final List<(String, int)> chatMeta = [];
       for (var chat in chatDocs) {
         final participants = List<String>.from(chat['participants'] ?? []);
-        final otherUserId = participants.firstWhere(
+        final otherUserId = participants.firstWhereOrNull(
           (id) => id != currentUser.id,
-          orElse: () => '',
         );
-        if (otherUserId.isNotEmpty) {
+        if (otherUserId != null && otherUserId.isNotEmpty) {
           chatMeta.add((otherUserId, chat['streak'] ?? 0));
         }
       }
