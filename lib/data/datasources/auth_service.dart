@@ -60,7 +60,7 @@ class AuthService {
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
-      return null;
+      rethrow;
     }
   }
 

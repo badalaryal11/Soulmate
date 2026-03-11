@@ -280,11 +280,6 @@ class ChatProvider extends ChangeNotifier {
       _isTyping = false;
       notifyListeners();
 
-      if (responseText.startsWith("Error: No internet connection")) {
-        // Handle error via callback possibly
-        return;
-      }
-
       // Create AI Message
       final aiMessage = ChatMessage(
         id: _uuid.v4(),
@@ -297,6 +292,19 @@ class ChatProvider extends ChangeNotifier {
       await _sendMessageUseCase(_chatId!, aiMessage);
     } catch (e) {
       debugPrint("Error getting AI response: $e");
+
+      // Inject an AI-sent error message payload into the db instead of failing silently
+      final aiMessage = ChatMessage(
+        id: _uuid.v4(),
+        senderId: _otherUser!.id,
+        text: "I'm having a hard time connecting right now. Let's chat later!",
+        timestamp: DateTime.now(),
+      );
+      await _sendMessageUseCase(_chatId!, aiMessage);
+
+      // We explicitly DO NOT call notifyListeners with isTyping=false here
+      // because _sendMessageUseCase will soon update the Stream, triggering a UI rebuild.
+      // But we can just set it to false and wait.
       _isTyping = false;
       notifyListeners();
     }

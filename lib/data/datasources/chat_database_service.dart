@@ -41,6 +41,30 @@ class ChatDatabaseService {
   ChatDatabaseService({FlutterSecureStorage? secureStorage})
     : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
+  Future<String?> _safeRead(String key) async {
+    try {
+      return await _secureStorage.read(key: key);
+    } catch (e) {
+      debugPrint("Secure Storage Read Error (possible Keystore wipe): $e");
+      try {
+        await _secureStorage.deleteAll();
+      } catch (_) {}
+      return null;
+    }
+  }
+
+  Future<void> _safeWrite(String key, String value) async {
+    try {
+      await _secureStorage.write(key: key, value: value);
+    } catch (e) {
+      debugPrint("Secure Storage Write Error: $e");
+      try {
+        await _secureStorage.deleteAll();
+        await _secureStorage.write(key: key, value: value);
+      } catch (_) {}
+    }
+  }
+
   /// Generate a deterministic chat ID from two user IDs.
   String getChatId(String userId1, String userId2) {
     return userId1.hashCode <= userId2.hashCode
@@ -51,8 +75,7 @@ class ChatDatabaseService {
   /// Get active chats for a user.
   Future<List<Map<String, dynamic>>> getActiveChats(String userId) async {
     try {
-      final chatsJson =
-          await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+      final chatsJson = await _safeRead('chats_metadata') ?? '{}';
       final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
       List<Map<String, dynamic>> userChats = [];
@@ -84,7 +107,7 @@ class ChatDatabaseService {
       try {
         // Save Message
         final messagesKey = 'chat_messages_$chatId';
-        final msgsStr = await _secureStorage.read(key: messagesKey);
+        final msgsStr = await _safeRead(messagesKey);
         List<String> messagesJson = msgsStr != null
             ? List<String>.from(jsonDecode(msgsStr))
             : [];
@@ -95,17 +118,13 @@ class ChatDatabaseService {
           0,
           jsonEncode(msgMap),
         ); // Store newest first to match descending order
-        await _secureStorage.write(
-          key: messagesKey,
-          value: jsonEncode(messagesJson),
-        );
+        await _safeWrite(messagesKey, jsonEncode(messagesJson));
 
         // Update Stream
         _broadcastMessages(chatId);
 
         // Update Metadata
-        final chatsJson =
-            await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+        final chatsJson = await _safeRead('chats_metadata') ?? '{}';
         final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
         final chatData = allChats[chatId] as Map<String, dynamic>? ?? {};
@@ -148,10 +167,7 @@ class ChatDatabaseService {
         };
 
         allChats[chatId] = updatedData;
-        await _secureStorage.write(
-          key: 'chats_metadata',
-          value: jsonEncode(allChats),
-        );
+        await _safeWrite('chats_metadata', jsonEncode(allChats));
 
         // Broadcast Metadata change
         _broadcastChatMetadata(chatId, updatedData);
@@ -171,7 +187,7 @@ class ChatDatabaseService {
     return _mutex.synchronized(() async {
       try {
         final messagesKey = 'chat_messages_$chatId';
-        final msgsStr = await _secureStorage.read(key: messagesKey);
+        final msgsStr = await _safeRead(messagesKey);
         List<String> messagesJson = msgsStr != null
             ? List<String>.from(jsonDecode(msgsStr))
             : [];
@@ -185,10 +201,7 @@ class ChatDatabaseService {
           }
         }
 
-        await _secureStorage.write(
-          key: messagesKey,
-          value: jsonEncode(messagesJson),
-        );
+        await _safeWrite(messagesKey, jsonEncode(messagesJson));
         _broadcastMessages(chatId);
       } catch (e) {
         debugPrint("Error updating game message: $e");
@@ -205,7 +218,7 @@ class ChatDatabaseService {
     }
 
     // Send initial value
-    _secureStorage.read(key: 'chats_metadata').then((chatsJson) {
+    _safeRead('chats_metadata').then((chatsJson) {
       final Map<String, dynamic> allChats = jsonDecode(chatsJson ?? '{}');
       _chatStreamControllers[chatId]!.add(
         allChats[chatId] as Map<String, dynamic>?,
@@ -235,7 +248,7 @@ class ChatDatabaseService {
   }) async {
     try {
       final messagesKey = 'chat_messages_$chatId';
-      final msgsStr = await _secureStorage.read(key: messagesKey);
+      final msgsStr = await _safeRead(messagesKey);
       List<String> messagesJson = msgsStr != null
           ? List<String>.from(jsonDecode(msgsStr))
           : [];
@@ -264,15 +277,11 @@ class ChatDatabaseService {
         await _secureStorage.delete(key: 'chat_messages_$chatId');
 
         // Delete metadata
-        final chatsJson =
-            await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+        final chatsJson = await _safeRead('chats_metadata') ?? '{}';
         final Map<String, dynamic> allChats = jsonDecode(chatsJson);
         if (allChats.containsKey(chatId)) {
           allChats.remove(chatId);
-          await _secureStorage.write(
-            key: 'chats_metadata',
-            value: jsonEncode(allChats),
-          );
+          await _safeWrite('chats_metadata', jsonEncode(allChats));
         }
 
         // Close and remove stream controllers to prevent memory leaks
@@ -301,7 +310,7 @@ class ChatDatabaseService {
     return _mutex.synchronized(() async {
       try {
         final messagesKey = 'chat_messages_$chatId';
-        final msgsStr = await _secureStorage.read(key: messagesKey);
+        final msgsStr = await _safeRead(messagesKey);
         if (msgsStr == null) return;
 
         List<String> messagesJson = List<String>.from(jsonDecode(msgsStr));
@@ -319,10 +328,7 @@ class ChatDatabaseService {
         }
 
         if (changed) {
-          await _secureStorage.write(
-            key: messagesKey,
-            value: jsonEncode(messagesJson),
-          );
+          await _safeWrite(messagesKey, jsonEncode(messagesJson));
           _broadcastMessages(chatId);
         }
       } catch (e) {
@@ -333,7 +339,7 @@ class ChatDatabaseService {
 
   /// Delete all chat data from secure storage.
   Future<void> deleteAllChats() async {
-    final chatsJson = await _secureStorage.read(key: 'chats_metadata') ?? '{}';
+    final chatsJson = await _safeRead('chats_metadata') ?? '{}';
     final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
     for (var chatId in allChats.keys) {

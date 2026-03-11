@@ -49,9 +49,9 @@ class DiscoveryProvider extends ChangeNotifier {
   int _nextMatchThreshold = 3;
   Function(User)? onMatchFound;
 
-  User? _lastSwipedUser;
-  int? _lastSwipedIndex;
-  bool get canUndo => _lastSwipedUser != null;
+  final List<User> _undoUserStack = [];
+  final List<int> _undoIndexStack = [];
+  bool get canUndo => _undoUserStack.isNotEmpty;
 
   void _updateFilteredUsers() {
     _filteredUsers = _users.where((user) {
@@ -156,8 +156,12 @@ class DiscoveryProvider extends ChangeNotifier {
   void userSwiped(int index, CardSwiperDirection direction) {
     bool stateChanged = false;
     if (index < filteredUsers.length) {
-      _lastSwipedUser = filteredUsers[index];
-      _lastSwipedIndex = index;
+      _undoUserStack.add(filteredUsers[index]);
+      _undoIndexStack.add(index);
+      if (_undoUserStack.length > 10) {
+        _undoUserStack.removeAt(0);
+        _undoIndexStack.removeAt(0);
+      }
       stateChanged = true;
     }
 
@@ -178,11 +182,11 @@ class DiscoveryProvider extends ChangeNotifier {
   }
 
   void undoSwipe() {
-    if (_lastSwipedUser == null || _lastSwipedIndex == null) return;
-    final insertIndex = _lastSwipedIndex!.clamp(0, filteredUsers.length);
-    _filteredUsers.insert(insertIndex, _lastSwipedUser!);
-    _lastSwipedUser = null;
-    _lastSwipedIndex = null;
+    if (!canUndo) return;
+    final lastUser = _undoUserStack.removeLast();
+    final lastIndex = _undoIndexStack.removeLast();
+    final insertIndex = lastIndex.clamp(0, filteredUsers.length);
+    _filteredUsers.insert(insertIndex, lastUser);
     notifyListeners();
   }
 

@@ -50,9 +50,14 @@ class MatchProvider extends ChangeNotifier {
       }
 
       final futures = chatMeta.map((meta) async {
-        final (userId, streak) = meta;
-        final user = await _userRepository.getUser(userId);
-        return user?.copyWith(streak: streak);
+        try {
+          final (userId, streak) = meta;
+          final user = await _userRepository.getUser(userId);
+          return user?.copyWith(streak: streak);
+        } catch (e) {
+          debugPrint("Matched user load error: $e");
+          return null;
+        }
       });
 
       final results = await Future.wait(futures);
