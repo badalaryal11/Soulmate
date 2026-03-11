@@ -90,31 +90,73 @@ class SettingsScreen extends StatelessWidget {
 
           // Preferences Section
           _buildSectionHeader(context, 'Preferences'),
-          SwitchListTile(
-            title: Text(
-              'Dark Mode',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'App Theme',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('System'),
+                        icon: Icon(Icons.brightness_auto, size: 20),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                        icon: Icon(Icons.light_mode, size: 20),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('Dark'),
+                        icon: Icon(Icons.dark_mode, size: 20),
+                      ),
+                    ],
+                    selected: {themeProvider.themeMode},
+                    onSelectionChanged: (Set<ThemeMode> newSelection) {
+                      themeProvider.setThemeMode(newSelection.first);
+                    },
+                    style: ButtonStyle(
+                      side: WidgetStateProperty.all(
+                        BorderSide(
+                          color: const Color(0xFFFE3C72).withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            value: themeProvider.isDarkMode,
-            onChanged: (value) {
-              themeProvider.toggleTheme(value);
-            },
-            secondary: Icon(
-              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              color: const Color(0xFFFE3C72),
-            ),
-            activeTrackColor: const Color(0xFFFE3C72),
           ),
           const Divider(),
 
           const Divider(),
           _buildSectionHeader(context, 'About'),
           ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text('About Soulmate', style: GoogleFonts.poppins()),
+            leading: const Icon(
+              Icons.rocket_launch_outlined,
+              color: Color(0xFFFE3C72),
+            ),
+            title: Text(
+              'About Soulmate',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+            ),
+            subtitle: Text(
+              'Version 1.0.0 • Learn more',
+              style: GoogleFonts.poppins(fontSize: 12),
+            ),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => _showAboutDialog(context),
           ),
           ListTile(
@@ -347,15 +389,24 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Column(
           children: [
-            Image.asset('assets/images/logo_transparent.png', height: 40),
-            const SizedBox(width: 10),
+            Image.asset('assets/images/logo_transparent.png', height: 60),
+            const SizedBox(height: 12),
             Text(
               'Soulmate',
               style: GoogleFonts.pacifico(
-                fontSize: 24,
+                fontSize: 28,
                 color: const Color(0xFFFE3C72),
+              ),
+            ),
+            Text(
+              'Version 1.0.0',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -366,42 +417,92 @@ class SettingsScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Version 1.0.0',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                'Welcome to Soulmate, your personalized dating assistant designed to help you find meaningful connections through shared interests and AI-driven compatibility.',
+                style: GoogleFonts.poppins(fontSize: 14, height: 1.5),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Soulmate is a dating app designed to help you find meaningful connections based on shared interests and personality compatibility.',
-                style: GoogleFonts.poppins(),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFE3C72).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Core Features',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFE3C72),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildFeatureItem(
+                      Icons.psychology,
+                      'Smart Matching Algorithm',
+                    ),
+                    _buildFeatureItem(
+                      Icons.chat_bubble_outline,
+                      'AI-Powered Conversations',
+                    ),
+                    _buildFeatureItem(
+                      Icons.military_tech,
+                      'Gamified Chat XP System',
+                    ),
+                    _buildFeatureItem(
+                      Icons.security,
+                      'Secure & Private Platform',
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Features:',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'Made with ❤️ by the Soulmate Team',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
-              const SizedBox(height: 5),
-              Text('• Smart Matching Algorithm', style: GoogleFonts.poppins()),
-              const SizedBox(height: 5),
-              Text(
-                '• AI-Powered Conversations: Experience engaging conversations with our advanced AI models tailored to your personality.',
-                style: GoogleFonts.poppins(),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                '• Gamified Chat Experience: Level up your connection just by chatting! Earn XP for every message and unlock new relationship status levels.',
-                style: GoogleFonts.poppins(),
-              ),
-              const SizedBox(height: 5),
-              Text('• Personalized Profiles', style: GoogleFonts.poppins()),
-              Text('• Secure & Private', style: GoogleFonts.poppins()),
             ],
           ),
         ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFE3C72),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+            ),
+            child: Text(
+              'Awesome',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFFFE3C72)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: GoogleFonts.poppins(fontSize: 13))),
         ],
       ),
     );

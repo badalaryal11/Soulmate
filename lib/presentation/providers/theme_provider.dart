@@ -19,17 +19,34 @@ class ThemeProvider extends ChangeNotifier {
 
   Future<void> _loadTheme() async {
     final prefs = await _cachedPrefs;
-    final isDark = prefs.getBool('isDarkMode');
-    if (isDark != null) {
-      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    final themeString = prefs.getString('themeMode');
+    if (themeString != null) {
+      _themeMode = ThemeMode.values.firstWhere(
+        (e) => e.name == themeString,
+        orElse: () => ThemeMode.system,
+      );
       notifyListeners();
+    } else {
+      // Legacy basic bool fallback
+      final isDark = prefs.getBool('isDarkMode');
+      if (isDark != null) {
+        _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+        notifyListeners();
+      }
     }
   }
 
-  Future<void> toggleTheme(bool isDark) async {
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
     notifyListeners();
     final prefs = await _cachedPrefs;
-    await prefs.setBool('isDarkMode', isDark);
+    await prefs.setString('themeMode', mode.name);
+    // Clean up legacy boolean
+    await prefs.remove('isDarkMode');
+  }
+
+  // Legacy accessor wrapper
+  Future<void> toggleTheme(bool isDark) async {
+    await setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 }

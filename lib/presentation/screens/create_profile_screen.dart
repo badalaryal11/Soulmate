@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../core/di/service_locator.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 import 'gender_selection_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
@@ -216,6 +218,56 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 divisions: 82,
                 label: _age.toString(),
                 onChanged: (v) => setState(() => _age = v.round()),
+              ),
+              const SizedBox(height: 24),
+
+              // Theme Selection
+              Text(
+                'App Theme',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, child) {
+                    return SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          label: Text('System'),
+                          icon: Icon(Icons.brightness_auto),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('Light'),
+                          icon: Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('Dark'),
+                          icon: Icon(Icons.dark_mode),
+                        ),
+                      ],
+                      selected: {themeProvider.themeMode},
+                      onSelectionChanged: (Set<ThemeMode> newSelection) {
+                        themeProvider.setThemeMode(newSelection.first);
+                      },
+                      style: ButtonStyle(
+                        side: WidgetStateProperty.all(
+                          BorderSide(
+                            color: const Color(
+                              0xFFFE3C72,
+                            ).withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 24),
 
