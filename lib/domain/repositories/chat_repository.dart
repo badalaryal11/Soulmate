@@ -4,6 +4,7 @@ abstract class ChatRepository {
   Future<List<Map<String, dynamic>>> getActiveChats(String userId);
   Future<List<ChatMessage>> getMessageHistory(String chatId, {int limit = 10});
   Stream<List<ChatMessage>> getChatStream(String chatId);
+  Stream<Map<String, dynamic>?> getChatMetadataStream(String chatId);
   Future<void> sendMessage(String chatId, ChatMessage message);
   Future<void> updateGameMessage(
     String chatId,

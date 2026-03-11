@@ -26,6 +26,7 @@ import '../../domain/usecases/save_feedback_usecase.dart';
 import '../../domain/usecases/upload_profile_image_usecase.dart';
 import '../../domain/usecases/update_user_field_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
+import '../../domain/usecases/get_chat_metadata_stream_usecase.dart';
 import '../../domain/usecases/send_ai_message_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_in_with_apple_usecase.dart';
@@ -90,6 +91,9 @@ class ServiceLocator {
       sendMessageUseCase: SendMessageUseCase(_chatRepository),
       markMessagesAsReadUseCase: MarkMessagesAsReadUseCase(_chatRepository),
       sendAiMessageUseCase: SendAiMessageUseCase(_aiChatRepository),
+      getChatMetadataStreamUseCase: GetChatMetadataStreamUseCase(
+        _chatRepository,
+      ),
     );
   }
 

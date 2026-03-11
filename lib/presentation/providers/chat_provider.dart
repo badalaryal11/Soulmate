@@ -15,6 +15,7 @@ import '../../domain/usecases/get_message_history_usecase.dart';
 import '../../domain/usecases/send_message_usecase.dart';
 import '../../domain/usecases/mark_messages_as_read_usecase.dart';
 import '../../domain/usecases/send_ai_message_usecase.dart';
+import '../../domain/usecases/get_chat_metadata_stream_usecase.dart';
 
 class ChatProvider extends ChangeNotifier {
   // ignore: unused_field — reserved for future direct repository operations
@@ -27,6 +28,7 @@ class ChatProvider extends ChangeNotifier {
   final SendMessageUseCase _sendMessageUseCase;
   final MarkMessagesAsReadUseCase _markMessagesAsReadUseCase;
   final SendAiMessageUseCase _sendAiMessageUseCase;
+  final GetChatMetadataStreamUseCase _getChatMetadataStreamUseCase;
 
   ChatProvider({
     required AiChatRepository aiChatRepository,
@@ -37,6 +39,7 @@ class ChatProvider extends ChangeNotifier {
     required SendMessageUseCase sendMessageUseCase,
     required MarkMessagesAsReadUseCase markMessagesAsReadUseCase,
     required SendAiMessageUseCase sendAiMessageUseCase,
+    required GetChatMetadataStreamUseCase getChatMetadataStreamUseCase,
   }) : _aiChatRepository = aiChatRepository,
        _notificationRepository = notificationRepository,
        _getChatIdUseCase = getChatIdUseCase,
@@ -44,7 +47,8 @@ class ChatProvider extends ChangeNotifier {
        _getMessageHistoryUseCase = getMessageHistoryUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _markMessagesAsReadUseCase = markMessagesAsReadUseCase,
-       _sendAiMessageUseCase = sendAiMessageUseCase;
+       _sendAiMessageUseCase = sendAiMessageUseCase,
+       _getChatMetadataStreamUseCase = getChatMetadataStreamUseCase;
 
   late String _currentUserId;
   String? _chatId;
@@ -59,8 +63,8 @@ class ChatProvider extends ChangeNotifier {
   // Note: we track the stream of messages dynamically in the UI (StreamBuilder) or we can manage it here.
   // Managing it here gives us more control. Let's provide the stream.
   Stream<List<ChatMessage>>? _messagesStream;
-  StreamSubscription<List<ChatMessage>>?
-  _chatSubscription; // For XP updates. Since ChatMessage domain doesn't expose XP yet, we'll need to listen differently or adjust.
+  StreamSubscription<List<ChatMessage>>? _chatSubscription;
+  StreamSubscription<Map<String, dynamic>?>? _metadataSubscription;
 
   bool get isTyping => _isTyping;
   int get xp => _xp;
@@ -98,15 +102,14 @@ class ChatProvider extends ChangeNotifier {
     // Mark incoming messages as read
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
 
-    // Note: To get XP, the current GetChatStreamUseCase only returns List<ChatMessage>.
-    // To properly support XP in clean architecture without breaking domain boundaries,
-    // the Chat entity would need to include XP. For now, since ChatRepository stream
-    // strips out XP, we might need a dedicated `getChatDetailsStream` use-case, or
-    // we manage it through the messages.
-    // Wait, the UI used `_databaseService.getChatStream` which returns `Map<String, dynamic>`.
-
-    // I will implement a workaround for XP for now to preserve functionality without breaking abstractions later.
-    // For now, let's keep the stream attached and we'll fix XP through a separate UseCase or updating the UI soon.
+    // Listen to metadata for real-time XP changes
+    _metadataSubscription = _getChatMetadataStreamUseCase(_chatId!).listen((
+      metadata,
+    ) {
+      if (metadata != null && metadata.containsKey('xp')) {
+        updateXp(metadata['xp'] as int);
+      }
+    });
 
     notifyListeners();
   }
@@ -114,6 +117,8 @@ class ChatProvider extends ChangeNotifier {
   void disposeProvider() {
     _chatSubscription?.cancel();
     _chatSubscription = null;
+    _metadataSubscription?.cancel();
+    _metadataSubscription = null;
     _messagesStream = null;
     _chatId = null;
     _currentUser = null;

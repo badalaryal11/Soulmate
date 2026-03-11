@@ -39,6 +39,13 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
+  Stream<Map<String, dynamic>?> getChatMetadataStream(String chatId) {
+    return _databaseService.getChatStream(chatId).handleError((e) {
+      throw ServerFailure(e.toString());
+    });
+  }
+
+  @override
   Future<void> sendMessage(String chatId, ChatMessage message) async {
     try {
       await _databaseService.sendMessage(chatId, message);
