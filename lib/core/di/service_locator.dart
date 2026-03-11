@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+import '../../domain/repositories/chat_repository.dart';
+import '../../domain/repositories/user_repository.dart';
 import '../../data/datasources/auth_service.dart';
 import '../../data/datasources/database_service.dart';
 import '../../data/datasources/chat_service.dart';
@@ -23,7 +26,6 @@ import '../../domain/usecases/save_feedback_usecase.dart';
 import '../../domain/usecases/upload_profile_image_usecase.dart';
 import '../../domain/usecases/update_user_field_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
-import '../../domain/repositories/user_repository.dart';
 import '../../domain/usecases/send_ai_message_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_in_with_apple_usecase.dart';
@@ -53,21 +55,29 @@ class ServiceLocator {
   static final ChatService _chatService = ChatService();
 
   // Repositories (exposed as abstractions)
-  static final ChatRepositoryImpl _chatRepository = ChatRepositoryImpl(
+  static final ChatRepository _chatRepository = ChatRepositoryImpl(
     _databaseService,
   );
-  static final UserRepositoryImpl _userRepository = UserRepositoryImpl(
+  static UserRepository _userRepository = UserRepositoryImpl(
     _databaseService,
     _apiService,
   );
-  static final AuthRepository _authRepository = AuthRepositoryImpl(
-    _authService,
-  );
+  static AuthRepository _authRepository = AuthRepositoryImpl(_authService);
   static final AiChatRepository _aiChatRepository = AiChatRepositoryImpl(
     _chatService,
   );
   static final NotificationRepository _notificationRepository =
       NotificationRepositoryImpl(_notificationService);
+
+  @visibleForTesting
+  static void setMockRepositories({
+    AuthRepository? authRepository,
+    dynamic
+    userRepository, // Use dynamic to avoid strict type coupling with UserRepositoryImpl
+  }) {
+    if (authRepository != null) _authRepository = authRepository;
+    if (userRepository != null) _userRepository = userRepository;
+  }
 
   /// Create a fully-wired [ChatProvider].
   static ChatProvider createChatProvider() {
