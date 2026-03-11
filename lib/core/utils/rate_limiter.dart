@@ -11,7 +11,14 @@ class RateLimiter {
   /// allowed before the strict [cooldown] is enforced.
   static bool check(String key, Duration cooldown, {int maxBurst = 1}) {
     final now = DateTime.now();
-    final data = _limits.putIfAbsent(key, () => _RateLimitData(now));
+
+    // If this is the very first time we've seen this key, allow it immediately
+    if (!_limits.containsKey(key)) {
+      _limits[key] = _RateLimitData(now);
+      return true;
+    }
+
+    final data = _limits[key]!;
 
     // If enough time has passed since the last request, reset burst counter
     if (now.difference(data.lastRequestTime) > cooldown * maxBurst) {
