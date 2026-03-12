@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'dart:io';
+
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../core/di/service_locator.dart';
@@ -25,6 +31,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
+
+  final ImagePicker _picker = ImagePicker();
+  File? _imageFile;
+  String? _selectedAvatarUrl;
 
   String _selectedGender = 'Male';
   int _age = 18;
@@ -54,12 +64,172 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      if (!mounted) return;
+      setState(() {
+        _imageFile = File(image.path);
+        _selectedAvatarUrl = null;
+      });
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Upload from Device'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.grid_view),
+                title: const Text('Choose Avatar'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAvatarSelectionSheet();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAvatarSelectionSheet() {
+    final List<String> avatarSeeds = List.generate(
+      30,
+      (index) => 'seed_${DateTime.now().millisecondsSinceEpoch}_$index',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Choose an Avatar',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    controller: controller,
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                    itemCount: avatarSeeds.length,
+                    itemBuilder: (context, index) {
+                      final seed = avatarSeeds[index];
+                      final url =
+                          'https://api.dicebear.com/9.x/adventurer/png?seed=$seed';
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedAvatarUrl = url;
+                            _imageFile = null;
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey[300]!),
+                            color: Colors.grey[100],
+                          ),
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: url,
+                              memCacheWidth: 200,
+                              maxWidthDiskCache: 200,
+                              placeholder: (context, url) => const Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
+      String imageUrl =
+          widget.firebaseUser.photoURL ?? 'assets/images/default_avatar.png';
+
+      // Handle picked image from device
+      if (_imageFile != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName =
+            '${widget.firebaseUser.uid}_avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
+        final localFile = File('${appDir.path}/$fileName');
+
+        final compressed = await FlutterImageCompress.compressAndGetFile(
+          _imageFile!.absolute.path,
+          localFile.path,
+          quality: 75,
+          format: CompressFormat.webp,
+        );
+
+        if (compressed != null) {
+          imageUrl = 'file://${compressed.path}';
+        } else {
+          await _imageFile!.copy(localFile.path);
+          imageUrl = 'file://${localFile.path}';
+        }
+      } else if (_selectedAvatarUrl != null) {
+        imageUrl = _selectedAvatarUrl!;
+      }
+
       final user = User(
         id: widget.firebaseUser.uid,
         email: widget.firebaseUser.email ?? '',
@@ -71,8 +241,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         city: _cityController.text.trim(),
         country: '',
         interests: [],
-        imageUrl:
-            widget.firebaseUser.photoURL ?? 'assets/images/default_avatar.png',
+        imageUrl: imageUrl,
       );
 
       await _userRepository.saveUser(user);
@@ -123,6 +292,65 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: isDark ? Colors.white70 : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Profile Picture
+              Center(
+                child: GestureDetector(
+                  onTap: _showImagePickerOptions,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: isDark
+                            ? Colors.grey[800]
+                            : Colors.grey[200],
+                        backgroundImage: _selectedAvatarUrl != null
+                            ? NetworkImage(_selectedAvatarUrl!)
+                            : (_imageFile != null
+                                  ? FileImage(_imageFile!)
+                                  : null),
+                        child: (_selectedAvatarUrl == null &&
+                                _imageFile == null)
+                            ? Icon(
+                                Icons.person,
+                                size: 60,
+                                color: isDark
+                                    ? Colors.grey[600]
+                                    : Colors.grey[400],
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFE3C72),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Tap to add a photo',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: isDark ? Colors.white54 : Colors.grey[500],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
