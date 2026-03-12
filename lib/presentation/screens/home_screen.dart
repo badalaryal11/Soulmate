@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ).createShader(bounds),
                 child: Text(
                   'Soulmate',
-                  style: GoogleFonts.pacifico(
+                  style: GoogleFonts.lobster(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
