@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/utils/image_utils.dart';
 import '../../core/constants/stickers.dart';
 import '../../domain/entities/user.dart';
@@ -62,7 +63,22 @@ class _ChatScreenState extends State<ChatScreen> {
         };
         chatProvider.initChat(currentUser, widget.user);
       }
+      _precacheStickers();
     });
+  }
+
+  /// Precache all sticker GIFs in the background so they load instantly
+  /// when the user opens the sticker picker.
+  void _precacheStickers() {
+    for (final sticker in Stickers.stickerData) {
+      final url = sticker['url'];
+      if (url != null && url.isNotEmpty) {
+        precacheImage(
+          CachedNetworkImageProvider(url, maxWidth: 250, maxHeight: 250),
+          context,
+        );
+      }
+    }
   }
 
   void _showGamificationDetails() {
@@ -655,11 +671,26 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: ImageUtils.getImageWidget(
-                          sticker['url']!,
+                        child: CachedNetworkImage(
+                          imageUrl: sticker['url']!,
                           fit: BoxFit.cover,
                           memCacheWidth: 250,
                           memCacheHeight: 250,
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                          placeholder: (context, url) => Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.error_outline, color: Colors.grey, size: 24),
+                          ),
                         ),
                       ),
                     );

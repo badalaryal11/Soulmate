@@ -100,17 +100,37 @@ class _HomeScreenState extends State<HomeScreen> {
       // MatchesScreen (Index 1) has its own AppBar
       appBar: _selectedIndex == 0
           ? AppBar(
-              title: Text(
-                'Soulmate',
-                style: GoogleFonts.pacifico(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFE3C72),
+              title: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFFFF6B9D), // Soft pink
+                    Color(0xFFFE3C72), // Vibrant rose
+                    Color(0xFFFF8A65), // Warm coral
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+                child: Text(
+                  'Soulmate',
+                  style: GoogleFonts.pacifico(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                    color: Colors.white, // Required for ShaderMask
+                    shadows: [
+                      Shadow(
+                        color: const Color(0xFFFE3C72).withValues(alpha: 0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               centerTitle: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
+              toolbarHeight: 60,
               leading: IconButton(
                 icon: const Icon(Icons.tune_rounded),
                 tooltip: 'Filters',
