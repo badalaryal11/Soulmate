@@ -86,10 +86,10 @@ class ApiService {
     while (attempts < maxAttempts) {
       try {
         attempts++;
-        String url = '$_dummyJsonUrl?limit=$results';
-        if (gender != null && gender != 'everyone') {
-          url = '$_dummyJsonUrl/filter?key=gender&value=$gender&limit=$results';
-        }
+        // Always use the basic endpoint to fetch more users, then filter client-side
+        const int fetchLimit =
+            50; // Fetch more users to ensure we have enough after filtering
+        String url = '$_dummyJsonUrl?limit=$fetchLimit';
 
         developer.log('Fetching DummyJSON users: $url');
         final response = await _client
@@ -101,7 +101,22 @@ class ApiService {
 
         if (response.statusCode == 200) {
           // Offload parsing to background isolate
-          return await compute(parseDummyJsonUsers, response.body);
+          List<domain.User> users = await compute(
+            parseDummyJsonUsers,
+            response.body,
+          );
+
+          // Filter by gender if specified
+          if (gender != null && gender != 'everyone') {
+            users = users
+                .where(
+                  (user) => user.gender.toLowerCase() == gender.toLowerCase(),
+                )
+                .toList();
+          }
+
+          // Return only the requested number
+          return users.take(results).toList();
         } else {
           if (response.statusCode >= 400 && response.statusCode < 500) {
             return [];
