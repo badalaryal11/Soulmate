@@ -54,14 +54,13 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderRadius = BorderRadius.circular(radius * 0.8);
 
     return Container(
       width: radius * 2,
       height: radius * 2,
-      decoration: ShapeDecoration(
-        shape: ContinuousRectangleBorder(borderRadius: borderRadius),
-        shadows: [
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.15),
             blurRadius: 10,
@@ -72,8 +71,8 @@ class UserAvatar extends StatelessWidget {
       ),
       child: Container(
         padding: const EdgeInsets.all(3), // Border width
-        decoration: ShapeDecoration(
-          shape: ContinuousRectangleBorder(borderRadius: borderRadius),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
           gradient: LinearGradient(
             colors: [
               const Color(0xFFFE3C72),
@@ -84,14 +83,11 @@ class UserAvatar extends StatelessWidget {
           ),
         ),
         child: Container(
-          decoration: ShapeDecoration(
-            shape: ContinuousRectangleBorder(borderRadius: borderRadius),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
             color: isDark ? Colors.grey[900] : Colors.white,
           ),
-          child: ClipPath(
-            clipper: ShapeBorderClipper(
-              shape: ContinuousRectangleBorder(borderRadius: borderRadius),
-            ),
+          child: ClipOval(
             child: _hasImage
                 ? ImageUtils.getImageWidget(
                     imageUrl,
