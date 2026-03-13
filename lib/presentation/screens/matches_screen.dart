@@ -338,6 +338,8 @@ class _MatchAvatarItem extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               user.firstName,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -383,11 +385,15 @@ class _MessageListItem extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        user.firstName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          user.firstName,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       if (user.streak > 0) ...[

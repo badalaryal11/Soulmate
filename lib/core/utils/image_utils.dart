@@ -13,8 +13,17 @@ class ImageUtils {
     if (url == null || url.isEmpty) return null;
 
     if (url.startsWith('file://')) {
-      final path = url.substring(7);
-      return FileImage(File(path));
+      try {
+        final path = url.substring(7);
+        final file = File(path);
+        if (!file.existsSync()) {
+          return const AssetImage('assets/images/logo_transparent.png');
+        }
+        return FileImage(file);
+      } catch (e) {
+        debugPrint('Error loading file image provider: $e');
+        return const AssetImage('assets/images/logo_transparent.png');
+      }
     } else if (url.startsWith('assets/')) {
       return AssetImage(url);
     } else {
@@ -45,15 +54,27 @@ class ImageUtils {
     }
 
     if (url.startsWith('file://')) {
-      final path = url.substring(7);
-      return Image.file(
-        File(path),
-        width: width,
-        height: height,
-        fit: fit,
-        cacheWidth: memCacheWidth,
-        cacheHeight: memCacheHeight,
-      );
+      try {
+        final path = url.substring(7);
+        final file = File(path);
+        if (!file.existsSync()) {
+          return _buildPlaceholder(width, height);
+        }
+
+        return Image.file(
+          file,
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: memCacheWidth,
+          cacheHeight: memCacheHeight,
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholder(width, height),
+        );
+      } catch (e) {
+        debugPrint('Error loading file image widget: $e');
+        return _buildPlaceholder(width, height);
+      }
     } else if (url.startsWith('assets/')) {
       return Image.asset(
         url,
@@ -62,6 +83,8 @@ class ImageUtils {
         fit: fit,
         cacheWidth: memCacheWidth,
         cacheHeight: memCacheHeight,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildPlaceholder(width, height),
       );
     } else {
       return CachedNetworkImage(
@@ -77,13 +100,17 @@ class ImageUtils {
           color: Colors.grey[200],
           child: const Center(child: CircularProgressIndicator()),
         ),
-        errorWidget: (context, url, error) => Container(
-          width: width,
-          height: height,
-          color: Colors.grey[300],
-          child: const Icon(Icons.error, color: Colors.grey),
-        ),
+        errorWidget: (context, url, error) => _buildPlaceholder(width, height),
       );
     }
+  }
+
+  static Widget _buildPlaceholder(double? width, double? height) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[300],
+      child: const Icon(Icons.person, color: Colors.grey),
+    );
   }
 }

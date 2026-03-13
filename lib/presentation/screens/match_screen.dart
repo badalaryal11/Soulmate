@@ -16,77 +16,92 @@ class MatchScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black.withValues(alpha: 0.9),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'It\'s a Match!',
-            style: TextStyle(
-              fontFamily:
-                  'Pacifico', // Or any script font if available, or just standard
-              fontSize: 48,
-              color: Color(0xFFFE3C72),
-              fontWeight: FontWeight.bold,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-          const SizedBox(height: 40),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Consumer<CurrentUserProvider>(
-                builder: (context, userProvider, child) {
-                  final currentUser = userProvider.currentUser;
-                  return _Avatar(imageUrl: currentUser?.imageUrl ?? '');
-                },
-              ),
-              const SizedBox(width: 20),
-              _Avatar(
-                imageUrl: user.imageUrl.isNotEmpty
-                    ? user.imageUrl
-                    : ImageGenerationService.generateProfileImageUrl(user),
-              ),
-            ],
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'You and ${user.firstName} like each other.',
-            style: const TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          const SizedBox(height: 60),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => ChatScreen(user: user),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'It\'s a Match!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily:
+                          'Pacifico', // Or any script font if available, or just standard
+                      fontSize: 48,
+                      color: Color(0xFFFE3C72),
+                      fontWeight: FontWeight.bold,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFFFE3C72),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                minimumSize: const Size(double.infinity, 50),
+                  const SizedBox(height: 40),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Consumer<CurrentUserProvider>(
+                        builder: (context, userProvider, child) {
+                          final currentUser = userProvider.currentUser;
+                          return _Avatar(imageUrl: currentUser?.imageUrl ?? '');
+                        },
+                      ),
+                      const SizedBox(width: 20),
+                      _Avatar(
+                        imageUrl: user.imageUrl.isNotEmpty
+                            ? user.imageUrl
+                            : ImageGenerationService.generateProfileImageUrl(
+                                user,
+                              ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  Text(
+                    'You and ${user.firstName} like each other.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  const SizedBox(height: 60),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(user: user),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFFE3C72),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('SEND A MESSAGE'),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Keep Swiping',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ],
               ),
-              child: const Text('SEND A MESSAGE'),
             ),
           ),
-          const SizedBox(height: 20),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'Keep Swiping',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

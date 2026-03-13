@@ -53,15 +53,19 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_hasImage) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: Colors.grey[200],
-        backgroundImage: overrideImage ??
-            ImageUtils.getImageProvider(
-              imageUrl,
-              maxWidth: (radius * 4).toInt(),
-              maxHeight: (radius * 4).toInt(),
-            ),
+      return SizedBox(
+        width: radius * 2,
+        height: radius * 2,
+        child: ClipOval(
+          child: ImageUtils.getImageWidget(
+            imageUrl,
+            width: radius * 2,
+            height: radius * 2,
+            fit: BoxFit.cover,
+            memCacheWidth: (radius * 4).toInt(),
+            memCacheHeight: (radius * 4).toInt(),
+          ),
+        ),
       );
     }
 
