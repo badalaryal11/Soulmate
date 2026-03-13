@@ -110,15 +110,23 @@ class DiscoveryProvider extends ChangeNotifier {
         if (_seenUserIds.contains(user.id)) continue;
 
         String finalUrl = user.imageUrl;
+        bool isGenerated = false;
+
+        // Only generate a fallback URL if the user has no valid image
         if (finalUrl.isEmpty ||
             (!finalUrl.startsWith('http') && !finalUrl.startsWith('assets/'))) {
           finalUrl = ImageGenerationService.generateProfileImageUrl(user);
+          isGenerated = true;
         }
 
-        int retryCount = 0;
-        while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
-          finalUrl = ImageGenerationService.getFallbackUrl(user, finalUrl);
-          retryCount++;
+        // Only run image-URL dedup for generated images (limited pool).
+        // API-sourced photos are already unique per user.
+        if (isGenerated) {
+          int retryCount = 0;
+          while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
+            finalUrl = ImageGenerationService.getFallbackUrl(user, finalUrl);
+            retryCount++;
+          }
         }
 
         _seenUserIds.add(user.id);
