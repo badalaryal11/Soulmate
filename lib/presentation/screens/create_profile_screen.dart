@@ -311,7 +311,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     children: [
                       _imageFile != null
                           ? CircleAvatar(
-                              radius: 60,
+                              radius: 80,
                               backgroundColor: isDark
                                   ? Colors.grey[800]
                                   : Colors.grey[200],
@@ -319,7 +319,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                             )
                           : _selectedAvatarUrl != null
                               ? CircleAvatar(
-                                  radius: 60,
+                                  radius: 80,
                                   backgroundColor: isDark
                                       ? Colors.grey[800]
                                       : Colors.grey[200],
@@ -327,7 +327,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                       NetworkImage(_selectedAvatarUrl!),
                                 )
                               : UserAvatar(
-                                  radius: 60,
+                                  radius: 80,
                                   firstName: _firstNameController.text,
                                   lastName: _lastNameController.text,
                                 ),

@@ -61,7 +61,7 @@ class ProfileTab extends StatelessWidget {
                       ],
                     ),
                     child: UserAvatar(
-                      radius: 80,
+                      radius: 100, // Increased size
                       imageUrl: user.imageUrl,
                       firstName: user.firstName,
                       lastName: user.lastName,

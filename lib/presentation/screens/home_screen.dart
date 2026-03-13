@@ -100,43 +100,38 @@ class _HomeScreenState extends State<HomeScreen> {
       // MatchesScreen (Index 1) has its own AppBar
       appBar: _selectedIndex == 0
           ? AppBar(
-              title: ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [
-                    Color(0xFFFF6B9D), // Soft pink
-                    Color(0xFFFE3C72), // Vibrant rose
-                    Color(0xFFFF8A65), // Warm coral
+              title: Text(
+                'Soulmate',
+                style: GoogleFonts.lobster(
+                  fontSize: 30, // Slightly reduced to fit with balanced side widths
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFE3C72),
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ).createShader(bounds),
-                child: Text(
-                  'Soulmate',
-                  style: GoogleFonts.lobster(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                    color: Colors.white, // Required for ShaderMask
-                    shadows: [
-                      Shadow(
-                        color: const Color(0xFFFE3C72).withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               centerTitle: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              toolbarHeight: 60,
-              leading: IconButton(
-                icon: const Icon(Icons.tune_rounded),
-                tooltip: 'Filters',
-                onPressed: () {
-                  _showFilterDialog(context);
-                },
+              toolbarHeight: 70,
+              leadingWidth: 100, // Balanced with actions width, reduced to prevent title truncation
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.tune_rounded),
+                    tooltip: 'Filters',
+                    onPressed: () {
+                      _showFilterDialog(context);
+                    },
+                  ),
+                ),
               ),
               actions: [
                 Consumer<CurrentUserProvider>(
@@ -189,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4), // Tightened spacing
                         // Coins Badge
                         Tooltip(
                           message:
@@ -237,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4), // Tightened end spacing
               ],
             )
           : null, // Hide AppBar when not on Home tab

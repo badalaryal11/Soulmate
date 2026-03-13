@@ -24,8 +24,8 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Disable HTTP fetching for Google Fonts to prevent Flash of Unstyled Text
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // Enable HTTP fetching for Google Fonts to ensure new fonts like Lobster load correctly
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   PaintingBinding.instance.imageCache.maximumSizeBytes =
       100 * 1024 * 1024; // 100MB Cache

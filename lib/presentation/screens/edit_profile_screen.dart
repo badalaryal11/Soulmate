@@ -526,7 +526,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     _isUploadingImage
                         ? CircleAvatar(
-                            radius: 60,
+                            radius: 80,
                             backgroundColor: Colors.grey[200],
                             child: const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -536,19 +536,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           )
                         : _generatedAvatarUrl != null
                             ? CircleAvatar(
-                                radius: 60,
+                                radius: 80,
                                 backgroundColor: Colors.grey[200],
                                 backgroundImage:
                                     NetworkImage(_generatedAvatarUrl!),
                               )
                             : _imageFile != null
                                 ? CircleAvatar(
-                                    radius: 60,
+                                    radius: 80,
                                     backgroundColor: Colors.grey[200],
                                     backgroundImage: FileImage(_imageFile!),
                                   )
                                 : UserAvatar(
-                                    radius: 60,
+                                    radius: 80,
                                     imageUrl: _currentUser!.imageUrl,
                                     firstName: _firstNameController.text,
                                     lastName: _lastNameController.text,
