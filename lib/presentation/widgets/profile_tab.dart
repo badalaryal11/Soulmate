@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/providers/current_user_provider.dart';
 import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
-import 'package:soulmate/core/utils/image_utils.dart';
+import 'package:soulmate/presentation/widgets/user_avatar.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -60,23 +60,11 @@ class ProfileTab extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: CircleAvatar(
+                    child: UserAvatar(
                       radius: 80,
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: user.imageUrl.isNotEmpty
-                          ? ImageUtils.getImageProvider(
-                              user.imageUrl,
-                              maxWidth: 300,
-                              maxHeight: 300,
-                            )
-                          : null,
-                      child: user.imageUrl.isEmpty
-                          ? const Icon(
-                              Icons.person,
-                              size: 80,
-                              color: Colors.grey,
-                            )
-                          : null,
+                      imageUrl: user.imageUrl,
+                      firstName: user.firstName,
+                      lastName: user.lastName,
                     ),
                   ),
                 ),

@@ -12,7 +12,7 @@ import '../providers/current_user_provider.dart';
 import 'interest_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../core/utils/image_utils.dart';
+import '../widgets/user_avatar.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -524,35 +524,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 onTap: _showImagePickerOptions,
                 child: Stack(
                   children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: _generatedAvatarUrl != null
-                          ? NetworkImage(_generatedAvatarUrl!)
-                          : (_imageFile != null
-                                ? FileImage(_imageFile!)
-                                : (_currentUser!.imageUrl.isNotEmpty
-                                      ? ImageUtils.getImageProvider(
-                                          _currentUser!.imageUrl,
-                                          maxWidth: 300,
-                                        )
-                                      : null)),
-                      child: _isUploadingImage
-                          ? const CircularProgressIndicator(
+                    _isUploadingImage
+                        ? CircleAvatar(
+                            radius: 60,
+                            backgroundColor: Colors.grey[200],
+                            child: const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Color(0xFFFE3C72),
                               ),
-                            )
-                          : (_generatedAvatarUrl == null &&
-                                _imageFile == null &&
-                                _currentUser!.imageUrl.isEmpty)
-                          ? const Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Colors.grey,
-                            )
-                          : null,
-                    ),
+                            ),
+                          )
+                        : _generatedAvatarUrl != null
+                            ? CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage:
+                                    NetworkImage(_generatedAvatarUrl!),
+                              )
+                            : _imageFile != null
+                                ? CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: Colors.grey[200],
+                                    backgroundImage: FileImage(_imageFile!),
+                                  )
+                                : UserAvatar(
+                                    radius: 60,
+                                    imageUrl: _currentUser!.imageUrl,
+                                    firstName: _firstNameController.text,
+                                    lastName: _lastNameController.text,
+                                  ),
                     Positioned(
                       bottom: 0,
                       right: 0,

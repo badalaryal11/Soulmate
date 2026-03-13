@@ -128,6 +128,10 @@ class DiscoveryProvider extends ChangeNotifier {
 
       _users.addAll(uniqueUsers);
 
+      // Belt-and-suspenders: ensure no duplicate IDs in the list
+      final seen = <String>{};
+      _users.retainWhere((user) => seen.add(user.id));
+
       if (_users.length > _maxUsers) {
         _users.removeRange(0, _users.length - _maxUsers);
       }

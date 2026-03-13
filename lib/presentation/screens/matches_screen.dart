@@ -10,11 +10,37 @@ import '../../core/di/service_locator.dart';
 import '../../core/utils/image_generation_service.dart';
 import 'login_screen.dart';
 
-class MatchesScreen extends StatelessWidget {
+class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
 
   @override
+  State<MatchesScreen> createState() => _MatchesScreenState();
+}
+
+class _MatchesScreenState extends State<MatchesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<User> _filterUsers(List<User> users) {
+    if (_searchQuery.isEmpty) return users;
+    final query = _searchQuery.toLowerCase();
+    return users.where((user) {
+      return user.firstName.toLowerCase().contains(query) ||
+          user.lastName.toLowerCase().contains(query) ||
+          user.fullName.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -60,9 +86,10 @@ class MatchesScreen extends StatelessWidget {
       ),
       body: Consumer2<MatchProvider, CurrentUserProvider>(
         builder: (context, matchProvider, currentUserProvider, child) {
-          final matches = matchProvider.matches;
+          final allMatches = matchProvider.matches;
+          final filteredMatches = _filterUsers(allMatches);
 
-          final favorites = matches.where((user) {
+          final favorites = filteredMatches.where((user) {
             return currentUserProvider.currentUser?.favoriteUserIds.contains(
                   user.id,
                 ) ??
@@ -71,9 +98,70 @@ class MatchesScreen extends StatelessWidget {
 
           return CustomScrollView(
             slivers: [
+              // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
+                    style: GoogleFonts.poppins(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Search matches...',
+                      hintStyle: GoogleFonts.poppins(
+                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: isDark ? Colors.grey[400] : Colors.grey[500],
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.close_rounded,
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[500],
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[800] : Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFFE3C72),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                   child: Text(
                     'Favorites',
                     style: GoogleFonts.poppins(
@@ -92,7 +180,9 @@ class MatchesScreen extends StatelessWidget {
                       vertical: 10,
                     ),
                     child: Text(
-                      'No favorites yet',
+                      _searchQuery.isNotEmpty
+                          ? 'No favorites matching "$_searchQuery"'
+                          : 'No favorites yet',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.grey[500],
@@ -140,7 +230,7 @@ class MatchesScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              if (matches.isEmpty)
+              if (filteredMatches.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 60),
@@ -148,13 +238,17 @@ class MatchesScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.favorite_border,
+                          _searchQuery.isNotEmpty
+                              ? Icons.search_off_rounded
+                              : Icons.favorite_border,
                           size: 80,
                           color: Colors.grey[300],
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No matches yet.',
+                          _searchQuery.isNotEmpty
+                              ? 'No matches found'
+                              : 'No matches yet.',
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             color: Colors.grey[500],
@@ -163,7 +257,9 @@ class MatchesScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Keep swiping to find your soulmate!',
+                          _searchQuery.isNotEmpty
+                              ? 'Try a different name'
+                              : 'Keep swiping to find your soulmate!',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey[400],
@@ -181,7 +277,7 @@ class MatchesScreen extends StatelessWidget {
                   ),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      final user = matches[index];
+                      final user = filteredMatches[index];
                       return RepaintBoundary(
                         child: Column(
                           children: [
@@ -189,12 +285,12 @@ class MatchesScreen extends StatelessWidget {
                               user: user,
                               onTap: () => _openChat(context, user),
                             ),
-                            if (index < matches.length - 1)
+                            if (index < filteredMatches.length - 1)
                               const Divider(height: 1), // Separator
                           ],
                         ),
                       );
-                    }, childCount: matches.length),
+                    }, childCount: filteredMatches.length),
                   ),
                 ),
               const SliverPadding(padding: EdgeInsets.only(bottom: 20)),

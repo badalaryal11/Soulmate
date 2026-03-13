@@ -58,10 +58,16 @@ class UserRepositoryImpl implements UserRepository {
       final firestoreUsers = results[0];
       final apiUsers = results[1];
 
-      // Combine (Prioritize Firestore)
-      final allUsers = [...firestoreUsers, ...apiUsers];
+      // Combine and deduplicate by user ID (Firestore users take priority)
+      final seenIds = <String>{};
+      final allUsers = <domain.User>[];
+      for (final user in [...firestoreUsers, ...apiUsers]) {
+        if (seenIds.add(user.id)) {
+          allUsers.add(user);
+        }
+      }
 
-      // 4. Shuffle mixed results
+      // Shuffle mixed results
       allUsers.shuffle();
 
       return allUsers;

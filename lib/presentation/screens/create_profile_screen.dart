@@ -12,6 +12,7 @@ import '../../domain/repositories/user_repository.dart';
 import '../../core/di/service_locator.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/user_avatar.dart';
 import 'gender_selection_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
@@ -52,6 +53,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       if (nameParts.length > 1) {
         _lastNameController.text = nameParts.sublist(1).join(' ');
       }
+    }
+
+    // Use Google profile photo as default avatar if available
+    if (widget.firebaseUser.photoURL != null &&
+        widget.firebaseUser.photoURL!.isNotEmpty) {
+      _selectedAvatarUrl = widget.firebaseUser.photoURL;
     }
   }
 
@@ -302,27 +309,28 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   onTap: _showImagePickerOptions,
                   child: Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: isDark
-                            ? Colors.grey[800]
-                            : Colors.grey[200],
-                        backgroundImage: _selectedAvatarUrl != null
-                            ? NetworkImage(_selectedAvatarUrl!)
-                            : (_imageFile != null
-                                  ? FileImage(_imageFile!)
-                                  : null),
-                        child: (_selectedAvatarUrl == null &&
-                                _imageFile == null)
-                            ? Icon(
-                                Icons.person,
-                                size: 60,
-                                color: isDark
-                                    ? Colors.grey[600]
-                                    : Colors.grey[400],
-                              )
-                            : null,
-                      ),
+                      _imageFile != null
+                          ? CircleAvatar(
+                              radius: 60,
+                              backgroundColor: isDark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[200],
+                              backgroundImage: FileImage(_imageFile!),
+                            )
+                          : _selectedAvatarUrl != null
+                              ? CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor: isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[200],
+                                  backgroundImage:
+                                      NetworkImage(_selectedAvatarUrl!),
+                                )
+                              : UserAvatar(
+                                  radius: 60,
+                                  firstName: _firstNameController.text,
+                                  lastName: _lastNameController.text,
+                                ),
                       Positioned(
                         bottom: 0,
                         right: 0,
