@@ -52,42 +52,77 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_hasImage) {
-      return SizedBox(
-        width: radius * 2,
-        height: radius * 2,
-        child: ClipOval(
-          child: ImageUtils.getImageWidget(
-            imageUrl,
-            width: radius * 2,
-            height: radius * 2,
-            fit: BoxFit.cover,
-            memCacheWidth: (radius * 4).toInt(),
-            memCacheHeight: (radius * 4).toInt(),
-          ),
-        ),
-      );
-    }
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    // Initials fallback
     return Container(
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: _gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.15),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Center(
-        child: Text(
-          _initials,
-          style: GoogleFonts.poppins(
-            fontSize: radius * 0.7,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.all(3), // Border width
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFFFE3C72),
+              const Color(0xFFFE3C72).withValues(alpha: 0.5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark ? Colors.grey[900] : Colors.white,
+          ),
+          child: ClipOval(
+            child: _hasImage
+                ? ImageUtils.getImageWidget(
+                    imageUrl,
+                    width: radius * 2,
+                    height: radius * 2,
+                    fit: BoxFit.cover,
+                    memCacheWidth: (radius * 4).toInt(),
+                    memCacheHeight: (radius * 4).toInt(),
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _gradientColors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _initials,
+                        style: GoogleFonts.poppins(
+                          fontSize: radius * 0.7,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         ),
       ),
