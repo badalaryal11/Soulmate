@@ -206,6 +206,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.dispose();
     _searchController.dispose();
     _scrollController.dispose();
+    // Clean up chat subscriptions when leaving the screen
+    context.read<ChatProvider>().disposeProvider();
     super.dispose();
   }
 
@@ -436,88 +438,79 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             Expanded(
-              child: Selector<ChatProvider, (Stream<List<ChatMessage>>?, bool)>(
-                selector: (_, p) => (p.messagesStream, p.isTyping),
+              child: Selector<ChatProvider, (List<ChatMessage>, bool, bool)>(
+                selector: (_, p) => (p.messages, p.isTyping, p.isLoading),
                 builder: (context, data, _) {
-                  final (stream, isTyping) = data;
-                  return StreamBuilder<List<ChatMessage>>(
-                    stream: stream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
+                  final (allMessages, isTyping, isLoading) = data;
+
+                  if (isLoading && allMessages.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final messages = _searchQuery.isEmpty
+                      ? allMessages
+                      : allMessages
+                            .where(
+                              (m) => m.text.toLowerCase().contains(
+                                _searchQuery,
+                              ),
+                            )
+                            .toList();
+
+                  if (messages.isEmpty && !isLoading) {
+                    return Center(
+                      child: Text(
+                        'Say hello to ${widget.user.firstName}!',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                    );
+                  }
+
+                  final currentUserId = chatProvider.currentUser?.id ?? '';
+                  final chatId = chatProvider.chatId ?? '';
+
+                  return ListView.builder(
+                    reverse: true,
+                    controller: _scrollController,
+                    itemCount: messages.length + (isTyping ? 1 : 0),
+                    findChildIndexCallback: (Key key) {
+                      if (key == const ValueKey('typing_indicator')) {
+                        return isTyping ? 0 : null;
                       }
-
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final allMessages = snapshot.data ?? [];
-                      final messages = _searchQuery.isEmpty
-                          ? allMessages
-                          : allMessages
-                                .where(
-                                  (m) => m.text.toLowerCase().contains(
-                                    _searchQuery,
-                                  ),
-                                )
-                                .toList();
-
-                      if (messages.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'Say hello to ${widget.user.firstName}!',
-                            style: TextStyle(color: Colors.grey[400]),
-                          ),
+                      if (key is ValueKey<String>) {
+                        int index = messages.indexWhere(
+                          (m) => m.id == key.value,
                         );
+                        if (index != -1) {
+                          return isTyping ? index + 1 : index;
+                        }
                       }
-
-                      final currentUserId = chatProvider.currentUser?.id ?? '';
-                      final chatId = chatProvider.chatId ?? '';
-
-                      return ListView.builder(
-                        reverse: true,
-                        controller: _scrollController,
-                        itemCount: messages.length + (isTyping ? 1 : 0),
-                        findChildIndexCallback: (Key key) {
-                          if (key == const ValueKey('typing_indicator')) {
-                            return isTyping ? 0 : null;
-                          }
-                          if (key is ValueKey<String>) {
-                            int index = messages.indexWhere(
-                              (m) => m.id == key.value,
-                            );
-                            if (index != -1) {
-                              return isTyping ? index + 1 : index;
-                            }
-                          }
-                          return null;
-                        },
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        itemBuilder: (context, index) {
-                          if (isTyping) {
-                            if (index == 0) {
-                              return TypingBubble(
-                                key: const ValueKey('typing_indicator'),
-                                user: widget.user,
-                              );
-                            }
-                            index -= 1;
-                          }
-                          final message = messages[index];
-                          return RepaintBoundary(
-                            child: MessageBubble(
-                              key: ValueKey(message.id),
-                              message: message,
-                              isMe: message.senderId == currentUserId,
-                              currentUserId: currentUserId,
-                              chatId: chatId,
-                              otherUser: widget.user,
-                            ),
+                      return null;
+                    },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemBuilder: (context, index) {
+                      if (isTyping) {
+                        if (index == 0) {
+                          return TypingBubble(
+                            key: const ValueKey('typing_indicator'),
+                            user: widget.user,
                           );
-                        },
+                        }
+                        index -= 1;
+                      }
+                      final message = messages[index];
+                      return RepaintBoundary(
+                        child: MessageBubble(
+                          key: ValueKey(message.id),
+                          message: message,
+                          isMe: message.senderId == currentUserId,
+                          currentUserId: currentUserId,
+                          chatId: chatId,
+                          otherUser: widget.user,
+                        ),
                       );
                     },
                   );

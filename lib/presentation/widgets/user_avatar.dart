@@ -55,76 +55,93 @@ class UserAvatar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Calculate vertical oval dimensions (1:1.2 ratio)
+    final width = radius * 2;
+    final height = width * 1.2;
+
     return Container(
-      width: radius * 2,
-      height: radius * 2,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        // Use a rounded rectangle with large radius to create an oval/stadium effect
+        // or just use shape: BoxShape.rectangle + borderRadius.
+        borderRadius: BorderRadius.all(Radius.elliptical(width / 2, height / 2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.15),
-            blurRadius: 10,
+            color: const Color(0xFFFE3C72).withValues(alpha: isDark ? 0.25 : 0.15),
+            blurRadius: 15,
             spreadRadius: 2,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Container(
-        padding: const EdgeInsets.all(3), // Border width
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFFFE3C72),
-              const Color(0xFFFE3C72).withValues(alpha: 0.5),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark ? Colors.grey[900] : Colors.white,
-          ),
-          child: ClipOval(
-            child: _hasImage
-                ? ImageUtils.getImageWidget(
-                    imageUrl,
-                    width: radius * 2,
-                    height: radius * 2,
-                    fit: BoxFit.cover,
-                    memCacheWidth: (radius * 4).toInt(),
-                    memCacheHeight: (radius * 4).toInt(),
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: _gradientColors,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _initials,
-                        style: GoogleFonts.poppins(
-                          fontSize: radius * 0.7,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
+          const borderThickness = 2.0;
+          final innerW = w - (borderThickness * 2);
+          final innerH = h - (borderThickness * 2);
+
+          return Container(
+            padding: const EdgeInsets.all(borderThickness),
+            decoration: BoxDecoration(
+              borderRadius:
+                  BorderRadius.all(Radius.elliptical(w / 2, h / 2)),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFFE3C72),
+                  const Color(0xFFFE3C72).withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(
+                  Radius.elliptical(innerW / 2, innerH / 2)),
+              child: Center(
+                child: _hasImage
+                    ? ImageUtils.getImageWidget(
+                        imageUrl,
+                        width: innerW,
+                        height: innerH,
+                        fit: BoxFit.cover,
+                        memCacheWidth: (innerW * 2).toInt(),
+                        memCacheHeight: (innerH * 2).toInt(),
+                      )
+                    : Container(
+                        width: innerW,
+                        height: innerH,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _gradientColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _initials,
+                            style: GoogleFonts.poppins(
+                              fontSize: innerW * 0.4,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -211,34 +211,33 @@ class ChatDatabaseService {
   }
 
   /// Get a stream of chat metadata changes.
-  Stream<Map<String, dynamic>?> getChatStream(String chatId) {
+  Stream<Map<String, dynamic>?> getChatStream(String chatId) async* {
     if (!_chatStreamControllers.containsKey(chatId)) {
       _chatStreamControllers[chatId] =
           StreamController<Map<String, dynamic>?>.broadcast();
     }
 
-    // Send initial value
-    _safeRead('chats_metadata').then((chatsJson) {
-      final Map<String, dynamic> allChats = jsonDecode(chatsJson ?? '{}');
-      _chatStreamControllers[chatId]!.add(
-        allChats[chatId] as Map<String, dynamic>?,
-      );
-    });
+    // Yield initial value directly to any new subscriber
+    final chatsJson = await _safeRead('chats_metadata');
+    final Map<String, dynamic> allChats = jsonDecode(chatsJson ?? '{}');
+    yield allChats[chatId] as Map<String, dynamic>?;
 
-    return _chatStreamControllers[chatId]!.stream;
+    // Then delegate to the shared broadcast stream for updates
+    yield* _chatStreamControllers[chatId]!.stream;
   }
 
   /// Get a stream of messages for a chat.
-  Stream<List<ChatMessage>> getMessages(String chatId) {
+  Stream<List<ChatMessage>> getMessages(String chatId) async* {
     if (!_messageStreamControllers.containsKey(chatId)) {
       _messageStreamControllers[chatId] =
           StreamController<List<ChatMessage>>.broadcast();
     }
 
-    // Broadcast initial history
-    _broadcastMessages(chatId);
+    // Yield current history immediately upon subscription
+    yield await getMessageHistory(chatId, limit: 100);
 
-    return _messageStreamControllers[chatId]!.stream;
+    // Then delegate to the shared broadcast stream for updates
+    yield* _messageStreamControllers[chatId]!.stream;
   }
 
   /// Get recent message history for a chat.

@@ -60,9 +60,9 @@ class ChatProvider extends ChangeNotifier {
   bool _isFirstLoad = true;
   String _relationshipLevel = "Stranger";
 
-  // Note: we track the stream of messages dynamically in the UI (StreamBuilder) or we can manage it here.
-  // Managing it here gives us more control. Let's provide the stream.
-  Stream<List<ChatMessage>>? _messagesStream;
+  List<ChatMessage> _messages = [];
+  bool _isLoading = true;
+
   StreamSubscription<List<ChatMessage>>? _chatSubscription;
   StreamSubscription<Map<String, dynamic>?>? _metadataSubscription;
 
@@ -70,7 +70,8 @@ class ChatProvider extends ChangeNotifier {
   int get xp => _xp;
   String get relationshipLevel => _relationshipLevel;
   String? get chatId => _chatId;
-  Stream<List<ChatMessage>>? get messagesStream => _messagesStream;
+  List<ChatMessage> get messages => _messages;
+  bool get isLoading => _isLoading;
 
   User? get currentUser => _currentUser;
 
@@ -86,21 +87,40 @@ class ChatProvider extends ChangeNotifier {
     "What's the best show you've watched recently?",
     "What's a hobby you've always wanted to pick up?",
     "What's your ideal first date?",
-  ]; // Truncated for brevity of provider, but we can expand or keep in UI layer.
+  ]; 
 
   Future<void> initChat(User currentUser, User otherUser) async {
+    final newChatId = await _getChatIdUseCase(currentUser.id, otherUser.id);
+
+    // Skip re-init if already listening to this chat
+    if (_chatId == newChatId && _currentUser?.id == currentUser.id) {
+      return;
+    }
+
+    // Clean up previous state if any
+    await _chatSubscription?.cancel();
+    await _metadataSubscription?.cancel();
+
     _currentUser = currentUser;
     _currentUserId = currentUser.id;
     _otherUser = otherUser;
-    _chatId = await _getChatIdUseCase(_currentUserId, otherUser.id);
-
-    _messagesStream = _getChatStreamUseCase(_chatId!);
-
-    // Cancel "Miss you" notification as user is here
-    _notificationRepository.cancelNotification(_chatId.hashCode);
+    _chatId = newChatId;
+    _isLoading = true;
+    _messages = [];
+    notifyListeners();
 
     // Mark incoming messages as read
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
+
+    // Listen to messages
+    _chatSubscription = _getChatStreamUseCase(_chatId!).listen((messages) {
+      _messages = messages;
+      _isLoading = false;
+      notifyListeners();
+    });
+
+    // Cancel "Miss you" notification as user is here
+    _notificationRepository.cancelNotification(_chatId.hashCode);
 
     // Listen to metadata for real-time XP changes
     _metadataSubscription = _getChatMetadataStreamUseCase(_chatId!).listen((
@@ -110,8 +130,6 @@ class ChatProvider extends ChangeNotifier {
         updateXp(metadata['xp'] as int);
       }
     });
-
-    notifyListeners();
   }
 
   void disposeProvider() {
@@ -119,7 +137,6 @@ class ChatProvider extends ChangeNotifier {
     _chatSubscription = null;
     _metadataSubscription?.cancel();
     _metadataSubscription = null;
-    _messagesStream = null;
     _chatId = null;
     _currentUser = null;
     _otherUser = null;
@@ -127,6 +144,8 @@ class ChatProvider extends ChangeNotifier {
     _xp = 0;
     _isFirstLoad = true;
     _relationshipLevel = "Stranger";
+    _messages = [];
+    _isLoading = true;
   }
 
   double calculateProgress(int xp) {
