@@ -13,10 +13,14 @@ List<domain.User> parseDummyJsonUsers(String responseBody) {
   final List<dynamic> usersData = data['users'];
   return usersData.map((json) {
     final user = UserModel.fromDummyJson(json);
-    // Replace DummyJSON image with high-quality generated one
-    return user.copyWith(
-      imageUrl: ImageGenerationService.generateProfileImageUrl(user),
-    );
+    // Keep the original DummyJSON image if available (each user has a unique CDN photo).
+    // Only fall back to generated images if the original is missing.
+    if (user.imageUrl.isEmpty) {
+      return user.copyWith(
+        imageUrl: ImageGenerationService.generateProfileImageUrl(user),
+      );
+    }
+    return user;
   }).toList();
 }
 
