@@ -15,6 +15,7 @@ class UserAvatar extends StatelessWidget {
   final bool isVerified;
   final String? heroTag;
   final bool showGlow;
+  final bool useRoundShape;
 
   const UserAvatar({
     super.key,
@@ -26,6 +27,7 @@ class UserAvatar extends StatelessWidget {
     this.isVerified = false,
     this.heroTag,
     this.showGlow = true,
+    this.useRoundShape = false,
   });
 
   String get _initials {
@@ -77,15 +79,17 @@ class UserAvatar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Calculate vertical oval dimensions (1:1.2 ratio)
+    // Calculate vertical oval dimensions (1:1.2 ratio) or keep it square if round
     final width = radius * 2;
-    final height = width * 1.2;
+    final height = useRoundShape ? width : width * 1.2;
 
     Widget avatarBody = Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.elliptical(width / 2, height / 2)),
+        borderRadius: useRoundShape
+            ? BorderRadius.circular(radius)
+            : BorderRadius.all(Radius.elliptical(width / 2, height / 2)),
         boxShadow: showGlow
             ? [
                 BoxShadow(
@@ -110,15 +114,19 @@ class UserAvatar extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(borderThickness),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(w / 2, h / 2)),
+              borderRadius: useRoundShape
+                  ? BorderRadius.circular(radius)
+                  : BorderRadius.all(Radius.elliptical(w / 2, h / 2)),
               gradient: _borderGradient,
             ),
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.all(
-                    Radius.elliptical(innerW / 2, innerH / 2),
-                  ),
+                  borderRadius: useRoundShape
+                      ? BorderRadius.circular(radius - borderThickness)
+                      : BorderRadius.all(
+                        Radius.elliptical(innerW / 2, innerH / 2),
+                      ),
                   child: Center(
                     child: _hasImage
                         ? (overrideImage != null
@@ -170,9 +178,11 @@ class UserAvatar extends StatelessWidget {
                 IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.elliptical(innerW / 2, innerH / 2),
-                      ),
+                      borderRadius: useRoundShape
+                          ? BorderRadius.circular(radius - borderThickness)
+                          : BorderRadius.all(
+                            Radius.elliptical(innerW / 2, innerH / 2),
+                          ),
                       gradient: RadialGradient(
                         colors: [
                           Colors.transparent,

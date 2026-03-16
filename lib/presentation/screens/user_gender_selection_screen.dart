@@ -54,15 +54,15 @@ class _UserGenderSelectionScreenState extends State<UserGenderSelectionScreen> {
                     _GenderOption(
                       label: 'Male',
                       icon: Icons.male,
-                      isSelected: _selectedGender == 'male',
-                      onTap: () => setState(() => _selectedGender = 'male'),
+                      isSelected: _selectedGender == 'Male',
+                      onTap: () => setState(() => _selectedGender = 'Male'),
                     ),
                     const SizedBox(height: 20),
                     _GenderOption(
                       label: 'Female',
                       icon: Icons.female,
-                      isSelected: _selectedGender == 'female',
-                      onTap: () => setState(() => _selectedGender = 'female'),
+                      isSelected: _selectedGender == 'Female',
+                      onTap: () => setState(() => _selectedGender = 'Female'),
                     ),
                     // "Everyone" doesn't make sense for "I am a", so omitting it.
                     // If we need "Other" or "Non-binary", we can add it later.

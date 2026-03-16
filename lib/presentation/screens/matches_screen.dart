@@ -330,6 +330,7 @@ class _MatchAvatarItem extends StatelessWidget {
               heroTag: 'user-avatar-${user.id}',
               isVerified: user.badges.contains('verified'),
               showGlow: false,
+              useRoundShape: true,
             ),
             const SizedBox(height: 6),
             Text(
@@ -370,6 +371,7 @@ class _MessageListItem extends StatelessWidget {
               heroTag: 'user-avatar-${user.id}-list', // Different tag for list items to avoid conflict if both are on screen
               isVerified: user.badges.contains('verified'),
               showGlow: false,
+              useRoundShape: true,
             ),
             const SizedBox(width: 16),
             Expanded(

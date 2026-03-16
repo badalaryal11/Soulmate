@@ -268,6 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 heroTag: 'user-avatar-${widget.user.id}',
                 isVerified: widget.user.badges.contains('verified'),
                 showGlow: false,
+                useRoundShape: true,
               ),
             ),
             const SizedBox(width: 10),

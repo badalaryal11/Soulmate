@@ -88,7 +88,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       _cityController = TextEditingController(text: _currentUser?.city);
       _countryController = TextEditingController(text: _currentUser?.country);
-      _selectedGender = _currentUser?.gender;
+      
+      // Normalize gender value for dropdown (e.g. 'male' -> 'Male')
+      String? gender = _currentUser?.gender;
+      if (gender != null && gender.isNotEmpty) {
+        if (gender.toLowerCase() == 'male') gender = 'Male';
+        if (gender.toLowerCase() == 'female') gender = 'Female';
+        if (gender.toLowerCase() == 'other' || gender.toLowerCase() == 'non-binary') {
+          gender = 'Non-binary';
+        }
+      }
+      _selectedGender = gender;
 
       _prompt1AnswerController = TextEditingController();
       _prompt2AnswerController = TextEditingController();

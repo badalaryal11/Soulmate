@@ -416,7 +416,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               // Gender Dropdown
               DropdownButtonFormField<String>(
                 initialValue: _selectedGender,
-                items: ['Male', 'Female', 'Other'].map((g) {
+                items: ['Male', 'Female', 'Non-binary'].map((g) {
                   return DropdownMenuItem(value: g, child: Text(g));
                 }).toList(),
                 onChanged: (v) {
