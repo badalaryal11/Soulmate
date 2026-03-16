@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/utils/image_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
@@ -7,8 +6,8 @@ import '../providers/current_user_provider.dart';
 import 'chat_screen.dart';
 import '../../domain/entities/user.dart';
 import '../../core/di/service_locator.dart';
-import '../../core/utils/image_generation_service.dart';
 import 'login_screen.dart';
+import '../widgets/user_avatar.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
@@ -323,17 +322,14 @@ class _MatchAvatarItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           children: [
-            ClipOval(
-              child: ImageUtils.getImageWidget(
-                (user.imageUrl.isNotEmpty &&
-                        !user.imageUrl.startsWith('assets/'))
-                    ? user.imageUrl
-                    : ImageGenerationService.generateProfileImageUrl(user),
-                width: 60,
-                height: 60,
-                memCacheWidth: 200,
-                memCacheHeight: 200,
-              ),
+            UserAvatar(
+              radius: 28,
+              imageUrl: user.imageUrl,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              heroTag: 'user-avatar-${user.id}',
+              isVerified: user.badges.contains('verified'),
+              showGlow: false,
             ),
             const SizedBox(height: 6),
             Text(
@@ -366,17 +362,14 @@ class _MessageListItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Row(
           children: [
-            ClipOval(
-              child: ImageUtils.getImageWidget(
-                (user.imageUrl.isNotEmpty &&
-                        !user.imageUrl.startsWith('assets/'))
-                    ? user.imageUrl
-                    : ImageGenerationService.generateProfileImageUrl(user),
-                width: 56,
-                height: 56,
-                memCacheWidth: 200,
-                memCacheHeight: 200,
-              ),
+            UserAvatar(
+              radius: 26,
+              imageUrl: user.imageUrl,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              heroTag: 'user-avatar-${user.id}-list', // Different tag for list items to avoid conflict if both are on screen
+              isVerified: user.badges.contains('verified'),
+              showGlow: false,
             ),
             const SizedBox(width: 16),
             Expanded(

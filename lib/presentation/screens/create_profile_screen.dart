@@ -309,28 +309,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   onTap: _showImagePickerOptions,
                   child: Stack(
                     children: [
-                      _imageFile != null
-                          ? CircleAvatar(
-                              radius: 80,
-                              backgroundColor: isDark
-                                  ? Colors.grey[800]
-                                  : Colors.grey[200],
-                              backgroundImage: FileImage(_imageFile!),
-                            )
-                          : _selectedAvatarUrl != null
-                              ? CircleAvatar(
-                                  radius: 80,
-                                  backgroundColor: isDark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[200],
-                                  backgroundImage:
-                                      NetworkImage(_selectedAvatarUrl!),
-                                )
-                              : UserAvatar(
-                                  radius: 80,
-                                  firstName: _firstNameController.text,
-                                  lastName: _lastNameController.text,
-                                ),
+                      UserAvatar(
+                        radius: 80,
+                        firstName: _firstNameController.text,
+                        lastName: _lastNameController.text,
+                        imageUrl: _selectedAvatarUrl,
+                        overrideImage:
+                            _imageFile != null ? FileImage(_imageFile!) : null,
+                      ),
                       Positioned(
                         bottom: 0,
                         right: 0,

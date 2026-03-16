@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../core/utils/image_utils.dart';
 import '../../core/constants/stickers.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
-import '../../core/utils/image_generation_service.dart';
 import 'package:provider/provider.dart';
 import '../../presentation/providers/current_user_provider.dart';
 import '../../presentation/providers/match_provider.dart';
@@ -12,6 +10,7 @@ import '../../presentation/providers/profile_management_provider.dart';
 import '../../presentation/providers/chat_provider.dart';
 import '../../presentation/widgets/message_bubble.dart';
 import '../../presentation/widgets/typing_bubble.dart';
+import '../../presentation/widgets/user_avatar.dart';
 
 import 'details_screen.dart';
 
@@ -261,19 +260,14 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 );
               },
-              child: ClipOval(
-                child: ImageUtils.getImageWidget(
-                  (widget.user.imageUrl.isNotEmpty &&
-                          !widget.user.imageUrl.startsWith('assets/'))
-                      ? widget.user.imageUrl
-                      : ImageGenerationService.generateProfileImageUrl(
-                          widget.user,
-                        ),
-                  width: 40,
-                  height: 40,
-                  memCacheWidth: 100,
-                  memCacheHeight: 100,
-                ),
+              child: UserAvatar(
+                radius: 18,
+                imageUrl: widget.user.imageUrl,
+                firstName: widget.user.firstName,
+                lastName: widget.user.lastName,
+                heroTag: 'user-avatar-${widget.user.id}',
+                isVerified: widget.user.badges.contains('verified'),
+                showGlow: false,
               ),
             ),
             const SizedBox(width: 10),

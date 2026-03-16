@@ -524,35 +524,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 onTap: _showImagePickerOptions,
                 child: Stack(
                   children: [
-                    _isUploadingImage
-                        ? CircleAvatar(
-                            radius: 80,
-                            backgroundColor: Colors.grey[200],
-                            child: const CircularProgressIndicator(
+                    UserAvatar(
+                      radius: 80,
+                      imageUrl: _currentUser!.imageUrl,
+                      firstName: _firstNameController.text,
+                      lastName: _lastNameController.text,
+                      overrideImage: _imageFile != null
+                          ? FileImage(_imageFile!)
+                          : (_generatedAvatarUrl != null
+                              ? NetworkImage(_generatedAvatarUrl!)
+                              : null),
+                      heroTag: 'user-avatar-main',
+                      isVerified: _currentUser!.badges.contains('verified') ||
+                          _currentUser!.coins > 1000,
+                    ),
+                    if (_isUploadingImage)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.2),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Color(0xFFFE3C72),
                               ),
                             ),
-                          )
-                        : _generatedAvatarUrl != null
-                            ? CircleAvatar(
-                                radius: 80,
-                                backgroundColor: Colors.grey[200],
-                                backgroundImage:
-                                    NetworkImage(_generatedAvatarUrl!),
-                              )
-                            : _imageFile != null
-                                ? CircleAvatar(
-                                    radius: 80,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage: FileImage(_imageFile!),
-                                  )
-                                : UserAvatar(
-                                    radius: 80,
-                                    imageUrl: _currentUser!.imageUrl,
-                                    firstName: _firstNameController.text,
-                                    lastName: _lastNameController.text,
-                                  ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       bottom: 0,
                       right: 0,

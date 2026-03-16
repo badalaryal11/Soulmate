@@ -45,27 +45,13 @@ class ProfileTab extends StatelessWidget {
                 const SizedBox(height: 40),
                 // Avatar Circle
                 Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFFE3C72),
-                        width: 4,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFE3C72).withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: UserAvatar(
-                      radius: 100, // Increased size
-                      imageUrl: user.imageUrl,
-                      firstName: user.firstName,
-                      lastName: user.lastName,
-                    ),
+                  child: UserAvatar(
+                    radius: 100, // Increased size
+                    imageUrl: user.imageUrl,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    isVerified: user.badges.contains('verified') || user.coins > 1000,
+                    heroTag: 'user-avatar-main',
                   ),
                 ),
                 const SizedBox(height: 24),
