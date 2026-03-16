@@ -254,22 +254,12 @@ class SettingsScreen extends StatelessWidget {
                 // 1. Update Auth (sends verification)
                 await authRepository.updateEmail(newEmail);
 
-                // 2. Update Firestore immediately so UI reflects change
-                final user = authRepository.currentUser;
-                if (user != null) {
-                  if (context.mounted) {
-                    await context
-                        .read<ProfileManagementProvider>()
-                        .updateUserField(user.uid, {'email': newEmail});
-                  }
-                }
-
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(
-                        'Verification email sent. Profile updated.',
+                        'Verification email sent to $newEmail. Please verify to complete the update.',
                       ),
                     ),
                   );

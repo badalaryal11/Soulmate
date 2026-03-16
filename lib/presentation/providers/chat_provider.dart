@@ -94,6 +94,10 @@ class ChatProvider extends ChangeNotifier {
 
     // Skip re-init if already listening to this chat
     if (_chatId == newChatId && _currentUser?.id == currentUser.id) {
+      if (_isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
       return;
     }
 

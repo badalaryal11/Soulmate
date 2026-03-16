@@ -51,7 +51,8 @@ class ServiceLocator {
   // Singleton data-layer services (private — never exposed)
   static final DatabaseService _databaseService = DatabaseService();
   static final ApiService _apiService = ApiService();
-  static final AuthService _authService = AuthService();
+  static AuthService? _authServiceInstance;
+  static AuthService get _authService => _authServiceInstance ??= AuthService();
   static final NotificationService _notificationService = NotificationService();
   static final ChatService _chatService = ChatService();
 
