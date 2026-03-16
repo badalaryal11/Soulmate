@@ -344,7 +344,12 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         } else {
-          // User exists, proceed to Gender Selection (which acts as Home/Filter setup)
+          // User exists, update last login date
+          await _userRepository.updateUserField(firebaseUser.uid, {
+            'lastLoginDate': DateTime.now().toIso8601String(),
+          });
+
+          // Proceed to Gender Selection (which acts as Home/Filter setup)
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -398,7 +403,12 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         } else {
-          // Existing user — proceed to Gender Selection
+          // Existing user, update last login date
+          await _userRepository.updateUserField(firebaseUser.uid, {
+            'lastLoginDate': DateTime.now().toIso8601String(),
+          });
+
+          // Proceed to Gender Selection
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -458,6 +468,11 @@ class _LoginScreenState extends State<LoginScreen> {
           );
           return;
         }
+
+        // Update last login date
+        await _userRepository.updateUserField(firebaseUser.uid, {
+          'lastLoginDate': DateTime.now().toIso8601String(),
+        });
 
         if (!mounted) return;
         Navigator.of(context).pushReplacement(

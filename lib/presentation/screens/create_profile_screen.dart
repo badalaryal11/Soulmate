@@ -13,7 +13,9 @@ import '../../core/di/service_locator.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/user_avatar.dart';
-import 'gender_selection_screen.dart';
+// Removed: import 'gender_selection_screen.dart';
+
+import 'user_gender_selection_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   final firebase_auth.User firebaseUser;
@@ -249,13 +251,18 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         country: '',
         interests: [],
         imageUrl: imageUrl,
+        lastLoginDate: DateTime.now().toIso8601String(),
+        badges: [],
+        favoriteUserIds: [],
       );
 
       await _userRepository.saveUser(user);
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
+        MaterialPageRoute(
+          builder: (context) => const UserGenderSelectionScreen(),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
