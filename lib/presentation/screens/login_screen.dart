@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late final UserRepository _userRepository;
   final ValueNotifier<bool> _rememberMe = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   @override
@@ -53,19 +54,38 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const _LoginHeader(),
-                    const SizedBox(height: 24),
-                    _EmailInputField(controller: _emailController),
-                    const SizedBox(height: 16),
-                    _PasswordInputField(
-                      controller: _passwordController,
-                      obscureNotifier: _obscurePassword,
-                    ),
-                    const SizedBox(height: 8),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const _LoginHeader(),
+                      const SizedBox(height: 24),
+                      _EmailInputField(
+                        controller: _emailController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _PasswordInputField(
+                        controller: _passwordController,
+                        obscureNotifier: _obscurePassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -111,7 +131,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          );
+          ),
+        );
         },
       ),
     );
@@ -231,11 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
-      );
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -402,12 +419,18 @@ class _LoginHeader extends StatelessWidget {
 
 class _EmailInputField extends StatelessWidget {
   final TextEditingController controller;
-  const _EmailInputField({required this.controller});
+  final String? Function(String?)? validator;
+
+  const _EmailInputField({
+    required this.controller,
+    this.validator,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      validator: validator,
       decoration: InputDecoration(
         hintText: 'Email',
         hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
@@ -441,10 +464,12 @@ class _EmailInputField extends StatelessWidget {
 class _PasswordInputField extends StatelessWidget {
   final TextEditingController controller;
   final ValueNotifier<bool> obscureNotifier;
+  final String? Function(String?)? validator;
 
   const _PasswordInputField({
     required this.controller,
     required this.obscureNotifier,
+    this.validator,
   });
 
   @override
@@ -455,6 +480,7 @@ class _PasswordInputField extends StatelessWidget {
         return TextFormField(
           controller: controller,
           obscureText: obscure,
+          validator: validator,
           decoration: InputDecoration(
             hintText: 'Password',
             hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
