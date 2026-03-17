@@ -549,6 +549,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               ? NetworkImage(_generatedAvatarUrl!)
                               : null),
                       heroTag: 'user-avatar-main',
+                      useRoundShape: true,
                       isVerified: _currentUser!.badges.contains('verified') ||
                           _currentUser!.coins > 1000,
                     ),

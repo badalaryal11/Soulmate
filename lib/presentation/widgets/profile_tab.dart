@@ -50,6 +50,7 @@ class ProfileTab extends StatelessWidget {
                     imageUrl: user.imageUrl,
                     firstName: user.firstName,
                     lastName: user.lastName,
+                    useRoundShape: true,
                     isVerified: user.badges.contains('verified') || user.coins > 1000,
                     heroTag: 'user-avatar-main',
                   ),
