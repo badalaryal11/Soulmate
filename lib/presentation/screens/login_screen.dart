@@ -22,8 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   late final AuthRepository _authRepository;
   late final UserRepository _userRepository;
-  bool _rememberMe = false;
-  bool _obscurePassword = true;
+  final ValueNotifier<bool> _rememberMe = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
   bool _isLoading = false;
 
   @override
@@ -37,6 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _rememberMe.dispose();
+    _obscurePassword.dispose();
     super.dispose();
   }
 
@@ -116,50 +118,53 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16), // Reduced from 20
                     // Password Field
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                        filled: true,
-                        fillColor:
-                            Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[800]
-                            : Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14, // Reduced from 16
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color:
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _obscurePassword,
+                      builder: (context, obscure, child) {
+                        return TextFormField(
+                          controller: _passwordController,
+                          obscureText: obscure,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                            filled: true,
+                            fillColor:
                                 Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[700]!
-                                : Colors.grey[300]!,
+                                ? Colors.grey[800]
+                                : Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14, // Reduced from 16
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[700]!
+                                    : Colors.grey[300]!,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFFE3C72),
+                              ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscure
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                _obscurePassword.value = !obscure;
+                              },
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFFE3C72),
-                          ),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 8), // Reduced from 10
                     // Forgot Password Link
@@ -184,33 +189,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16), // Reduced from 20
                     // Remember Me Checkbox
-                    Row(
-                      children: [
-                        SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: Checkbox(
-                            value: _rememberMe,
-                            activeColor: const Color(0xFFFE3C72),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _rememberMe,
+                      builder: (context, remember, child) {
+                        return Row(
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: Checkbox(
+                                value: remember,
+                                activeColor: const Color(0xFFFE3C72),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                onChanged: (value) {
+                                  _rememberMe.value = value ?? false;
+                                },
+                              ),
                             ),
-                            onChanged: (value) {
-                              setState(() {
-                                _rememberMe = value ?? false;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Remember me',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
+                            const SizedBox(width: 8),
+                            Text(
+                              'Remember me',
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 24), // Reduced from 40
                     // Sign In Button
