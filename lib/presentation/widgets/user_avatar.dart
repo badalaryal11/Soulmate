@@ -142,7 +142,6 @@ class UserAvatar extends StatelessWidget {
                                 height: innerH,
                                 fit: BoxFit.cover,
                                 memCacheWidth: (innerW * 2).toInt(),
-                                memCacheHeight: (innerH * 2).toInt(),
                               ))
                         : Container(
                             width: innerW,

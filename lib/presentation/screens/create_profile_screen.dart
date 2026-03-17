@@ -325,6 +325,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         firstName: _firstNameController.text,
                         lastName: _lastNameController.text,
                         imageUrl: _selectedAvatarUrl,
+                        useRoundShape: true,
                         overrideImage:
                             _imageFile != null ? FileImage(_imageFile!) : null,
                       ),
