@@ -134,10 +134,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                Consumer<CurrentUserProvider>(
-                  builder: (context, provider, child) {
+                Selector<CurrentUserProvider, (int, int)>(
+                  selector: (context, provider) {
                     final user = provider.currentUser;
-                    if (user == null) return const SizedBox.shrink();
+                    return (user?.streak ?? 0, user?.coins ?? 0);
+                  },
+                  builder: (context, data, child) {
+                    final streak = data.$1;
+                    final coins = data.$2;
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -174,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${user.streak}',
+                                  '$streak',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.orange,
@@ -218,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${user.coins}',
+                                  '$coins',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.amber,
