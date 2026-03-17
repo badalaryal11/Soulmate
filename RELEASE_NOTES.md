@@ -2,6 +2,19 @@
 
 ---
 
+## v1.5.0 — Core Features & Deep Optimization (March 17, 2026)
+
+### ✨ New Features
+* **Profile Picture Upload** — Users can now seamlessly upload custom profile pictures during the login and registration process.
+* **Custom Currency Input** — Enhanced the "Add Expense" screen by allowing users to select "Other" and input their own custom currency codes.
+
+### ⚡ Performance & Bug Fixes
+* **Instant Chat Loading** — Fixed an issue causing an infinite loading spinner when returning to inactive chats. Your messages now load and stream instantly.
+* **Lightning Fast Stickers** — Dramatically sped up the sticker fetching process, significantly improving typing speed and responsiveness in the chat screen.
+* **Memory & UI Optimizations** — Implemented strict image compression for new uploads and optimized widget rendering to eliminate unnecessary UI rebuilds on the HomeScreen.
+
+---
+
 ## v1.4.0 — Personalization & Aesthetics (March 11, 2026)
 
 ### 🎨 Theme Customization
