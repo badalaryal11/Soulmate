@@ -57,117 +57,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Logo or Header Image
-                    Image.asset(
-                      'assets/images/logo_transparent.png',
-                      height: 80, // Reduced from 100
-                      width: 80,
+                    const _LoginHeader(),
+                    const SizedBox(height: 24),
+                    _EmailInputField(controller: _emailController),
+                    const SizedBox(height: 16),
+                    _PasswordInputField(
+                      controller: _passwordController,
+                      obscureNotifier: _obscurePassword,
                     ),
-                    const SizedBox(height: 16), // Reduced from 20
-                    // Welcome Text
-                    Text(
-                      'Welcome!',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24, // Reduced from 28
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF80CBC4)
-                            : const Color(0xFF004D40),
-                      ),
-                    ),
-                    const SizedBox(height: 4), // Reduced from 8
-                    Text(
-                      'Log in to find your soulmate.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 24), // Reduced from 40
-                    // Email Field
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                        filled: true,
-                        fillColor:
-                            Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[800]
-                            : Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14, // Reduced from 16
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[700]!
-                                : Colors.grey[300]!,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFFE3C72),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16), // Reduced from 20
-                    // Password Field
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _obscurePassword,
-                      builder: (context, obscure, child) {
-                        return TextFormField(
-                          controller: _passwordController,
-                          obscureText: obscure,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                            filled: true,
-                            fillColor:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[800]
-                                : Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 14, // Reduced from 16
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color:
-                                    Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[700]!
-                                    : Colors.grey[300]!,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFFE3C72),
-                              ),
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                obscure
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: Colors.grey,
-                              ),
-                              onPressed: () {
-                                _obscurePassword.value = !obscure;
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 8), // Reduced from 10
-                    // Forgot Password Link
+                    const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -187,139 +85,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16), // Reduced from 20
-                    // Remember Me Checkbox
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _rememberMe,
-                      builder: (context, remember, child) {
-                        return Row(
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: Checkbox(
-                                value: remember,
-                                activeColor: const Color(0xFFFE3C72),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                onChanged: (value) {
-                                  _rememberMe.value = value ?? false;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Remember me',
-                              style: GoogleFonts.poppins(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    const SizedBox(height: 16),
+                    _RememberMeCheckbox(rememberNotifier: _rememberMe),
+                    const SizedBox(height: 24),
+                    _SignInButton(
+                        isLoading: _isLoading, onPressed: _handleLogin),
+                    const SizedBox(height: 16),
+                    _RegisterLink(onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 24),
+                    const _SocialLoginDivider(),
+                    const SizedBox(height: 20),
+                    _SocialButtons(
+                      isLoading: _isLoading,
+                      onGoogleTap: _handleGoogleLogin,
+                      onAppleTap: _handleAppleLogin,
                     ),
-                    const SizedBox(height: 24), // Reduced from 40
-                    // Sign In Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50, // Reduced from 55
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFE3C72), // Pink/Red
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 5,
-                          shadowColor: const Color(
-                            0xFFFE3C72,
-                          ).withValues(alpha: 0.4),
-                        ),
-                        child: Text(
-                          'Sign In',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16, // Reduced from 18
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16), // Reduced from 20
-                    // Register Link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Do not have account? ',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            'Register now',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFFE3C72),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24), // Reduced from 40
-                    // Social Login Divider
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            'Login with Socials',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[500],
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                      ],
-                    ),
-                    const SizedBox(height: 20), // Reduced from 30
-                    // Social Buttons
-                    Column(
-                      children: [
-                        _SocialButton(
-                          iconWidget: Image.asset(
-                            'assets/images/google_logo.png',
-                            height: 20,
-                            width: 20,
-                          ),
-                          label: 'Sign In with Google',
-                          color: Colors.red,
-                          onTap: _isLoading ? () {} : _handleGoogleLogin,
-                        ),
-                        const SizedBox(height: 12), // Reduced from 16
-                        _SocialButton(
-                          icon: FontAwesomeIcons.apple,
-                          label: 'Sign In with Apple',
-                          color: Colors.black,
-                          onTap: _isLoading ? () {} : _handleAppleLogin,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20), // Bottom padding
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -574,6 +361,310 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     }
+  }
+}
+
+class _LoginHeader extends StatelessWidget {
+  const _LoginHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Image.asset(
+          'assets/images/logo_transparent.png',
+          height: 80,
+          width: 80,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Welcome!',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF80CBC4)
+                : const Color(0xFF004D40),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Log in to find your soulmate.',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmailInputField extends StatelessWidget {
+  final TextEditingController controller;
+  const _EmailInputField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: 'Email',
+        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+        filled: true,
+        fillColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[800]
+            : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 14,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[700]!
+                : Colors.grey[300]!,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFFE3C72),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PasswordInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueNotifier<bool> obscureNotifier;
+
+  const _PasswordInputField({
+    required this.controller,
+    required this.obscureNotifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: obscureNotifier,
+      builder: (context, obscure, child) {
+        return TextFormField(
+          controller: controller,
+          obscureText: obscure,
+          decoration: InputDecoration(
+            hintText: 'Password',
+            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            filled: true,
+            fillColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 14,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[700]!
+                    : Colors.grey[300]!,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFFE3C72),
+              ),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscure ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey,
+              ),
+              onPressed: () {
+                obscureNotifier.value = !obscure;
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RememberMeCheckbox extends StatelessWidget {
+  final ValueNotifier<bool> rememberNotifier;
+
+  const _RememberMeCheckbox({required this.rememberNotifier});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: rememberNotifier,
+      builder: (context, remember, child) {
+        return Row(
+          children: [
+            SizedBox(
+              height: 20,
+              width: 20,
+              child: Checkbox(
+                value: remember,
+                activeColor: const Color(0xFFFE3C72),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                onChanged: (value) {
+                  rememberNotifier.value = value ?? false;
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Remember me',
+              style: GoogleFonts.poppins(
+                color: Colors.grey[600],
+                fontSize: 13,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SignInButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _SignInButton({
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFE3C72),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 5,
+          shadowColor: const Color(0xFFFE3C72).withValues(alpha: 0.4),
+        ),
+        child: Text(
+          'Sign In',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RegisterLink extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _RegisterLink({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Do not have account? ',
+          style: GoogleFonts.poppins(
+            color: Colors.grey[600],
+            fontSize: 13,
+          ),
+        ),
+        GestureDetector(
+          onTap: onTap,
+          child: Text(
+            'Register now',
+            style: GoogleFonts.poppins(
+              color: const Color(0xFFFE3C72),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SocialLoginDivider extends StatelessWidget {
+  const _SocialLoginDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey[300])),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Login with Socials',
+            style: GoogleFonts.poppins(
+              color: Colors.grey[500],
+              fontSize: 13,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: Colors.grey[300])),
+      ],
+    );
+  }
+}
+
+class _SocialButtons extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onGoogleTap;
+  final VoidCallback onAppleTap;
+
+  const _SocialButtons({
+    required this.isLoading,
+    required this.onGoogleTap,
+    required this.onAppleTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _SocialButton(
+          iconWidget: Image.asset(
+            'assets/images/google_logo.png',
+            height: 20,
+            width: 20,
+          ),
+          label: 'Sign In with Google',
+          color: Colors.red,
+          onTap: isLoading ? () {} : onGoogleTap,
+        ),
+        const SizedBox(height: 12),
+        _SocialButton(
+          icon: FontAwesomeIcons.apple,
+          label: 'Sign In with Apple',
+          color: Colors.black,
+          onTap: isLoading ? () {} : onAppleTap,
+        ),
+      ],
+    );
   }
 }
 
