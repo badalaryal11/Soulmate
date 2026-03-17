@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        hintText: 'Email or Mobile Number',
+                        hintText: 'Email',
                         hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                         filled: true,
                         fillColor:
