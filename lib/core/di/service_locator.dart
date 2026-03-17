@@ -42,6 +42,7 @@ import '../../presentation/providers/current_user_provider.dart';
 import '../../presentation/providers/profile_management_provider.dart';
 import '../../presentation/providers/match_provider.dart';
 import '../../presentation/providers/discovery_provider.dart';
+import '../../presentation/providers/login_provider.dart';
 
 /// Centralized dependency injection for the application.
 ///
@@ -139,6 +140,14 @@ class ServiceLocator {
     return DiscoveryProvider(
       getUsersUseCase: GetUsersUseCase(_userRepository),
       currentUserProvider: currentUserProvider,
+    );
+  }
+
+  /// Create [LoginProvider]
+  static LoginProvider createLoginProvider() {
+    return LoginProvider(
+      authRepository: _authRepository,
+      userRepository: _userRepository,
     );
   }
 
