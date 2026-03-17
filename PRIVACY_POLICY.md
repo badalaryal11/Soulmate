@@ -1,6 +1,6 @@
 # Privacy Policy for Soulmate
 
-**Last Updated:** March 10, 2026
+**Last Updated:** March 17, 2026
 
 Welcome to Soulmate! This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application (the "App"). Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the application.
 
@@ -19,14 +19,21 @@ When you register for an account, we may collect personally identifiable informa
 *   **App Activity:** We collect data on your interactions within the app, such as profiles you "Favorite", swipe history, relationship XP (experience points), and daily login streaks.
 *   **Device Information:** We may collect information about your mobile device, including device model, operating system version, unique device identifiers, and mobile network information.
 
+### C. Device Permissions
+With your consent, we may request access or permission to certain features from your mobile device, including:
+*   **Storage/Photos:** To allow you to upload a custom profile picture.
+*   **Push Notifications:** To send you updates, alerts, and other information regarding the App.
+You may change our access or permissions at any time in your device's settings.
+
 ## 2. How We Use Your Information
 
 We use the information we collect to:
 *   Create and manage your account.
 *   Provide, operate, and maintain our App.
-*   Generate AI responses to your chat messages using third-party AI service providers (such as Google Gemini, Hugging Face, or Groq).
+*   Generate AI responses to your chat messages using third-party AI service providers.
 *   Personalize your user experience, including filtering AI profiles based on your age and gender preferences.
 *   Track your progress and gamification elements (e.g., Relationship XP, streaks, coins).
+*   Send you push notifications regarding your account or app updates.
 *   Improve the App and develop new features.
 *   Prevent fraudulent activity and enforce our terms.
 
@@ -60,4 +67,5 @@ We may update this Privacy Policy from time to time. We will notify you of any c
 ## 8. Contact Us
 
 If you have questions or comments about this Privacy Policy, please contact us at:
-[Insert Your Contact Email Here]
+badal.aryal@gmail.com
+
