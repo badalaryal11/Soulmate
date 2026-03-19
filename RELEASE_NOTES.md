@@ -2,6 +2,31 @@
 
 ---
 
+## v1.6.0 — Discovery & Login Overhaul (March 19, 2026)
+
+### 🔍 Smarter Discovery Deck
+* **RandomUser API Integration** — The discovery deck now merges real Firestore users with profiles fetched from the RandomUser API, giving you a richer and more diverse set of cards to swipe through.
+* **Offline-Ready Fallback** — When the external API is unavailable, the app seamlessly generates local user profiles so the card deck never runs dry.
+* **Swiped Profile Tracking** — Already-swiped profiles are now tracked to ensure you never see the same card twice, even across mixed data sources.
+* **Proactive User Loading** — New profiles are loaded proactively in the background, keeping the swipe experience buttery smooth with zero wait times.
+
+### 🔑 Modernized Login Screen
+* **Provider-Based Auth** — Introduced a dedicated `LoginProvider` to centralize all authentication logic (Google, Apple, Email/Password), replacing scattered state management with a clean, testable architecture.
+* **Form Validation** — Added real-time validation for email and password fields, giving users instant feedback before submission.
+* **Modular Widget Architecture** — Refactored the login screen into focused, reusable sub-widgets (header, email input, password input) for improved maintainability and consistency.
+* **Optimized State Handling** — Migrated toggle states (Remember Me, Show Password) to `ValueNotifier` for granular, efficient rebuilds.
+
+### 🖼️ Avatar & Image Enhancements
+* **Centralized Image Loading** — Introduced `ImageUtils` to unify image loading and precaching logic across local, asset, and network sources.
+* **Refined Avatar Shapes** — Evolved user avatars through multiple design iterations, settling on a polished look with gradient borders, box shadows, and smooth round shapes across all screens.
+* **Verification Badges & Upload Progress** — The `UserAvatar` widget now supports verification badge overlays, hero animations, and upload progress indicators.
+
+### 📄 Other Improvements
+* **Updated Privacy Policy** — Refreshed the privacy policy with a new "Device Permissions" section and updated dates.
+* **Theme Consistency** — Removed explicit font and widget styling overrides from the login screen in favor of the global theme, ensuring a unified look across the app.
+
+---
+
 ## v1.5.0 — Core Features & Deep Optimization (March 17, 2026)
 
 ### ✨ New Features
