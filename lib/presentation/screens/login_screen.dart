@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/providers/login_provider.dart';
@@ -85,14 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           minimumSize: const Size(50, 30),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: Text(
-                          'Forgot Password?',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFFFE3C72),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
+                        child: const Text('Forgot Password?'),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -194,20 +186,18 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context) {
           String inputEmail = '';
           return AlertDialog(
-            title: Text('Reset Password', style: GoogleFonts.poppins()),
+            title: const Text('Reset Password'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'Enter your email address to receive a password reset link.',
-                  style: GoogleFonts.poppins(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   onChanged: (value) => inputEmail = value,
                   decoration: InputDecoration(
                     hintText: 'Email Address',
-                    hintStyle: GoogleFonts.poppins(),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -218,20 +208,14 @@ class _LoginScreenState extends State<LoginScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
+                child: const Text(
                   'Cancel',
-                  style: GoogleFonts.poppins(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, inputEmail),
-                child: Text(
-                  'Send Link',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFFFE3C72),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: const Text('Send Link'),
               ),
             ],
           );
@@ -266,6 +250,9 @@ class _LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       children: [
         Image.asset(
@@ -276,10 +263,9 @@ class _LoginHeader extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           'Welcome!',
-          style: GoogleFonts.poppins(
-            fontSize: 24,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).brightness == Brightness.dark
+            color: theme.brightness == Brightness.dark
                 ? const Color(0xFF80CBC4)
                 : const Color(0xFF004D40),
           ),
@@ -287,9 +273,8 @@ class _LoginHeader extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Log in to find your soulmate.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -311,32 +296,7 @@ class _EmailInputField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       validator: validator,
-      decoration: InputDecoration(
-        hintText: 'Email',
-        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-        filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[800]
-            : Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 14,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[700]!
-                : Colors.grey[300]!,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFFE3C72),
-          ),
-        ),
-      ),
+      decoration: const InputDecoration(hintText: 'Email'),
     );
   }
 }
@@ -363,29 +323,6 @@ class _PasswordInputField extends StatelessWidget {
           validator: validator,
           decoration: InputDecoration(
             hintText: 'Password',
-            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-            filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[800]
-                : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 14,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[700]!
-                    : Colors.grey[300]!,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFFE3C72),
-              ),
-            ),
             suffixIcon: IconButton(
               icon: Icon(
                 obscure ? Icons.visibility_off : Icons.visibility,
@@ -409,6 +346,8 @@ class _RememberMeCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ValueListenableBuilder<bool>(
       valueListenable: rememberNotifier,
       builder: (context, remember, child) {
@@ -419,10 +358,6 @@ class _RememberMeCheckbox extends StatelessWidget {
               width: 20,
               child: Checkbox(
                 value: remember,
-                activeColor: const Color(0xFFFE3C72),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
                 onChanged: (value) {
                   rememberNotifier.value = value ?? false;
                 },
@@ -431,9 +366,8 @@ class _RememberMeCheckbox extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Remember me',
-              style: GoogleFonts.poppins(
-                color: Colors.grey[600],
-                fontSize: 13,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -459,22 +393,7 @@ class _SignInButton extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFE3C72),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 5,
-          shadowColor: const Color(0xFFFE3C72).withValues(alpha: 0.4),
-        ),
-        child: Text(
-          'Sign In',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: const Text('Sign In'),
       ),
     );
   }
@@ -487,24 +406,24 @@ class _RegisterLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'Do not have account? ',
-          style: GoogleFonts.poppins(
-            color: Colors.grey[600],
-            fontSize: 13,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         GestureDetector(
           onTap: onTap,
           child: Text(
             'Register now',
-            style: GoogleFonts.poppins(
-              color: const Color(0xFFFE3C72),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
             ),
           ),
         ),
@@ -518,20 +437,21 @@ class _SocialLoginDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
-        Expanded(child: Divider(color: Colors.grey[300])),
+        const Expanded(child: Divider()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Login with Socials',
-            style: GoogleFonts.poppins(
-              color: Colors.grey[500],
-              fontSize: 13,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
-        Expanded(child: Divider(color: Colors.grey[300])),
+        const Expanded(child: Divider()),
       ],
     );
   }
@@ -594,6 +514,8 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -601,9 +523,7 @@ class _SocialButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[700]!
-                : Colors.grey[300]!,
+            color: theme.dividerTheme.color ?? Colors.grey[300]!,
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -617,12 +537,8 @@ class _SocialButton extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               label,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
+              style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black87,
               ),
             ),
           ],
@@ -631,3 +547,4 @@ class _SocialButton extends StatelessWidget {
     );
   }
 }
+

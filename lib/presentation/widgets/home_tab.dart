@@ -119,6 +119,7 @@ class _HomeTabState extends State<HomeTab> {
                   numberOfCardsDisplayed: provider.filteredUsers.length < 3
                       ? provider.filteredUsers.length
                       : 3,
+                  isLoop: false,
                   backCardOffset: const Offset(0, 40),
                   padding: const EdgeInsets.all(24.0),
                   cardBuilder:
@@ -134,19 +135,7 @@ class _HomeTabState extends State<HomeTab> {
                     // ---------------------------------------------------------
                     // OPTIMIZATION: PRE-CACHE NEXT IMAGES
                     // ---------------------------------------------------------
-                    // When we swipe to 'currentIndex', the card at 'currentIndex' is now top.
-                    // The card at 'currentIndex + 1' becomes visible behind it.
-                    // We should look ahead and cache 'currentIndex + 2' and 'currentIndex + 3'.
-
-                    // We check the next 2 cards ahead of what is currently visible
-                    // CardSwiper displays 3 cards. If we are at index `i`, visible are `i`, `i+1`, `i+2`.
-                    // The next one to load is `i+3`.
-
-                    // Let's precache `currentIndex + 1` (next visible), `currentIndex + 2` (behind that)
-                    // and `currentIndex + 3` (just in case).
-
                     if (currentIndex != null) {
-                      // Optimized Pre-caching: Look ahead exactly 3 cards
                       for (int i = 1; i <= 3; i++) {
                         final nextIndex = currentIndex + i;
                         if (nextIndex < provider.filteredUsers.length) {
@@ -160,6 +149,10 @@ class _HomeTabState extends State<HomeTab> {
 
                     provider.userSwiped(previousIndex, direction);
                     return true;
+                  },
+                  onEnd: () {
+                    // All cards swiped — load more users
+                    provider.loadUsers(gender: provider.selectedGender);
                   },
                 ),
               ),
