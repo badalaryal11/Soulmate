@@ -20,6 +20,11 @@ class LoginProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  firebase_auth.User? _firebaseUser;
+  firebase_auth.User? get firebaseUser => _firebaseUser;
+
+  void clearError() => _setError(null);
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -107,6 +112,8 @@ class LoginProvider extends ChangeNotifier {
   }
 
   Future<bool> _handleSuccessfulAuth(firebase_auth.User firebaseUser) async {
+    _firebaseUser = firebaseUser;
+
     // Check if user exists in Firestore
     User? existingUser = await _userRepository.getUser(firebaseUser.uid);
 

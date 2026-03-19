@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:soulmate/core/di/service_locator.dart';
-import 'package:soulmate/domain/repositories/auth_repository.dart';
-import 'package:soulmate/domain/repositories/user_repository.dart';
-import 'package:soulmate/domain/entities/user.dart';
+import 'package:provider/provider.dart';
+import 'package:soulmate/presentation/providers/login_provider.dart';
 import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
 
@@ -20,19 +18,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late final AuthRepository _authRepository;
-  late final UserRepository _userRepository;
   final ValueNotifier<bool> _rememberMe = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _authRepository = ServiceLocator.authRepository;
-    _userRepository = ServiceLocator.userRepository;
-  }
 
   @override
   void dispose() {
@@ -45,6 +33,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loginProvider = context.watch<LoginProvider>();
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: LayoutBuilder(
@@ -109,7 +99,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     _RememberMeCheckbox(rememberNotifier: _rememberMe),
                     const SizedBox(height: 24),
                     _SignInButton(
-                        isLoading: _isLoading, onPressed: _handleLogin),
+                        isLoading: loginProvider.isLoading,
+                        onPressed: _handleLogin),
                     const SizedBox(height: 16),
                     _RegisterLink(onTap: () {
                       Navigator.of(context).push(
@@ -122,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const _SocialLoginDivider(),
                     const SizedBox(height: 20),
                     _SocialButtons(
-                      isLoading: _isLoading,
+                      isLoading: loginProvider.isLoading,
                       onGoogleTap: _handleGoogleLogin,
                       onAppleTap: _handleAppleLogin,
                     ),
@@ -138,175 +129,65 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> _handleGoogleLogin() async {
-    setState(() => _isLoading = true);
+  /// Navigate based on the result from LoginProvider.
+  /// isNewUser == true  → CreateProfileScreen
+  /// isNewUser == false → GenderSelectionScreen
+  /// isNewUser == null  → Show error SnackBar
+  void _navigateAfterAuth(bool? isNewUser) {
+    if (!mounted) return;
+    final loginProvider = context.read<LoginProvider>();
 
-    try {
-      final credential = await _authRepository.signInWithGoogle();
-
-      if (credential != null && credential.user != null) {
-        final firebaseUser = credential.user!;
-
-        // Check if user exists in Firestore
-        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
-
-        if (existingUser == null) {
-          // User does not exist, redirect to Create Profile
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateProfileScreen(firebaseUser: firebaseUser),
-            ),
-          );
-        } else {
-          // User exists, update last login date
-          await _userRepository.updateUserField(firebaseUser.uid, {
-            'lastLoginDate': DateTime.now().toIso8601String(),
-          });
-
-          // Proceed to Gender Selection (which acts as Home/Filter setup)
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const GenderSelectionScreen(),
-            ),
-          );
-        }
-      } else {
-        // User cancelled or error
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Sign in cancelled or configuration missing (Check SHA-1).',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Google Login Error: $e");
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _handleAppleLogin() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final credential = await _authRepository.signInWithApple();
-
-      if (credential != null && credential.user != null) {
-        final firebaseUser = credential.user!;
-
-        // Check if user exists in Firestore
-        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
-
-        if (existingUser == null) {
-          // New user — redirect to Create Profile
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateProfileScreen(firebaseUser: firebaseUser),
-            ),
-          );
-        } else {
-          // Existing user, update last login date
-          await _userRepository.updateUserField(firebaseUser.uid, {
-            'lastLoginDate': DateTime.now().toIso8601String(),
-          });
-
-          // Proceed to Gender Selection
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const GenderSelectionScreen(),
-            ),
-          );
-        }
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Apple Sign-In was cancelled.')),
-        );
-      }
-    } catch (e) {
-      debugPrint("Apple Login Error: $e");
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Apple Sign-In failed: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
+    if (isNewUser == null) {
+      // Login failed or cancelled — show provider error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loginProvider.errorMessage ?? 'Login failed')),
+      );
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    try {
-      final credential = await _authRepository.signInWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+    if (isNewUser) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              CreateProfileScreen(firebaseUser: loginProvider.firebaseUser!),
+        ),
       );
-
-      if (credential != null && credential.user != null) {
-        final firebaseUser = credential.user!;
-        User? existingUser = await _userRepository.getUser(firebaseUser.uid);
-
-        if (existingUser == null) {
-          // Account exists in Auth but not in Firestore (e.g. registration interrupted)
-          // Redirect to Create Profile to complete setup
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateProfileScreen(firebaseUser: firebaseUser),
-            ),
-          );
-          return;
-        }
-
-        // Update last login date
-        await _userRepository.updateUserField(firebaseUser.uid, {
-          'lastLoginDate': DateTime.now().toIso8601String(),
-        });
-
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const GenderSelectionScreen(),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const GenderSelectionScreen(),
+        ),
+      );
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    final loginProvider = context.read<LoginProvider>();
+    final isNewUser = await loginProvider.signInWithGoogle();
+    _navigateAfterAuth(isNewUser);
+  }
+
+  Future<void> _handleAppleLogin() async {
+    final loginProvider = context.read<LoginProvider>();
+    final isNewUser = await loginProvider.signInWithApple();
+    _navigateAfterAuth(isNewUser);
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final loginProvider = context.read<LoginProvider>();
+    final isNewUser = await loginProvider.signInWithEmailAndPassword(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+    _navigateAfterAuth(isNewUser);
+  }
+
   Future<void> _handleForgotPassword() async {
+    final loginProvider = context.read<LoginProvider>();
     String? email = _emailController.text.trim();
+
     if (email.isEmpty) {
       email = await showDialog<String>(
         context: context,
@@ -359,20 +240,19 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (email != null && email.isNotEmpty) {
-      try {
-        await _authRepository.sendPasswordResetEmail(email);
-        if (!mounted) return;
+      final success = await loginProvider.sendPasswordResetEmail(email);
+      if (!mounted) return;
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Password reset email sent to $email'),
             backgroundColor: Colors.green,
           ),
         );
-      } catch (e) {
-        if (!mounted) return;
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send reset email: ${e.toString()}'),
+            content: Text(loginProvider.errorMessage ?? 'Failed to send reset email'),
             backgroundColor: Colors.red,
           ),
         );

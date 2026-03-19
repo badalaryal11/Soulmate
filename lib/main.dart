@@ -16,7 +16,6 @@ import 'presentation/providers/current_user_provider.dart';
 import 'presentation/providers/profile_management_provider.dart';
 import 'presentation/providers/match_provider.dart';
 import 'presentation/providers/discovery_provider.dart';
-import 'presentation/providers/login_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
