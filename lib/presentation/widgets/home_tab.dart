@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/discovery_provider.dart';
 import '../../core/utils/image_generation_service.dart';
+import '../../core/utils/image_utils.dart';
 import 'profile_card.dart';
 
 class HomeTab extends StatefulWidget {
@@ -179,16 +179,19 @@ class _HomeTabState extends State<HomeTab> {
     String? url;
     if (user.imageUrl.isNotEmpty && !user.imageUrl.startsWith('assets/')) {
       url = user.imageUrl;
-    } else if (user.imageUrl.isEmpty || !user.imageUrl.startsWith('assets/')) {
+    } else if (user.imageUrl.isEmpty) {
       url = ImageGenerationService.generateProfileImageUrl(user);
     }
 
     if (url != null && url.isNotEmpty) {
+      final imageProvider = ImageUtils.getImageProvider(
+        url,
+        maxWidth: 300,
+        maxHeight: 450,
+      );
+      if (imageProvider == null) return;
       try {
-        await precacheImage(
-          CachedNetworkImageProvider(url, maxWidth: 300, maxHeight: 450),
-          context,
-        );
+        await precacheImage(imageProvider, context);
       } catch (e) {
         debugPrint('Image precache error: $e');
       }
