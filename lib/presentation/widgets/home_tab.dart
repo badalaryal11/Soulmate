@@ -62,23 +62,24 @@ class _HomeTabState extends State<HomeTab> {
         }
 
         if (provider.filteredUsers.isEmpty) {
+          // Auto-load more users when deck is empty
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) provider.loadUsers(gender: provider.selectedGender);
+          });
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.person_off_outlined,
-                  size: 48,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 24),
                 Text(
-                  'No users found',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  'Searching for new profiles...',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Try adjusting your filters or retrying.',
+                  'Hold on, we\'re finding people for you!',
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
@@ -86,10 +87,6 @@ class _HomeTabState extends State<HomeTab> {
                   onPressed: () => provider.loadUsers(clearList: true),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFE3C72),
-                    foregroundColor: Colors.white,
-                  ),
                 ),
               ],
             ),
@@ -119,7 +116,6 @@ class _HomeTabState extends State<HomeTab> {
                   numberOfCardsDisplayed: provider.filteredUsers.length < 3
                       ? provider.filteredUsers.length
                       : 3,
-                  isLoop: false,
                   backCardOffset: const Offset(0, 40),
                   padding: const EdgeInsets.all(24.0),
                   cardBuilder:
@@ -132,9 +128,7 @@ class _HomeTabState extends State<HomeTab> {
                         return ProfileCard(user: provider.filteredUsers[index]);
                       },
                   onSwipe: (previousIndex, currentIndex, direction) {
-                    // ---------------------------------------------------------
-                    // OPTIMIZATION: PRE-CACHE NEXT IMAGES
-                    // ---------------------------------------------------------
+                    // Pre-cache upcoming images
                     if (currentIndex != null) {
                       for (int i = 1; i <= 3; i++) {
                         final nextIndex = currentIndex + i;
@@ -149,10 +143,6 @@ class _HomeTabState extends State<HomeTab> {
 
                     provider.userSwiped(previousIndex, direction);
                     return true;
-                  },
-                  onEnd: () {
-                    // All cards swiped — load more users
-                    provider.loadUsers(gender: provider.selectedGender);
                   },
                 ),
               ),

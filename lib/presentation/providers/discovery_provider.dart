@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../core/utils/image_generation_service.dart';
+import '../../data/datasources/random_user_api_service.dart';
 import 'current_user_provider.dart';
 import '../../core/utils/rate_limiter.dart';
 
@@ -24,6 +26,7 @@ class DiscoveryProvider extends ChangeNotifier {
   final List<User> _users = [];
   final Set<String> _usedImageUrls = {};
   final Set<String> _seenUserIds = {};
+  final Set<String> _swipedUserIds = {};
   DiscoveryStatus _status = DiscoveryStatus.initial;
   String? _errorMessage;
   bool _isLoadingUsers = false;
@@ -56,6 +59,9 @@ class DiscoveryProvider extends ChangeNotifier {
 
   void _updateFilteredUsers() {
     _filteredUsers = _users.where((user) {
+      // Exclude already-swiped users from the deck
+      if (_swipedUserIds.contains(user.id)) return false;
+
       final matchesAge = user.age >= _minAge && user.age <= _maxAge;
       final userGender = user.gender.trim().toLowerCase();
       final selected = _selectedGender?.trim().toLowerCase();
@@ -87,6 +93,7 @@ class DiscoveryProvider extends ChangeNotifier {
       _filteredUsers.clear();
       _usedImageUrls.clear();
       _seenUserIds.clear();
+      _swipedUserIds.clear();
       _filterRevision++;
     }
 
@@ -99,28 +106,43 @@ class DiscoveryProvider extends ChangeNotifier {
     _isLoadingUsers = true;
 
     try {
-      final newUsers = await _getUsersUseCase.call(
-        gender: _selectedGender,
-        currentUserId: currentUser?.id,
-        refresh: clearList,
-      );
+      // Fetch from both Firestore and RandomUser API in parallel
+      final results = await Future.wait([
+        _getUsersUseCase.call(
+          gender: _selectedGender,
+          currentUserId: currentUser?.id,
+          limit: 20,
+          refresh: clearList,
+        ),
+        RandomUserApiService.fetchRandomUsers(
+          count: 10,
+          gender: _selectedGender,
+        ),
+      ]);
+
+      final firestoreUsers = results[0];
+      final apiUsers = results[1];
+
+      // Merge both sources
+      final allNewUsers = [...firestoreUsers, ...apiUsers];
 
       final List<User> uniqueUsers = [];
-      for (var user in newUsers) {
+      for (var user in allNewUsers) {
         if (_seenUserIds.contains(user.id)) continue;
 
         String finalUrl = user.imageUrl;
         bool isGenerated = false;
 
-        // Only generate a fallback URL if the user has no valid image
-        if (finalUrl.isEmpty ||
-            (!finalUrl.startsWith('http') && !finalUrl.startsWith('assets/'))) {
+        // API users already have real photos — only generate for Firestore users
+        if (!user.id.startsWith('api_') &&
+            (finalUrl.isEmpty ||
+                (!finalUrl.startsWith('http') &&
+                    !finalUrl.startsWith('assets/')))) {
           finalUrl = ImageGenerationService.generateProfileImageUrl(user);
           isGenerated = true;
         }
 
         // Only run image-URL dedup for generated images (limited pool).
-        // API-sourced photos are already unique per user.
         if (isGenerated) {
           int retryCount = 0;
           while (_usedImageUrls.contains(finalUrl) && retryCount < 10) {
@@ -134,6 +156,8 @@ class DiscoveryProvider extends ChangeNotifier {
         uniqueUsers.add(user.copyWith(imageUrl: finalUrl));
       }
 
+      // Shuffle to mix Firestore + API users randomly
+      uniqueUsers.shuffle(Random());
       _users.addAll(uniqueUsers);
 
       // Belt-and-suspenders: ensure no duplicate IDs in the list
@@ -149,7 +173,13 @@ class DiscoveryProvider extends ChangeNotifier {
         _usedImageUrls.addAll(urlList.skip(urlList.length - _maxImageUrls));
       }
 
+      final previousCount = _filteredUsers.length;
       _updateFilteredUsers();
+
+      // Rebuild CardSwiper when new unswiped cards become available
+      if (_filteredUsers.length != previousCount) {
+        _filterRevision++;
+      }
 
       if (_status == DiscoveryStatus.loading ||
           _status == DiscoveryStatus.initial) {
@@ -167,52 +197,60 @@ class DiscoveryProvider extends ChangeNotifier {
   }
 
   void userSwiped(int index, CardSwiperDirection direction) {
-    bool stateChanged = false;
-    if (index < filteredUsers.length) {
-      _undoUserStack.add(filteredUsers[index]);
-      _undoIndexStack.add(index);
-      if (_undoUserStack.length > 10) {
-        _undoUserStack.removeAt(0);
-        _undoIndexStack.removeAt(0);
-      }
-      stateChanged = true;
+    if (index >= filteredUsers.length) return;
+
+    final swipedUser = filteredUsers[index];
+
+    // Save for undo
+    _undoUserStack.add(swipedUser);
+    _undoIndexStack.add(index);
+    if (_undoUserStack.length > 10) {
+      _undoUserStack.removeAt(0);
+      _undoIndexStack.removeAt(0);
     }
+
+    // Mark as swiped so it won't appear again
+    _swipedUserIds.add(swipedUser.id);
 
     if (direction == CardSwiperDirection.right) {
       _swipeCount++;
       if (_swipeCount >= _nextMatchThreshold) {
-        // Prevent rapid swiping from queuing up multiple matches simultaneously
         if (RateLimiter.check(
           'swipe_match_trigger',
           const Duration(seconds: 1),
         )) {
-          _triggerMatch(index);
+          onMatchFound?.call(swipedUser);
           _swipeCount = 0;
           _nextMatchThreshold = 5 + (DateTime.now().millisecond % 5);
         }
       }
     }
 
-    if (index >= filteredUsers.length - 5) {
-      loadUsers(gender: _selectedGender);
-    }
+    // Defer deck rebuild to next frame so CardSwiper completes its animation
+    // before being destroyed/rebuilt (prevents "deactivated widget" crash)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateFilteredUsers();
+      _filterRevision++;
 
-    if (stateChanged) notifyListeners();
+      // Pre-load more users when running low
+      if (_filteredUsers.length < 10) {
+        loadUsers(gender: _selectedGender);
+      }
+
+      notifyListeners();
+    });
   }
 
   void undoSwipe() {
     if (!canUndo) return;
     final lastUser = _undoUserStack.removeLast();
-    final lastIndex = _undoIndexStack.removeLast();
-    final insertIndex = lastIndex.clamp(0, filteredUsers.length);
-    _filteredUsers.insert(insertIndex, lastUser);
+    _undoIndexStack.removeLast();
+
+    // Un-mark as swiped so it reappears
+    _swipedUserIds.remove(lastUser.id);
+    _updateFilteredUsers();
+    _filterRevision++;
     notifyListeners();
   }
-
-  void _triggerMatch(int index) {
-    if (index < filteredUsers.length) {
-      final user = filteredUsers[index];
-      onMatchFound?.call(user);
-    }
-  }
 }
+
