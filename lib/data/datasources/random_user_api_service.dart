@@ -6,9 +6,11 @@ import '../../domain/entities/user.dart';
 
 /// Fetches random user profiles from randomuser.me to supplement
 /// the Firestore user pool in the discovery deck.
+/// Falls back to locally generated profiles if the API is down.
 class RandomUserApiService {
   static const String _baseUrl = 'https://randomuser.me/api/';
   static final _random = Random();
+  static int _fallbackCounter = 0;
 
   static const List<String> _defaultInterests = [
     'Travel', 'Music', 'Photography', 'Cooking', 'Reading',
@@ -29,11 +31,57 @@ class RandomUserApiService {
     'Creative soul with a sense of humor 🎨',
   ];
 
+  static const List<String> _maleNames = [
+    'James', 'William', 'Oliver', 'Benjamin', 'Lucas',
+    'Henry', 'Alexander', 'Sebastian', 'Daniel', 'Matthew',
+    'Ethan', 'Noah', 'Liam', 'Mason', 'Logan',
+    'Jackson', 'Aiden', 'Samuel', 'David', 'Joseph',
+  ];
+
+  static const List<String> _femaleNames = [
+    'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella',
+    'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
+    'Aria', 'Luna', 'Chloe', 'Penelope', 'Layla',
+    'Riley', 'Zoey', 'Nora', 'Lily', 'Eleanor',
+  ];
+
+  static const List<String> _lastNames = [
+    'Smith', 'Johnson', 'Williams', 'Brown', 'Jones',
+    'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+    'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore',
+    'Jackson', 'Martin', 'Lee', 'Thompson', 'White',
+  ];
+
+  static const List<String> _cities = [
+    'New York', 'Los Angeles', 'Chicago', 'Houston', 'London',
+    'Toronto', 'Sydney', 'Melbourne', 'Vancouver', 'Austin',
+    'Denver', 'Portland', 'Seattle', 'Boston', 'Miami',
+  ];
+
+  static const List<String> _countries = [
+    'United States', 'United States', 'United States', 'United States',
+    'United Kingdom', 'Canada', 'Australia', 'Australia', 'Canada',
+    'United States', 'United States', 'United States', 'United States',
+    'United States', 'United States',
+  ];
+
   /// Fetch [count] random users, optionally filtered by [gender].
-  /// Returns a list of [User] entities with API-prefixed IDs
-  /// to distinguish them from Firestore users.
+  /// Falls back to locally generated profiles if the API is unreachable.
   static Future<List<User>> fetchRandomUsers({
     int count = 20,
+    String? gender,
+  }) async {
+    // Try the API first
+    final apiUsers = await _fetchFromApi(count: count, gender: gender);
+    if (apiUsers.isNotEmpty) return apiUsers;
+
+    // Fallback: generate profiles locally
+    debugPrint('RandomUser API unavailable — using local fallback');
+    return _generateLocalUsers(count: count, gender: gender);
+  }
+
+  static Future<List<User>> _fetchFromApi({
+    required int count,
     String? gender,
   }) async {
     try {
@@ -43,7 +91,6 @@ class RandomUserApiService {
         'inc': 'name,location,email,picture,dob,gender,login',
       };
 
-      // Map gender filter to API format
       if (gender != null && gender.toLowerCase() != 'everyone') {
         queryParams['gender'] = gender.toLowerCase();
       }
@@ -68,6 +115,54 @@ class RandomUserApiService {
     }
   }
 
+  static List<User> _generateLocalUsers({
+    required int count,
+    String? gender,
+  }) {
+    final users = <User>[];
+    final genderLower = gender?.toLowerCase();
+
+    for (int i = 0; i < count; i++) {
+      final isMale = genderLower == 'male'
+          ? true
+          : genderLower == 'female'
+              ? false
+              : _random.nextBool();
+
+      final firstName = isMale
+          ? _maleNames[_random.nextInt(_maleNames.length)]
+          : _femaleNames[_random.nextInt(_femaleNames.length)];
+      final lastName = _lastNames[_random.nextInt(_lastNames.length)];
+      final cityIndex = _random.nextInt(_cities.length);
+      final age = 20 + _random.nextInt(15);
+
+      // Use ui-avatars.com for fallback profile images (always available, no API key)
+      final avatarUrl = 'https://ui-avatars.com/api/'
+          '?name=${Uri.encodeComponent('$firstName $lastName')}'
+          '&size=400&background=random&color=fff&bold=true&format=png';
+
+      final shuffled = List<String>.from(_defaultInterests)..shuffle(_random);
+      final interests = shuffled.take(2 + _random.nextInt(3)).toList();
+
+      _fallbackCounter++;
+      users.add(User(
+        id: 'local_${DateTime.now().millisecondsSinceEpoch}_$_fallbackCounter',
+        email: '${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com',
+        firstName: firstName,
+        lastName: lastName,
+        age: age,
+        city: _cities[cityIndex],
+        country: _countries[cityIndex],
+        imageUrl: avatarUrl,
+        gender: isMale ? 'male' : 'female',
+        interests: interests,
+        bio: _bios[_random.nextInt(_bios.length)],
+      ));
+    }
+
+    return users;
+  }
+
   static User _mapToUser(Map<String, dynamic> json) {
     final name = json['name'] as Map<String, dynamic>;
     final location = json['location'] as Map<String, dynamic>;
@@ -75,7 +170,6 @@ class RandomUserApiService {
     final picture = json['picture'] as Map<String, dynamic>;
     final login = json['login'] as Map<String, dynamic>;
 
-    // Generate 2-4 random interests
     final shuffled = List<String>.from(_defaultInterests)..shuffle(_random);
     final interests = shuffled.take(2 + _random.nextInt(3)).toList();
 
