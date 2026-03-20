@@ -62,6 +62,7 @@ class ChatProvider extends ChangeNotifier {
 
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
+  bool _disposed = false;
 
   StreamSubscription<List<ChatMessage>>? _chatSubscription;
   StreamSubscription<Map<String, dynamic>?>? _metadataSubscription;
@@ -90,13 +91,14 @@ class ChatProvider extends ChangeNotifier {
   ]; 
 
   Future<void> initChat(User currentUser, User otherUser) async {
+    _disposed = false; // Reset in case provider is being reused
     final newChatId = await _getChatIdUseCase(currentUser.id, otherUser.id);
 
     // Skip re-init if already listening to this chat
     if (_chatId == newChatId && _currentUser?.id == currentUser.id) {
       if (_isLoading) {
         _isLoading = false;
-        notifyListeners();
+        _safeNotifyListeners();
       }
       return;
     }
@@ -111,7 +113,7 @@ class ChatProvider extends ChangeNotifier {
     _chatId = newChatId;
     _isLoading = true;
     _messages = [];
-    notifyListeners();
+    _safeNotifyListeners();
 
     // Mark incoming messages as read
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
@@ -120,7 +122,7 @@ class ChatProvider extends ChangeNotifier {
     _chatSubscription = _getChatStreamUseCase(_chatId!).listen((messages) {
       _messages = messages;
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     });
 
     // Cancel "Miss you" notification as user is here
@@ -137,6 +139,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void disposeProvider() {
+    _disposed = true;
     _chatSubscription?.cancel();
     _chatSubscription = null;
     _metadataSubscription?.cancel();
@@ -150,6 +153,12 @@ class ChatProvider extends ChangeNotifier {
     _relationshipLevel = "Stranger";
     _messages = [];
     _isLoading = true;
+    onSoulmateLevelReached = null;
+  }
+
+  /// Safe wrapper that skips notification if provider has been disposed.
+  void _safeNotifyListeners() {
+    if (!_disposed) notifyListeners();
   }
 
   double calculateProgress(int xp) {
@@ -182,7 +191,7 @@ class ChatProvider extends ChangeNotifier {
 
     _relationshipLevel = newLevel;
     _isFirstLoad = false;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> sendIcebreaker() async {
@@ -269,7 +278,7 @@ class ChatProvider extends ChangeNotifier {
     }
 
     _isTyping = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     // Build Chat History for API
     List<Map<String, String>> apiMessages = [];
@@ -306,7 +315,7 @@ class ChatProvider extends ChangeNotifier {
       final responseText = await _sendAiMessageUseCase(apiMessages);
 
       _isTyping = false;
-      notifyListeners();
+      _safeNotifyListeners();
 
       // Create AI Message
       final aiMessage = ChatMessage(
@@ -334,7 +343,7 @@ class ChatProvider extends ChangeNotifier {
       // because _sendMessageUseCase will soon update the Stream, triggering a UI rebuild.
       // But we can just set it to false and wait.
       _isTyping = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 }

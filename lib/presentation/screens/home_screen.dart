@@ -94,6 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   @override
+  void dispose() {
+    // Prevent closure from holding reference to this widget's context
+    context.read<DiscoveryProvider>().onMatchFound = null;
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // Only show AppBar on Home Tab (Index 0)

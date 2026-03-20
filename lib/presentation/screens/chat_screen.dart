@@ -205,8 +205,10 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.dispose();
     _searchController.dispose();
     _scrollController.dispose();
-    // Clean up chat subscriptions when leaving the screen
-    context.read<ChatProvider>().disposeProvider();
+    // Clean up callbacks and chat subscriptions when leaving the screen
+    final chatProvider = context.read<ChatProvider>();
+    chatProvider.onSoulmateLevelReached = null;
+    chatProvider.disposeProvider();
     super.dispose();
   }
 

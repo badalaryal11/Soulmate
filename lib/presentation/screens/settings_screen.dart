@@ -277,7 +277,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).then((_) => emailController.dispose());
   }
 
   void _showChangePasswordDialog(
@@ -326,7 +326,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).then((_) => passwordController.dispose());
   }
 
   void _showDeleteAccountDialog(
@@ -567,7 +567,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).then((_) => feedbackController.dispose());
   }
 
   void _showWipeDataDialog(
