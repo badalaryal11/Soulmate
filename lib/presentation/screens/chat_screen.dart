@@ -68,14 +68,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Precache all sticker GIFs in the background so they load instantly
   /// when the user opens the sticker picker.
-  void _precacheStickers() {
+  Future<void> _precacheStickers() async {
     for (final sticker in Stickers.stickerData) {
+      if (!mounted) break;
       final url = sticker['url'];
       if (url != null && url.isNotEmpty) {
-        precacheImage(
+        await precacheImage(
           CachedNetworkImageProvider(url, maxWidth: 250, maxHeight: 250),
           context,
         );
+        // Yield to the event loop
+        await Future.delayed(const Duration(milliseconds: 50));
       }
     }
   }
@@ -208,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Clean up callbacks and chat subscriptions when leaving the screen
     final chatProvider = context.read<ChatProvider>();
     chatProvider.onSoulmateLevelReached = null;
-    chatProvider.disposeProvider();
+    chatProvider.clearChatData();
     super.dispose();
   }
 

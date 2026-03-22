@@ -161,7 +161,7 @@ class ChatDatabaseService {
           ...chatData,
           'lastMessage': message.text,
           'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
-          'participants': chatId.split('_'),
+          'participants': chatData['participants'] ?? chatId.split('_'),
           'xp': currentXp + 1,
           'streak': currentStreak,
         };
@@ -193,11 +193,14 @@ class ChatDatabaseService {
             : [];
 
         for (int i = 0; i < messagesJson.length; i++) {
-          final Map<String, dynamic> msgMap = jsonDecode(messagesJson[i]);
-          if (msgMap['id'] == messageId) {
-            msgMap['gameData'] = gameData;
-            messagesJson[i] = jsonEncode(msgMap);
-            break;
+          final jsonStr = messagesJson[i];
+          if (jsonStr.contains('"$messageId"')) {
+            final Map<String, dynamic> msgMap = jsonDecode(jsonStr);
+            if (msgMap['id'] == messageId) {
+              msgMap['gameData'] = gameData;
+              messagesJson[i] = jsonEncode(msgMap);
+              break;
+            }
           }
         }
 

@@ -58,7 +58,7 @@ class ChatService {
       const Duration(seconds: 2),
       maxBurst: 3,
     )) {
-      return "Whoa there! You're messaging too fast. Give me a second to catch up! 😅";
+      throw Exception("RATE_LIMIT");
     }
 
     final StringBuffer errorLog = StringBuffer();

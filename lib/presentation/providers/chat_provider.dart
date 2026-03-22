@@ -138,8 +138,7 @@ class ChatProvider extends ChangeNotifier {
     });
   }
 
-  void disposeProvider() {
-    _disposed = true;
+  void clearChatData() {
     _chatSubscription?.cancel();
     _chatSubscription = null;
     _metadataSubscription?.cancel();
@@ -330,6 +329,13 @@ class ChatProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error getting AI response: $e");
 
+      _isTyping = false;
+      _safeNotifyListeners();
+
+      if (e.toString().contains("RATE_LIMIT")) {
+        return;
+      }
+
       // Inject an AI-sent error message payload into the db instead of failing silently
       final aiMessage = ChatMessage(
         id: _uuid.v4(),
@@ -338,12 +344,6 @@ class ChatProvider extends ChangeNotifier {
         timestamp: DateTime.now(),
       );
       await _sendMessageUseCase(_chatId!, aiMessage);
-
-      // We explicitly DO NOT call notifyListeners with isTyping=false here
-      // because _sendMessageUseCase will soon update the Stream, triggering a UI rebuild.
-      // But we can just set it to false and wait.
-      _isTyping = false;
-      _safeNotifyListeners();
     }
   }
 }
