@@ -123,6 +123,10 @@ class ChatProvider extends ChangeNotifier {
       _messages = messages;
       _isLoading = false;
       _safeNotifyListeners();
+    }, onError: (error) {
+      debugPrint("Chat Stream Error: $error");
+      _isLoading = false;
+      _safeNotifyListeners();
     });
 
     // Cancel "Miss you" notification as user is here
@@ -135,6 +139,8 @@ class ChatProvider extends ChangeNotifier {
       if (metadata != null && metadata.containsKey('xp')) {
         updateXp(metadata['xp'] as int);
       }
+    }, onError: (error) {
+      debugPrint("Metadata Stream Error: $error");
     });
   }
 

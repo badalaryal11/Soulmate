@@ -61,9 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => CreateProfileScreen(
-                firebaseUser: FirebaseAuth
-                    .instance
-                    .currentUser!, // Use instance or credential.user
+                firebaseUser: credential.user!,
               ),
             ),
           );
