@@ -23,14 +23,24 @@ class LoginProvider extends ChangeNotifier {
   firebase_auth.User? _firebaseUser;
   firebase_auth.User? get firebaseUser => _firebaseUser;
 
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   void clearError() => _setError(null);
 
   void _setLoading(bool value) {
+    if (_isDisposed) return;
     _isLoading = value;
     notifyListeners();
   }
 
   void _setError(String? message) {
+    if (_isDisposed) return;
     _errorMessage = message;
     notifyListeners();
   }
