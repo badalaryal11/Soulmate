@@ -4,7 +4,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../core/utils/image_generation_service.dart';
-import '../../data/datasources/random_user_api_service.dart';
+
 import 'current_user_provider.dart';
 import '../../core/utils/rate_limiter.dart';
 
@@ -106,25 +106,13 @@ class DiscoveryProvider extends ChangeNotifier {
     _isLoadingUsers = true;
 
     try {
-      // Fetch from both Firestore and RandomUser API in parallel
-      final results = await Future.wait([
-        _getUsersUseCase.call(
-          gender: _selectedGender,
-          currentUserId: currentUser?.id,
-          limit: 20,
-          refresh: clearList,
-        ),
-        RandomUserApiService.fetchRandomUsers(
-          count: 10,
-          gender: _selectedGender,
-        ),
-      ]);
-
-      final firestoreUsers = results[0];
-      final apiUsers = results[1];
-
-      // Merge both sources
-      final allNewUsers = [...firestoreUsers, ...apiUsers];
+      // Fetch from Firestore and API via the UseCase
+      final allNewUsers = await _getUsersUseCase.call(
+        gender: _selectedGender,
+        currentUserId: currentUser?.id,
+        limit: 20,
+        refresh: clearList,
+      );
 
       final List<User> uniqueUsers = [];
       for (var user in allNewUsers) {

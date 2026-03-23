@@ -1,46 +1,11 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart'; // For compute
-import 'package:http/http.dart' as http;
-import 'package:soulmate/data/models/user_model.dart';
 import '../../domain/entities/user.dart' as domain;
-import 'image_generation_service.dart';
 import 'dart:developer' as developer;
 import '../../core/utils/rate_limiter.dart';
-
-// Top-level function for compute
-List<domain.User> parseDummyJsonUsers(String responseBody) {
-  final Map<String, dynamic> data = json.decode(responseBody);
-  final List<dynamic> usersData = data['users'];
-  return usersData.map((json) {
-    final user = UserModel.fromDummyJson(json);
-    // Keep the original DummyJSON image if available (each user has a unique CDN photo).
-    // Only fall back to generated images if the original is missing.
-    if (user.imageUrl.isEmpty) {
-      return user.copyWith(
-        imageUrl: ImageGenerationService.generateProfileImageUrl(user),
-      );
-    }
-    return user;
-  }).toList();
-}
-
-// Top-level function for compute
-List<domain.User> parseRandomUserMeUsers(String responseBody) {
-  final Map<String, dynamic> data = json.decode(responseBody);
-  final List<dynamic> usersData = data['results'];
-  return usersData.map((json) => UserModel.fromRandomUser(json)).toList();
-}
+import 'random_user_api_service.dart';
 
 class ApiService {
-  // Shared HTTP client for connection reuse
-  static final http.Client _client = http.Client();
-
-  // Base URL is kept but unused in this local-only mode
-  static const String _dummyJsonUrl = 'https://dummyjson.com/users';
-  static const String _randomUserUrl = 'https://randomuser.me/api/';
-
   Future<List<domain.User>> fetchUsers({
-    int results = 50,
+    int results = 20,
     String? gender,
   }) async {
     // Prevent aggressive UI refreshing from hammering the API
@@ -49,132 +14,10 @@ class ApiService {
       return [];
     }
 
-    // Split results between the two APIs
-    // Ensure at least 1 user from each if results is small, otherwise split roughly 50/50
-    int halfLimit = (results / 2).ceil();
-
-    // Fetch from both sources in parallel
-    final dummyJsonFuture = _fetchDummyJsonUsers(
-      results: halfLimit,
+    developer.log('Delegating fetch to RandomUserApiService');
+    return await RandomUserApiService.fetchRandomUsers(
+      count: results,
       gender: gender,
     );
-    final randomUserFuture = _fetchRandomUserMeUsers(
-      results: halfLimit,
-      gender: gender,
-    );
-
-    final resultsList = await Future.wait([dummyJsonFuture, randomUserFuture]);
-
-    final List<domain.User> allUsers = [];
-    allUsers.addAll(resultsList[0]);
-    allUsers.addAll(resultsList[1]);
-
-    // Shuffle to mix them up
-    allUsers.shuffle();
-
-    developer.log('Total users fetched and shuffled: ${allUsers.length}');
-    return allUsers;
-  }
-
-  Future<List<domain.User>> _fetchDummyJsonUsers({
-    required int results,
-    String? gender,
-  }) async {
-    int attempts = 0;
-    const int maxAttempts = 3;
-
-    while (attempts < maxAttempts) {
-      try {
-        attempts++;
-        // Always use the basic endpoint to fetch more users, then filter client-side
-        const int fetchLimit =
-            50; // Fetch more users to ensure we have enough after filtering
-        String url = '$_dummyJsonUrl?limit=$fetchLimit';
-
-        developer.log('Fetching DummyJSON users: $url');
-        final response = await _client
-            .get(
-              Uri.parse(url),
-              headers: {'Accept-Encoding': 'gzip, deflate, br'},
-            )
-            .timeout(const Duration(seconds: 5));
-
-        if (response.statusCode == 200) {
-          // Offload parsing to background isolate
-          List<domain.User> users = await compute(
-            parseDummyJsonUsers,
-            response.body,
-          );
-
-          // Filter by gender if specified
-          if (gender != null && gender != 'everyone') {
-            users = users
-                .where(
-                  (user) => user.gender.toLowerCase() == gender.toLowerCase(),
-                )
-                .toList();
-          }
-
-          // Return only the requested number
-          return users.take(results).toList();
-        } else {
-          if (response.statusCode >= 400 && response.statusCode < 500) {
-            return [];
-          }
-        }
-      } catch (e) {
-        developer.log('Error fetching DummyJSON users (Attempt $attempts): $e');
-        if (attempts >= maxAttempts) {
-          return [];
-        }
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-    }
-    return [];
-  }
-
-  Future<List<domain.User>> _fetchRandomUserMeUsers({
-    required int results,
-    String? gender,
-  }) async {
-    int attempts = 0;
-    const int maxAttempts = 3;
-
-    while (attempts < maxAttempts) {
-      try {
-        attempts++;
-        // RandomUser parameters: ?results=X&gender=male
-        String url = '$_randomUserUrl?results=$results';
-        if (gender != null && gender != 'everyone') {
-          url += '&gender=$gender';
-        }
-
-        developer.log('Fetching RandomUser.me users: $url');
-        final response = await _client
-            .get(
-              Uri.parse(url),
-              headers: {'Accept-Encoding': 'gzip, deflate, br'},
-            )
-            .timeout(const Duration(seconds: 5));
-
-        if (response.statusCode == 200) {
-          // Offload parsing to background isolate
-          return await compute(parseRandomUserMeUsers, response.body);
-        } else {
-          if (response.statusCode >= 400 && response.statusCode < 500) {
-            return [];
-          }
-        }
-      } catch (e) {
-        developer.log(
-          'Error fetching RandomUser users (Attempt $attempts): $e',
-        );
-        if (attempts >= maxAttempts) {
-          return [];
-        }
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-    }
-    return [];
   }
 }
