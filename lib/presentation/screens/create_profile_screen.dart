@@ -34,6 +34,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
   File? _imageFile;
@@ -70,6 +71,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     _lastNameController.dispose();
     _bioController.dispose();
     _cityController.dispose();
+    _countryController.dispose();
     super.dispose();
   }
 
@@ -252,7 +254,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         gender: _selectedGender,
         age: _age,
         city: _cityController.text.trim(),
-        country: '',
+        country: _countryController.text.trim(),
         interests: [],
         imageUrl: imageUrl,
         lastLoginDate: DateTime.now().toIso8601String(),
@@ -417,6 +419,18 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Country
+              TextFormField(
+                controller: _countryController,
+                decoration: InputDecoration(
+                  labelText: 'Country',
+                  labelStyle: GoogleFonts.poppins(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
 
               // Gender Dropdown
               DropdownButtonFormField<String>(
