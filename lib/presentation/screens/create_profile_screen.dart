@@ -431,6 +431,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
 
               // Gender Dropdown
               DropdownButtonFormField<String>(
