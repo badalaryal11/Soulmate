@@ -11,6 +11,11 @@ class RandomUserApiService {
   static const String _baseUrl = 'https://randomuser.me/api/';
   static final _random = Random();
   static int _fallbackCounter = 0;
+  
+  static final http.Client _client = http.Client();
+  static final List<User> _userCache = [];
+  static String? _lastRequestedGender;
+  static bool _isFetching = false;
 
   static const List<String> _defaultInterests = [
     'Travel', 'Music', 'Photography', 'Cooking', 'Reading',
@@ -71,13 +76,52 @@ class RandomUserApiService {
     int count = 20,
     String? gender,
   }) async {
-    // Try the API first
+    // Clear cache if the user switched their gender preference
+    if (_lastRequestedGender != gender) {
+      _userCache.clear();
+      _lastRequestedGender = gender;
+    }
+
+    // Cache Hit
+    if (_userCache.length >= count) {
+      final users = _userCache.sublist(0, count);
+      _userCache.removeRange(0, count);
+      
+      // Fire and forget background refill to ensure next batch is ready
+      _refillCacheInBackground(count: count * 2, gender: gender);
+      return users;
+    }
+
+    // Cache Miss: fetch directly
+    _isFetching = true;
     final apiUsers = await _fetchFromApi(count: count, gender: gender);
-    if (apiUsers.isNotEmpty) return apiUsers;
+    _isFetching = false;
+
+    if (apiUsers.isNotEmpty) {
+      return apiUsers;
+    }
 
     // Fallback: generate profiles locally
     debugPrint('RandomUser API unavailable — using local fallback');
     return _generateLocalUsers(count: count, gender: gender);
+  }
+
+  static Future<void> _refillCacheInBackground({
+    required int count,
+    String? gender,
+  }) async {
+    if (_isFetching) return;
+    _isFetching = true;
+
+    try {
+      final newUsers = await _fetchFromApi(count: count, gender: gender);
+      // Ensure the user hasn't toggled gender while we were waiting
+      if (_lastRequestedGender == gender && newUsers.isNotEmpty) {
+        _userCache.addAll(newUsers);
+      }
+    } finally {
+      _isFetching = false;
+    }
   }
 
   static Future<List<User>> _fetchFromApi({
@@ -96,7 +140,7 @@ class RandomUserApiService {
       }
 
       final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParams);
-      final response = await http.get(uri).timeout(
+      final response = await _client.get(uri).timeout(
         const Duration(seconds: 5),
       );
 

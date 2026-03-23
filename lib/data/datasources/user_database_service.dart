@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:soulmate/data/models/user_model.dart';
 import '../../domain/entities/user.dart' as domain;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 /// Handles all user-related Firestore and Storage operations.
 class UserDatabaseService {
@@ -19,6 +22,22 @@ class UserDatabaseService {
   Future<String> uploadProfileImage(String userId, File imageFile) async {
     try {
       debugPrint("Starting image upload for user: $userId");
+
+      // 1. Compress Image
+      debugPrint("Compressing image...");
+      final tempDir = await getTemporaryDirectory();
+      final targetPath = p.join(tempDir.path, '${userId}_compressed_profile.jpg');
+      
+      final compressedXFile = await FlutterImageCompress.compressAndGetFile(
+        imageFile.absolute.path,
+        targetPath,
+        quality: 70, // 70% quality drops size by ~80% with minimal visual loss
+        minWidth: 800,
+        minHeight: 800,
+      );
+
+      final fileToUpload = compressedXFile != null ? File(compressedXFile.path) : imageFile;
+
       final ref = _storage.ref().child('user_images').child('$userId.jpg');
 
       final metadata = SettableMetadata(
@@ -26,7 +45,7 @@ class UserDatabaseService {
         customMetadata: {'picked-file-path': imageFile.path},
       );
 
-      final uploadTask = ref.putFile(imageFile, metadata);
+      final uploadTask = ref.putFile(fileToUpload, metadata);
       final snapshot = await uploadTask;
 
       debugPrint("Upload finished. State: ${snapshot.state}");
