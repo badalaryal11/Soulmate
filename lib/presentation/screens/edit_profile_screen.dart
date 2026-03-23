@@ -506,12 +506,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Edit Profile',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
