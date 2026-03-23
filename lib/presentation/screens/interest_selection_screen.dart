@@ -55,12 +55,12 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color ?? Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -75,7 +75,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF004D40),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF004D40),
                 ),
               ),
               const SizedBox(height: 8),
@@ -83,7 +83,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                 'Select up to 5 interests to find better matches.',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
               const SizedBox(height: 30),
@@ -100,9 +100,9 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                         selected: isSelected,
                         onSelected: (_) => _toggleInterest(interest),
                         selectedColor: const Color(0xFFFE3C72),
-                        backgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).cardColor,
                         labelStyle: GoogleFonts.poppins(
-                          color: isSelected ? Colors.white : Colors.black87,
+                          color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -112,7 +112,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                           side: BorderSide(
                             color: isSelected
                                 ? const Color(0xFFFE3C72)
-                                : Colors.grey[300]!,
+                                : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800]! : Colors.grey[300]!),
                           ),
                         ),
                         // Remove default implementation padding/elevation locally if needed
