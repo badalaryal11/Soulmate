@@ -45,12 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
               currentUserProvider.currentUser?.imageUrl ?? '';
 
           if (matchedImageUrl.isNotEmpty) {
-            precacheImage(CachedNetworkImageProvider(matchedImageUrl), context);
+            precacheImage(
+              CachedNetworkImageProvider(matchedImageUrl, maxWidth: 300, maxHeight: 450), 
+              context,
+            );
           }
           if (currentImageUrl.isNotEmpty &&
               !currentImageUrl.startsWith('assets/') &&
               !currentImageUrl.startsWith('file://')) {
-            precacheImage(CachedNetworkImageProvider(currentImageUrl), context);
+            precacheImage(
+              CachedNetworkImageProvider(currentImageUrl, maxWidth: 300, maxHeight: 450), 
+              context,
+            );
           }
 
           context.read<MatchProvider>().addMatch(user);
@@ -111,7 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(
                 'Soulmate',
                 style: GoogleFonts.lobster(
-                  fontSize: 30, // Slightly reduced to fit with balanced side widths
+                  fontSize:
+                      30, // Slightly reduced to fit with balanced side widths
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFFFE3C72),
                   shadows: [
@@ -127,7 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               toolbarHeight: 70,
-              leadingWidth: 100, // Balanced with actions width, reduced to prevent title truncation
+              leadingWidth:
+                  100, // Balanced with actions width, reduced to prevent title truncation
               leading: Padding(
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Align(

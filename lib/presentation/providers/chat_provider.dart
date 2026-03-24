@@ -88,7 +88,7 @@ class ChatProvider extends ChangeNotifier {
     "What's the best show you've watched recently?",
     "What's a hobby you've always wanted to pick up?",
     "What's your ideal first date?",
-  ]; 
+  ];
 
   Future<void> initChat(User currentUser, User otherUser) async {
     _disposed = false; // Reset in case provider is being reused
@@ -119,29 +119,33 @@ class ChatProvider extends ChangeNotifier {
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
 
     // Listen to messages
-    _chatSubscription = _getChatStreamUseCase(_chatId!).listen((messages) {
-      _messages = messages;
-      _isLoading = false;
-      _safeNotifyListeners();
-    }, onError: (error) {
-      debugPrint("Chat Stream Error: $error");
-      _isLoading = false;
-      _safeNotifyListeners();
-    });
+    _chatSubscription = _getChatStreamUseCase(_chatId!).listen(
+      (messages) {
+        _messages = messages;
+        _isLoading = false;
+        _safeNotifyListeners();
+      },
+      onError: (error) {
+        debugPrint("Chat Stream Error: $error");
+        _isLoading = false;
+        _safeNotifyListeners();
+      },
+    );
 
     // Cancel "Miss you" notification as user is here
     _notificationRepository.cancelNotification(_chatId.hashCode);
 
     // Listen to metadata for real-time XP changes
-    _metadataSubscription = _getChatMetadataStreamUseCase(_chatId!).listen((
-      metadata,
-    ) {
-      if (metadata != null && metadata.containsKey('xp')) {
-        updateXp(metadata['xp'] as int);
-      }
-    }, onError: (error) {
-      debugPrint("Metadata Stream Error: $error");
-    });
+    _metadataSubscription = _getChatMetadataStreamUseCase(_chatId!).listen(
+      (metadata) {
+        if (metadata != null && metadata.containsKey('xp')) {
+          updateXp(metadata['xp'] as int);
+        }
+      },
+      onError: (error) {
+        debugPrint("Metadata Stream Error: $error");
+      },
+    );
   }
 
   void clearChatData() {

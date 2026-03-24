@@ -26,8 +26,11 @@ class UserDatabaseService {
       // 1. Compress Image
       debugPrint("Compressing image...");
       final tempDir = await getTemporaryDirectory();
-      final targetPath = p.join(tempDir.path, '${userId}_compressed_profile.jpg');
-      
+      final targetPath = p.join(
+        tempDir.path,
+        '${userId}_compressed_profile.jpg',
+      );
+
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         targetPath,
@@ -36,7 +39,9 @@ class UserDatabaseService {
         minHeight: 800,
       );
 
-      final fileToUpload = compressedXFile != null ? File(compressedXFile.path) : imageFile;
+      final fileToUpload = compressedXFile != null
+          ? File(compressedXFile.path)
+          : imageFile;
 
       final ref = _storage.ref().child('user_images').child('$userId.jpg');
 

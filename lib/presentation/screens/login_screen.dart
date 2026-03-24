@@ -75,47 +75,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _handleForgotPassword,
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 30),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _handleForgotPassword,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(50, 30),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text('Forgot Password?'),
                         ),
-                        child: const Text('Forgot Password?'),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _RememberMeCheckbox(rememberNotifier: _rememberMe),
-                    const SizedBox(height: 24),
-                    _SignInButton(
+                      const SizedBox(height: 16),
+                      _RememberMeCheckbox(rememberNotifier: _rememberMe),
+                      const SizedBox(height: 24),
+                      _SignInButton(
                         isLoading: loginProvider.isLoading,
-                        onPressed: _handleLogin),
-                    const SizedBox(height: 16),
-                    _RegisterLink(onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 24),
-                    const _SocialLoginDivider(),
-                    const SizedBox(height: 20),
-                    _SocialButtons(
-                      isLoading: loginProvider.isLoading,
-                      onGoogleTap: _handleGoogleLogin,
-                      onAppleTap: _handleAppleLogin,
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                        onPressed: _handleLogin,
+                      ),
+                      const SizedBox(height: 16),
+                      _RegisterLink(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      const _SocialLoginDivider(),
+                      const SizedBox(height: 20),
+                      _SocialButtons(
+                        isLoading: loginProvider.isLoading,
+                        onGoogleTap: _handleGoogleLogin,
+                        onAppleTap: _handleAppleLogin,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
+          );
         },
       ),
     );
@@ -146,9 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const GenderSelectionScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
       );
     }
   }
@@ -236,7 +237,9 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(loginProvider.errorMessage ?? 'Failed to send reset email'),
+            content: Text(
+              loginProvider.errorMessage ?? 'Failed to send reset email',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -286,10 +289,7 @@ class _EmailInputField extends StatelessWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
 
-  const _EmailInputField({
-    required this.controller,
-    this.validator,
-  });
+  const _EmailInputField({required this.controller, this.validator});
 
   @override
   Widget build(BuildContext context) {
@@ -381,10 +381,7 @@ class _SignInButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onPressed;
 
-  const _SignInButton({
-    required this.isLoading,
-    required this.onPressed,
-  });
+  const _SignInButton({required this.isLoading, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -547,4 +544,3 @@ class _SocialButton extends StatelessWidget {
     );
   }
 }
-

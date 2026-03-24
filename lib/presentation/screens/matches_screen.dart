@@ -368,7 +368,8 @@ class _MessageListItem extends StatelessWidget {
               imageUrl: user.imageUrl,
               firstName: user.firstName,
               lastName: user.lastName,
-              heroTag: 'user-avatar-${user.id}-list', // Different tag for list items to avoid conflict if both are on screen
+              heroTag:
+                  'user-avatar-${user.id}-list', // Different tag for list items to avoid conflict if both are on screen
               isVerified: user.badges.contains('verified'),
               showGlow: false,
               useRoundShape: true,

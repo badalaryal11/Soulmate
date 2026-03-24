@@ -60,9 +60,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateProfileScreen(
-                firebaseUser: credential.user!,
-              ),
+              builder: (context) =>
+                  CreateProfileScreen(firebaseUser: credential.user!),
             ),
           );
         } else {
@@ -124,7 +123,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color ?? Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color ?? Colors.black,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

@@ -88,13 +88,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       _cityController = TextEditingController(text: _currentUser?.city);
       _countryController = TextEditingController(text: _currentUser?.country);
-      
+
       // Normalize gender value for dropdown (e.g. 'male' -> 'Male')
       String? gender = _currentUser?.gender;
       if (gender != null && gender.isNotEmpty) {
         if (gender.toLowerCase() == 'male') gender = 'Male';
         if (gender.toLowerCase() == 'female') gender = 'Female';
-        if (gender.toLowerCase() == 'other' || gender.toLowerCase() == 'non-binary') {
+        if (gender.toLowerCase() == 'other' ||
+            gender.toLowerCase() == 'non-binary') {
           gender = 'Non-binary';
         }
       }
@@ -506,7 +507,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Edit Profile',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
           ),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -546,11 +549,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       overrideImage: _imageFile != null
                           ? FileImage(_imageFile!)
                           : (_generatedAvatarUrl != null
-                              ? NetworkImage(_generatedAvatarUrl!)
-                              : null),
+                                ? NetworkImage(_generatedAvatarUrl!)
+                                : null),
                       heroTag: 'user-avatar-main',
                       useRoundShape: true,
-                      isVerified: _currentUser!.badges.contains('verified') ||
+                      isVerified:
+                          _currentUser!.badges.contains('verified') ||
                           _currentUser!.coins > 1000,
                     ),
                     if (_isUploadingImage)

@@ -12,8 +12,8 @@ class AuthService {
   final GoogleSignIn _googleSignIn;
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-      : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn();
+    : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
+      _googleSignIn = googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn();
 
   @visibleForTesting
   static void setMockInstances({

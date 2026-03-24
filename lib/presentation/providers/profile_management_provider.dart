@@ -68,7 +68,9 @@ class ProfileManagementProvider extends ChangeNotifier {
         );
       }
       if (data.containsKey('lastLoginDate')) {
-        updatedUser = updatedUser.copyWith(lastLoginDate: data['lastLoginDate']);
+        updatedUser = updatedUser.copyWith(
+          lastLoginDate: data['lastLoginDate'],
+        );
       }
       _currentUserProvider.updateLocalUser(updatedUser);
     }

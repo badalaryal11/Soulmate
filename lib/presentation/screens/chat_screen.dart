@@ -451,9 +451,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? allMessages
                       : allMessages
                             .where(
-                              (m) => m.text.toLowerCase().contains(
-                                _searchQuery,
-                              ),
+                              (m) =>
+                                  m.text.toLowerCase().contains(_searchQuery),
                             )
                             .toList();
 
@@ -682,7 +681,11 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.error_outline, color: Colors.grey, size: 24),
+                            child: const Icon(
+                              Icons.error_outline,
+                              color: Colors.grey,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),

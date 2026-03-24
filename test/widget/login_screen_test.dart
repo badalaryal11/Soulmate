@@ -11,10 +11,10 @@ import 'package:soulmate/presentation/providers/theme_provider.dart';
 class MockAuthRepository extends Mock implements AuthRepository {
   @override
   Future<void> sendPasswordResetEmail(String? email) => super.noSuchMethod(
-        Invocation.method(#sendPasswordResetEmail, [email]),
-        returnValue: Future<void>.value(),
-        returnValueForMissingStub: Future<void>.value(),
-      );
+    Invocation.method(#sendPasswordResetEmail, [email]),
+    returnValue: Future<void>.value(),
+    returnValueForMissingStub: Future<void>.value(),
+  );
 }
 
 class MockUserRepository extends Mock implements UserRepository {}
@@ -26,7 +26,7 @@ void main() {
   setUp(() {
     mockAuthRepository = MockAuthRepository();
     mockUserRepository = MockUserRepository();
-    
+
     ServiceLocator.setMockRepositories(
       authRepository: mockAuthRepository,
       userRepository: mockUserRepository,
@@ -35,12 +35,8 @@ void main() {
 
   Widget createWidgetUnderTest() {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-      ],
-      child: const MaterialApp(
-        home: LoginScreen(),
-      ),
+      providers: [ChangeNotifierProvider(create: (_) => ThemeProvider())],
+      child: const MaterialApp(home: LoginScreen()),
     );
   }
 
@@ -55,16 +51,20 @@ void main() {
 
       // Specific image checks
       final logoFinder = find.byWidgetPredicate(
-        (widget) => widget is Image && 
-                    widget.image is AssetImage && 
-                    (widget.image as AssetImage).assetName == 'assets/images/logo_transparent.png'
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/logo_transparent.png',
       );
       expect(logoFinder, findsOneWidget);
 
       final googleLogoFinder = find.byWidgetPredicate(
-        (widget) => widget is Image && 
-                    widget.image is AssetImage && 
-                    (widget.image as AssetImage).assetName == 'assets/images/google_logo.png'
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/google_logo.png',
       );
       expect(googleLogoFinder, findsOneWidget);
     });

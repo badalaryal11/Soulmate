@@ -15,13 +15,17 @@ import 'package:google_sign_in/google_sign_in.dart';
 class MockAuthRepository extends Mock implements AuthRepository {
   @override
   Future<void> signOut() => super.noSuchMethod(
-        Invocation.method(#signOut, []),
-        returnValue: Future<void>.value(),
-        returnValueForMissingStub: Future<void>.value(),
-      );
+    Invocation.method(#signOut, []),
+    returnValue: Future<void>.value(),
+    returnValueForMissingStub: Future<void>.value(),
+  );
 }
-class MockNotificationRepository extends Mock implements NotificationRepository {}
+
+class MockNotificationRepository extends Mock
+    implements NotificationRepository {}
+
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+
 class MockGoogleSignIn extends Mock implements GoogleSignIn {}
 
 void main() {
@@ -40,35 +44,37 @@ void main() {
       auth: mockFirebaseAuth,
       googleSignIn: mockGoogleSignIn,
     );
-    
-    ServiceLocator.setMockRepositories(
-      authRepository: mockAuthRepository,
-    );
+
+    ServiceLocator.setMockRepositories(authRepository: mockAuthRepository);
   });
 
   Widget createWidgetUnderTest() {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider(
-          notificationRepository: mockNotificationRepository,
-        )),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(
+            notificationRepository: mockNotificationRepository,
+          ),
+        ),
       ],
-      child: const MaterialApp(
-        home: SettingsScreen(),
-      ),
+      child: const MaterialApp(home: SettingsScreen()),
     );
   }
 
   group('SettingsScreen Widget Tests', () {
-    testWidgets('SettingsScreen renders correctly', (WidgetTester tester) async {
+    testWidgets('SettingsScreen renders correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.text('Settings'), findsOneWidget);
     });
 
-    testWidgets('Sign Out button calls authRepository.signOut', (WidgetTester tester) async {
+    testWidgets('Sign Out button calls authRepository.signOut', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 

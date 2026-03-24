@@ -76,7 +76,7 @@ class DiscoveryProvider extends ChangeNotifier {
       bool matchesInterests = true;
       if (currentUserInterests.isNotEmpty && user.interests.isNotEmpty) {
         matchesInterests = user.interests.any(
-          (interest) => currentUserInterests.contains(interest)
+          (interest) => currentUserInterests.contains(interest),
         );
       }
 
@@ -253,4 +253,3 @@ class DiscoveryProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

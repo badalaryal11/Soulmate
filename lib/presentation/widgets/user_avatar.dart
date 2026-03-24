@@ -93,9 +93,9 @@ class UserAvatar extends StatelessWidget {
         boxShadow: showGlow
             ? [
                 BoxShadow(
-                  color: const Color(0xFFFE3C72).withValues(
-                    alpha: isDark ? 0.35 : 0.25,
-                  ),
+                  color: const Color(
+                    0xFFFE3C72,
+                  ).withValues(alpha: isDark ? 0.35 : 0.25),
                   blurRadius: 20,
                   spreadRadius: -2,
                   offset: const Offset(0, 4),
@@ -125,24 +125,24 @@ class UserAvatar extends StatelessWidget {
                   borderRadius: useRoundShape
                       ? BorderRadius.circular(radius - borderThickness)
                       : BorderRadius.all(
-                        Radius.elliptical(innerW / 2, innerH / 2),
-                      ),
+                          Radius.elliptical(innerW / 2, innerH / 2),
+                        ),
                   child: Center(
                     child: _hasImage
                         ? (overrideImage != null
-                            ? Image(
-                                image: overrideImage!,
-                                width: innerW,
-                                height: innerH,
-                                fit: BoxFit.cover,
-                              )
-                            : ImageUtils.getImageWidget(
-                                imageUrl,
-                                width: innerW,
-                                height: innerH,
-                                fit: BoxFit.cover,
-                                memCacheWidth: (innerW * 2).toInt(),
-                              ))
+                              ? Image(
+                                  image: overrideImage!,
+                                  width: innerW,
+                                  height: innerH,
+                                  fit: BoxFit.cover,
+                                )
+                              : ImageUtils.getImageWidget(
+                                  imageUrl,
+                                  width: innerW,
+                                  height: innerH,
+                                  fit: BoxFit.cover,
+                                  memCacheWidth: (innerW * 2).toInt(),
+                                ))
                         : Container(
                             width: innerW,
                             height: innerH,
@@ -162,7 +162,9 @@ class UserAvatar extends StatelessWidget {
                                   color: Colors.white,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withValues(alpha: 0.3),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -180,8 +182,8 @@ class UserAvatar extends StatelessWidget {
                       borderRadius: useRoundShape
                           ? BorderRadius.circular(radius - borderThickness)
                           : BorderRadius.all(
-                            Radius.elliptical(innerW / 2, innerH / 2),
-                          ),
+                              Radius.elliptical(innerW / 2, innerH / 2),
+                            ),
                       gradient: RadialGradient(
                         colors: [
                           Colors.transparent,

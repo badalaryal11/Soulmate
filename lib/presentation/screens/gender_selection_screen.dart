@@ -31,7 +31,9 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF004D40),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF004D40),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -40,7 +42,9 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                 'Select your preference to find your perfect match.',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[400]
+                      : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -160,7 +164,11 @@ class _GenderOption extends StatelessWidget {
               : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFE3C72) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800]! : Colors.grey[300]!),
+            color: isSelected
+                ? const Color(0xFFFE3C72)
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!
+                      : Colors.grey[300]!),
             width: 2,
           ),
         ),
@@ -177,7 +185,11 @@ class _GenderOption extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? const Color(0xFFFE3C72) : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[800]),
+                color: isSelected
+                    ? const Color(0xFFFE3C72)
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.grey[800]),
               ),
             ),
             const Spacer(),

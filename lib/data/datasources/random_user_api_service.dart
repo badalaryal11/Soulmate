@@ -11,16 +11,28 @@ class RandomUserApiService {
   static const String _baseUrl = 'https://randomuser.me/api/';
   static final _random = Random();
   static int _fallbackCounter = 0;
-  
+
   static final http.Client _client = http.Client();
   static final List<User> _userCache = [];
   static String? _lastRequestedGender;
   static bool _isFetching = false;
 
   static const List<String> _defaultInterests = [
-    'Travel', 'Music', 'Photography', 'Cooking', 'Reading',
-    'Fitness', 'Movies', 'Art', 'Dancing', 'Hiking',
-    'Gaming', 'Yoga', 'Coffee', 'Nature', 'Sports',
+    'Travel',
+    'Music',
+    'Photography',
+    'Cooking',
+    'Reading',
+    'Fitness',
+    'Movies',
+    'Art',
+    'Dancing',
+    'Hiking',
+    'Gaming',
+    'Yoga',
+    'Coffee',
+    'Nature',
+    'Sports',
   ];
 
   static const List<String> _bios = [
@@ -37,37 +49,108 @@ class RandomUserApiService {
   ];
 
   static const List<String> _maleNames = [
-    'James', 'William', 'Oliver', 'Benjamin', 'Lucas',
-    'Henry', 'Alexander', 'Sebastian', 'Daniel', 'Matthew',
-    'Ethan', 'Noah', 'Liam', 'Mason', 'Logan',
-    'Jackson', 'Aiden', 'Samuel', 'David', 'Joseph',
+    'James',
+    'William',
+    'Oliver',
+    'Benjamin',
+    'Lucas',
+    'Henry',
+    'Alexander',
+    'Sebastian',
+    'Daniel',
+    'Matthew',
+    'Ethan',
+    'Noah',
+    'Liam',
+    'Mason',
+    'Logan',
+    'Jackson',
+    'Aiden',
+    'Samuel',
+    'David',
+    'Joseph',
   ];
 
   static const List<String> _femaleNames = [
-    'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella',
-    'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
-    'Aria', 'Luna', 'Chloe', 'Penelope', 'Layla',
-    'Riley', 'Zoey', 'Nora', 'Lily', 'Eleanor',
+    'Emma',
+    'Olivia',
+    'Ava',
+    'Sophia',
+    'Isabella',
+    'Mia',
+    'Charlotte',
+    'Amelia',
+    'Harper',
+    'Evelyn',
+    'Aria',
+    'Luna',
+    'Chloe',
+    'Penelope',
+    'Layla',
+    'Riley',
+    'Zoey',
+    'Nora',
+    'Lily',
+    'Eleanor',
   ];
 
   static const List<String> _lastNames = [
-    'Smith', 'Johnson', 'Williams', 'Brown', 'Jones',
-    'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
-    'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore',
-    'Jackson', 'Martin', 'Lee', 'Thompson', 'White',
+    'Smith',
+    'Johnson',
+    'Williams',
+    'Brown',
+    'Jones',
+    'Garcia',
+    'Miller',
+    'Davis',
+    'Rodriguez',
+    'Martinez',
+    'Wilson',
+    'Anderson',
+    'Taylor',
+    'Thomas',
+    'Moore',
+    'Jackson',
+    'Martin',
+    'Lee',
+    'Thompson',
+    'White',
   ];
 
   static const List<String> _cities = [
-    'New York', 'Los Angeles', 'Chicago', 'Houston', 'London',
-    'Toronto', 'Sydney', 'Melbourne', 'Vancouver', 'Austin',
-    'Denver', 'Portland', 'Seattle', 'Boston', 'Miami',
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'London',
+    'Toronto',
+    'Sydney',
+    'Melbourne',
+    'Vancouver',
+    'Austin',
+    'Denver',
+    'Portland',
+    'Seattle',
+    'Boston',
+    'Miami',
   ];
 
   static const List<String> _countries = [
-    'United States', 'United States', 'United States', 'United States',
-    'United Kingdom', 'Canada', 'Australia', 'Australia', 'Canada',
-    'United States', 'United States', 'United States', 'United States',
-    'United States', 'United States',
+    'United States',
+    'United States',
+    'United States',
+    'United States',
+    'United Kingdom',
+    'Canada',
+    'Australia',
+    'Australia',
+    'Canada',
+    'United States',
+    'United States',
+    'United States',
+    'United States',
+    'United States',
+    'United States',
   ];
 
   /// Fetch [count] random users, optionally filtered by [gender].
@@ -86,7 +169,7 @@ class RandomUserApiService {
     if (_userCache.length >= count) {
       final users = _userCache.sublist(0, count);
       _userCache.removeRange(0, count);
-      
+
       // Fire and forget background refill to ensure next batch is ready
       _refillCacheInBackground(count: count * 2, gender: gender);
       return users;
@@ -140,9 +223,9 @@ class RandomUserApiService {
       }
 
       final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParams);
-      final response = await _client.get(uri).timeout(
-        const Duration(seconds: 5),
-      );
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode != 200) {
         debugPrint('RandomUser API error: ${response.statusCode}');
@@ -159,10 +242,7 @@ class RandomUserApiService {
     }
   }
 
-  static List<User> _generateLocalUsers({
-    required int count,
-    String? gender,
-  }) {
+  static List<User> _generateLocalUsers({required int count, String? gender}) {
     final users = <User>[];
     final genderLower = gender?.toLowerCase();
 
@@ -170,8 +250,8 @@ class RandomUserApiService {
       final isMale = genderLower == 'male'
           ? true
           : genderLower == 'female'
-              ? false
-              : _random.nextBool();
+          ? false
+          : _random.nextBool();
 
       final firstName = isMale
           ? _maleNames[_random.nextInt(_maleNames.length)]
@@ -181,7 +261,8 @@ class RandomUserApiService {
       final age = 20 + _random.nextInt(15);
 
       // Use ui-avatars.com for fallback profile images (always available, no API key)
-      final avatarUrl = 'https://ui-avatars.com/api/'
+      final avatarUrl =
+          'https://ui-avatars.com/api/'
           '?name=${Uri.encodeComponent('$firstName $lastName')}'
           '&size=400&background=random&color=fff&bold=true&format=png';
 
@@ -189,19 +270,22 @@ class RandomUserApiService {
       final interests = shuffled.take(2 + _random.nextInt(3)).toList();
 
       _fallbackCounter++;
-      users.add(User(
-        id: 'local_${DateTime.now().millisecondsSinceEpoch}_$_fallbackCounter',
-        email: '${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com',
-        firstName: firstName,
-        lastName: lastName,
-        age: age,
-        city: _cities[cityIndex],
-        country: _countries[cityIndex],
-        imageUrl: avatarUrl,
-        gender: isMale ? 'male' : 'female',
-        interests: interests,
-        bio: _bios[_random.nextInt(_bios.length)],
-      ));
+      users.add(
+        User(
+          id: 'local_${DateTime.now().millisecondsSinceEpoch}_$_fallbackCounter',
+          email:
+              '${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com',
+          firstName: firstName,
+          lastName: lastName,
+          age: age,
+          city: _cities[cityIndex],
+          country: _countries[cityIndex],
+          imageUrl: avatarUrl,
+          gender: isMale ? 'male' : 'female',
+          interests: interests,
+          bio: _bios[_random.nextInt(_bios.length)],
+        ),
+      );
     }
 
     return users;

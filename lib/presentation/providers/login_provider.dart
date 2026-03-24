@@ -11,8 +11,8 @@ class LoginProvider extends ChangeNotifier {
   LoginProvider({
     required AuthRepository authRepository,
     required UserRepository userRepository,
-  })  : _authRepository = authRepository,
-        _userRepository = userRepository;
+  }) : _authRepository = authRepository,
+       _userRepository = userRepository;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -88,11 +88,17 @@ class LoginProvider extends ChangeNotifier {
   }
 
   /// Returns true if the user is a new user, false otherwise.
-  Future<bool?> signInWithEmailAndPassword(String email, String password) async {
+  Future<bool?> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     _setLoading(true);
     _setError(null);
     try {
-      final credential = await _authRepository.signInWithEmailAndPassword(email, password);
+      final credential = await _authRepository.signInWithEmailAndPassword(
+        email,
+        password,
+      );
       if (credential != null && credential.user != null) {
         return await _handleSuccessfulAuth(credential.user!);
       } else {
