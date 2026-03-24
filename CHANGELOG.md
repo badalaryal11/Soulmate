@@ -1,5 +1,17 @@
 # Changelog
 
+## [14.0.0] - 2026-03-24
+
+### 🚀 Performance & System Optimizations
+* **API Connection Pooling**: Integrated a high-performance HTTP client for handling `RandomUser API` requests, drastically dropping transport latency by keeping TLS connections alive.
+* **Invisible Caching**: Engineered a robust memory queue for the Discovery Deck. The application now silently fetches and prepares new card candidates in the background while you swipe.
+* **Image Compression**: Automatically compresses local profile photos locally (to 800x800 at 70% quality) before pushing them to Firebase Storage. This heavily saves bandwidth costs and improves profile loading times across the application.
+* **Memory Leaks Eliminated**: Overrode critical disposal logic within `LoginProvider` to halt background UI rebuild attempts (`notifyListeners()`) after a user navigates away from the login screen during an active authentication handshake.
+
+### ❤️ Matching Algorithm Update
+* **Interest Synergy**: The Discovery Deck candidate filter has been tightened. If the logged-in user has selected interests, candidate cards will *only* be presented if they share at least one mutual interest.
+
+***
 ## [13.0.0] - 2026-02-26
 
 ### 🛡️ Security & Validation Improvements
