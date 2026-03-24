@@ -58,6 +58,9 @@ class DiscoveryProvider extends ChangeNotifier {
   bool get canUndo => _undoUserStack.isNotEmpty;
 
   void _updateFilteredUsers() {
+    final currentUser = _currentUserProvider.currentUser;
+    final currentUserInterests = currentUser?.interests ?? [];
+
     _filteredUsers = _users.where((user) {
       // Exclude already-swiped users from the deck
       if (_swipedUserIds.contains(user.id)) return false;
@@ -68,7 +71,16 @@ class DiscoveryProvider extends ChangeNotifier {
 
       final matchesGender =
           selected == null || selected == 'everyone' || userGender == selected;
-      return matchesAge && matchesGender;
+
+      // Filter by shared interests
+      bool matchesInterests = true;
+      if (currentUserInterests.isNotEmpty && user.interests.isNotEmpty) {
+        matchesInterests = user.interests.any(
+          (interest) => currentUserInterests.contains(interest)
+        );
+      }
+
+      return matchesAge && matchesGender && matchesInterests;
     }).toList();
   }
 
