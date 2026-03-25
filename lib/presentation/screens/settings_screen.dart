@@ -68,18 +68,58 @@ class SettingsScreen extends StatelessWidget {
           _buildSectionHeader(context, 'Notifications'),
           SwitchListTile(
             title: Text(
-              'Push Notifications',
+              'New Matches & Likes',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            value: notificationProvider.areNotificationsEnabled,
+            value: notificationProvider.matchesEnabled,
             onChanged: (value) {
-              notificationProvider.toggleNotifications(value);
+              notificationProvider.toggleMatches(value);
             },
             secondary: Icon(
-              notificationProvider.areNotificationsEnabled
+              notificationProvider.matchesEnabled
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: const Color(0xFFFE3C72),
+            ),
+            activeTrackColor: const Color(0xFFFE3C72),
+          ),
+          SwitchListTile(
+            title: Text(
+              'Messages & Activity',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            value: notificationProvider.messagesEnabled,
+            onChanged: (value) {
+              notificationProvider.toggleMessages(value);
+            },
+            secondary: Icon(
+              notificationProvider.messagesEnabled
+                  ? Icons.chat_bubble
+                  : Icons.chat_bubble_outline,
+              color: const Color(0xFFFE3C72),
+            ),
+            activeTrackColor: const Color(0xFFFE3C72),
+          ),
+          SwitchListTile(
+            title: Text(
+              'Engagement Reminders',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            value: notificationProvider.engagementEnabled,
+            onChanged: (value) {
+              notificationProvider.toggleEngagement(value);
+            },
+            secondary: Icon(
+              notificationProvider.engagementEnabled
                   ? Icons.notifications_active
                   : Icons.notifications_off,
               color: const Color(0xFFFE3C72),

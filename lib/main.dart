@@ -111,12 +111,25 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
-        // App is backgrounded — Firestore listeners auto-pause,
-        // image cache is managed by CachedNetworkImage
+        // App is backgrounded
         debugPrint('App lifecycle: $state — resources paused');
+        try {
+          final notificationProvider = context.read<NotificationProvider>();
+          if (notificationProvider.engagementEnabled) {
+            ServiceLocator.notificationRepository.scheduleNotification(
+              id: 99,
+              title: "It's busy tonight! 🔥",
+              body: "Hop on to find your match before they're gone.",
+              delay: const Duration(hours: 2),
+            );
+          }
+        } catch (e) {
+          debugPrint('Error scheduling engagement notification: $e');
+        }
         break;
       case AppLifecycleState.resumed:
         debugPrint('App lifecycle: resumed — resources active');
+        ServiceLocator.notificationRepository.cancelNotification(99);
         break;
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:

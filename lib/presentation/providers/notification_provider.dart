@@ -3,11 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/repositories/notification_repository.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  bool _areNotificationsEnabled = true;
+  bool _matchesEnabled = true;
+  bool _messagesEnabled = true;
+  bool _engagementEnabled = true;
+
   SharedPreferences? _prefs;
   final NotificationRepository _notificationRepository;
 
-  bool get areNotificationsEnabled => _areNotificationsEnabled;
+  bool get matchesEnabled => _matchesEnabled;
+  bool get messagesEnabled => _messagesEnabled;
+  bool get engagementEnabled => _engagementEnabled;
 
   NotificationProvider({required NotificationRepository notificationRepository})
     : _notificationRepository = notificationRepository {
@@ -20,18 +25,33 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> _loadPreferences() async {
     final prefs = await _cachedPrefs;
-    _areNotificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    _matchesEnabled = prefs.getBool('notifications_matches') ?? true;
+    _messagesEnabled = prefs.getBool('notifications_messages') ?? true;
+    _engagementEnabled = prefs.getBool('notifications_engagement') ?? true;
     notifyListeners();
   }
 
-  Future<void> toggleNotifications(bool isEnabled) async {
-    _areNotificationsEnabled = isEnabled;
+  Future<void> toggleMatches(bool isEnabled) async {
+    _matchesEnabled = isEnabled;
     notifyListeners();
     final prefs = await _cachedPrefs;
-    await prefs.setBool('notifications_enabled', isEnabled);
+    await prefs.setBool('notifications_matches', isEnabled);
+  }
 
+  Future<void> toggleMessages(bool isEnabled) async {
+    _messagesEnabled = isEnabled;
+    notifyListeners();
+    final prefs = await _cachedPrefs;
+    await prefs.setBool('notifications_messages', isEnabled);
+  }
+
+  Future<void> toggleEngagement(bool isEnabled) async {
+    _engagementEnabled = isEnabled;
+    notifyListeners();
+    final prefs = await _cachedPrefs;
+    await prefs.setBool('notifications_engagement', isEnabled);
     if (!isEnabled) {
-      await _notificationRepository.cancelAll();
+      await _notificationRepository.cancelNotification(99); // Engagement Notification ID
     }
   }
 }

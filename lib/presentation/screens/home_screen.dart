@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/providers/current_user_provider.dart';
 import 'package:soulmate/presentation/providers/discovery_provider.dart';
 import 'package:soulmate/presentation/providers/profile_management_provider.dart';
+import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/providers/match_provider.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
@@ -37,6 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
       // Set up match listener
       discoveryProvider.onMatchFound = (user) {
         if (mounted) {
+          final notificationProvider = context.read<NotificationProvider>();
+          if (notificationProvider.matchesEnabled) {
+            ServiceLocator.notificationRepository.scheduleNotification(
+              id: user.hashCode,
+              title: 'New Match! 🎉',
+              body: 'You and ${user.firstName} liked each other. Say hi!',
+              delay: const Duration(seconds: 1), 
+            );
+          }
+
           // Precache images so the match screen loads instantly
           final matchedImageUrl = user.imageUrl.isNotEmpty
               ? user.imageUrl
