@@ -13,7 +13,6 @@ import '../../domain/usecases/get_chat_id_usecase.dart';
 import '../../domain/usecases/get_chat_stream_usecase.dart';
 import '../../domain/usecases/get_message_history_usecase.dart';
 import '../../domain/usecases/send_message_usecase.dart';
-import '../../core/di/service_locator.dart';
 import '../../domain/usecases/mark_messages_as_read_usecase.dart';
 import '../../domain/usecases/send_ai_message_usecase.dart';
 import '../../domain/usecases/get_chat_metadata_stream_usecase.dart';
@@ -89,16 +88,6 @@ class ChatProvider extends ChangeNotifier {
     "What's the best show you've watched recently?",
     "What's a hobby you've always wanted to pick up?",
     "What's your ideal first date?",
-  ];
-
-  final List<String> _deepQuestions = [
-    "What is something you've always wanted to do but haven't?",
-    "What's a belief you hold that most people disagree with?",
-    "What are you most grateful for today?",
-    "If you could change one thing about your past, what would it be?",
-    "What is your idea of perfect happiness?",
-    "What's the hardest lesson you've had to learn?",
-    "What is your most treasured memory?",
   ];
 
   Future<void> initChat(User currentUser, User otherUser) async {
@@ -255,98 +244,6 @@ class ChatProvider extends ChangeNotifier {
 
     // Treat as a regular message to the AI but explicitly describe the sticker WITHOUT displaying it as a new chat bubble
     _sendMessageInternal('[USER_STICKER:$index]', saveToDb: false);
-  }
-
-  Future<void> sendDailyPrompt() async {
-    if (_currentUser == null || _chatId == null || _otherUser == null) return;
-    
-    final unusedDeepQuestions = List<String>.from(_deepQuestions)..shuffle();
-    final question = unusedDeepQuestions.first;
-
-    final promptMessage = ChatMessage(
-        id: _uuid.v4(),
-        senderId: _currentUserId, 
-        text: 'Sent a Daily Deep Question',
-        timestamp: DateTime.now(),
-        gameType: 'daily_prompt',
-        gameData: {
-          'question': question,
-          'answers': <String, dynamic>{}, 
-        },
-    );
-
-    // Only save to DB, no AI inference needed for UI prompts
-    await _sendMessageUseCase(_chatId!, promptMessage);
-  }
-
-  Future<void> answerDailyPrompt(String messageId, String answer) async {
-    if (_chatId == null) return;
-    
-    try {
-      final msg = _messages.firstWhere((m) => m.id == messageId);
-      if (msg.gameType == 'daily_prompt' && msg.gameData != null) {
-          final currentAnswers = Map<String, dynamic>.from(msg.gameData!['answers'] as Map? ?? {});
-          currentAnswers[_currentUserId] = answer;
-          
-          final newGameData = {
-             ...msg.gameData!,
-             'answers': currentAnswers,
-          };
-          
-          await ServiceLocator.chatRepository.updateGameMessage(_chatId!, messageId, newGameData);
-
-          // If the AI hasn't answered yet, get its answer
-          if (!currentAnswers.containsKey(_otherUser!.id)) {
-            _getAiAnswerForPrompt(messageId, msg.gameData!['question'] as String, answer);
-          }
-      }
-    } catch (e) {
-      debugPrint("Error answering prompt: $e");
-    }
-  }
-
-  Future<void> _getAiAnswerForPrompt(String messageId, String question, String userAnswer) async {
-    if (_otherUser == null || _currentUser == null || _chatId == null) return;
-
-    _isTyping = true;
-    _safeNotifyListeners();
-      
-    try {
-      // Simulate reading/typing delay to feel natural
-      await Future.delayed(const Duration(seconds: 2));
-
-      List<Map<String, String>> apiMessages = [];
-      apiMessages.add(
-        DatingPersona.generateFor(
-          _otherUser!,
-          _currentUser!,
-          relationshipLevel: _relationshipLevel,
-        ),
-      );
-      apiMessages.add({
-        'role': 'user', 
-        'content': 'We are answering a deep question together. The question is: "$question". My answer is "$userAnswer". Provide your honest, concise answer character (1-2 sentences). Do not comment on my answer, just provide your answer.'
-      });
-
-      final responseText = await _sendAiMessageUseCase(apiMessages);
-      
-      // Re-fetch the message to ensure we append to latest data
-      final msg = _messages.firstWhere((m) => m.id == messageId);
-      final currentAnswers = Map<String, dynamic>.from(msg.gameData!['answers'] as Map? ?? {});
-      currentAnswers[_otherUser!.id] = responseText;
-        
-      final newGameData = {
-         ...msg.gameData!,
-         'answers': currentAnswers,
-      };
-        
-      await ServiceLocator.chatRepository.updateGameMessage(_chatId!, messageId, newGameData);
-    } catch (e) {
-       debugPrint("Error getting AI prompt answer: $e");
-    } finally {
-       _isTyping = false;
-       _safeNotifyListeners();
-    }
   }
 
   Future<void> _sendMessageInternal(

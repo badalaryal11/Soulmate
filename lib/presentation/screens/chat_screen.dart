@@ -605,29 +605,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      chatProvider.sendDailyPrompt();
-                      // Scroll to bottom after sending
-                      _scrollController.animateTo(
-                        0.0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                      );
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: Tooltip(
-                        message: 'Ask a Deep Question',
-                        child: Icon(
-                          Icons.style_outlined,
-                          color: Color(0xFFFE3C72),
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
                       chatProvider.sendMessage(_controller.text);
                       _controller.clear();
                     },
