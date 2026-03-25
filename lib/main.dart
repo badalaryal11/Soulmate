@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:app_links/app_links.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
@@ -113,9 +114,9 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
       case AppLifecycleState.inactive:
         // App is backgrounded
         debugPrint('App lifecycle: $state — resources paused');
-        try {
-          final notificationProvider = context.read<NotificationProvider>();
-          if (notificationProvider.engagementEnabled) {
+        SharedPreferences.getInstance().then((prefs) {
+          final engagementEnabled = prefs.getBool('notifications_engagement') ?? true;
+          if (engagementEnabled) {
             ServiceLocator.notificationRepository.scheduleNotification(
               id: 99,
               title: "It's busy tonight! 🔥",
@@ -123,9 +124,9 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
               delay: const Duration(hours: 2),
             );
           }
-        } catch (e) {
+        }).catchError((e) {
           debugPrint('Error scheduling engagement notification: $e');
-        }
+        });
         break;
       case AppLifecycleState.resumed:
         debugPrint('App lifecycle: resumed — resources active');
