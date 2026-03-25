@@ -73,33 +73,11 @@ class NotificationService {
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexact,
         payload: payload,
       );
     } catch (e) {
-      // Fallback to inexact scheduling if exact alarms are not permitted
-      try {
-        await _notificationsPlugin.zonedSchedule(
-          id: id,
-          title: title,
-          body: body,
-          scheduledDate: tz.TZDateTime.now(tz.local).add(delay),
-          notificationDetails: const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'proactive_channel',
-              'Proactive Notifications',
-              channelDescription: 'Notifications to keep you engaged',
-              importance: Importance.high,
-              priority: Priority.high,
-            ),
-            iOS: DarwinNotificationDetails(),
-          ),
-          androidScheduleMode: AndroidScheduleMode.inexact,
-          payload: payload,
-        );
-      } catch (e) {
-        debugPrint('Failed to schedule notification: $e');
-      }
+      debugPrint('Failed to schedule notification: $e');
     }
   }
 
