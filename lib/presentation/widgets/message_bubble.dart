@@ -3,6 +3,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../core/utils/image_utils.dart';
 import '../../core/utils/image_generation_service.dart';
+import 'daily_prompt_bubble.dart';
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
@@ -27,6 +28,16 @@ class MessageBubble extends StatelessWidget {
             !otherUser.imageUrl.startsWith('assets/'))
         ? otherUser.imageUrl
         : ImageGenerationService.generateProfileImageUrl(otherUser);
+
+    if (message.gameType == 'daily_prompt') {
+      return DailyPromptBubble(
+        message: message,
+        isMe: isMe,
+        currentUserId: currentUserId,
+        chatId: chatId,
+        otherUser: otherUser,
+      );
+    }
 
     if (message.stickerUrl != null && message.stickerUrl!.isNotEmpty) {
       return Padding(

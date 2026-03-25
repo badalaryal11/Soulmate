@@ -156,6 +156,7 @@ class ServiceLocator {
   static AuthRepository get authRepository => _authRepository;
   static NotificationRepository get notificationRepository =>
       _notificationRepository;
+  static ChatRepository get chatRepository => _chatRepository;
 
   /// Auth use cases for screens that need individual auth operations.
   static SignInWithGoogleUseCase get signInWithGoogleUseCase =>
