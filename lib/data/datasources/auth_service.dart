@@ -157,8 +157,8 @@ class AuthService {
           url:
               'https://soulmate.page.link/reset-password', // Placeholder, creates link
           handleCodeInApp: true,
-          iOSBundleId: 'com.soulmate.soulmate',
-          androidPackageName: 'com.soulmate.soulmate',
+          iOSBundleId: 'com.badalaryal.soulmate',
+          androidPackageName: 'com.badalaryal.soulmate',
           androidInstallApp: true,
           androidMinimumVersion: "1",
         ),

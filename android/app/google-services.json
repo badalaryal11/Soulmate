@@ -7,6 +7,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:19231371655:android:c539d351605dec72bf6322",
+        "android_client_info": {
+          "package_name": "com.badalaryal.soulmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "19231371655-dbr1oksvq6dfg9i4917835ofvjjvre2v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.soulmate.soulmate"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:19231371655:android:8c5539eb1eeec761bf6322",
         "android_client_info": {
           "package_name": "com.soulmate.soulmate"

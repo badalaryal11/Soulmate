@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '19231371655',
     projectId: 'my-soulmate-app',
     storageBucket: 'my-soulmate-app.firebasestorage.app',
-    iosBundleId: 'com.soulmate.soulmate',
+    iosBundleId: 'com.badalaryal.soulmate',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '19231371655',
     projectId: 'my-soulmate-app',
     storageBucket: 'my-soulmate-app.firebasestorage.app',
-    iosBundleId: 'com.soulmate.soulmate',
+    iosBundleId: 'com.badalaryal.soulmate',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
