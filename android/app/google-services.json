@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "19231371655-09djohbh9u8nsl16vdtf8irspfgdebrr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.badalaryal.soulmate",
+            "certificate_hash": "2410fc16b83266087b1f6dca53ec46d1b8132b64"
+          }
+        },
+        {
+          "client_id": "19231371655-n4bfcrjdjiqgiuic6b8t5ji89c67u1nn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.badalaryal.soulmate",
+            "certificate_hash": "b5ea6f6c492ae43d8666207d7e9a2223b08b9b41"
+          }
+        },
+        {
           "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
           "client_type": 3
         }

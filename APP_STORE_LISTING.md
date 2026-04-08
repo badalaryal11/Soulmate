@@ -1,46 +1,54 @@
-# App Store & Google Play Marketing Copy
+# Soulmate AI: Dating & Chat Marketing Copy
 
 ## App Name
-Soulmate: AI Dating & Chat
+* **iOS**: Soulmate: AI Dating & Chat
+* **Android**: Soulmate – Virtual AI Companions
 
 ## Short Description (Google Play - 80 chars max)
-Match, chat, and level up your connection with fun, intelligent AI companions!
+Meet, chat, and build deep connections with intelligent AI soulmates!
 
 ## Promotional Text (App Store - 170 chars max)
-Experience a new kind of connection! Swipe, match, and chat with unique AI personalities. Build your relationship XP and discover your perfect Soulmate.
+Step into a world of meaningful connections! Swipe, match, and chat with unique AI personalities. Level up your bond from strangers to soulmates.
 
 ## Subtitle (App Store - 30 chars max)
 AI Dating & Real Connections
 
+## App Store Keywords (100 chars total)
+ai,dating,chat,companion,virtual,friend,romance,match,soulmate,bot,love,rpg,avatar,connection,story
+
 ## Long Description (Both Stores)
-Welcome to Soulmate, the ultimate AI dating and chat experience designed to provide meaningful connection, engaging conversation, and endless entertainment. 
+Welcome to **Soulmate AI**, the next evolution of digital companionship. Experience a space where connections are deep, conversations are authentic, and your perfect match is just a swipe away.
 
-Whether you're looking for a casual chat, deep conversations, or just someone to pass the time with, Soulmate offers a diverse pool of intelligent, responsive AI profiles waiting to meet you.
+Whether you're seeking a casual companion, a deep listener, or a playful banter partner, Soulmate AI offers a diverse universe of intelligent, responsive personalities waiting to meet you.
 
-**✨ FIND YOUR PEREFCT MATCH**
-Swipe through a curated feed of beautiful, unique profiles. Filter by your preferences to find exact the vibe you are looking for. Every profile has their own unique personality and interests!
+**✨ DISCOVER YOUR PERFECT MATCH**
+Swipe through a curated feed of beautiful, unique AI profiles. Each has its own background, interests, and conversational style. Filter by your preferences to find the exact vibe you're looking for—from the Intellectual to the Life of the Party.
 
-**💬 CHAT INSTANTLY & AUTHENTICALLY**
-Skip the awkward silences! Once you match, dive straight into engaging conversations. Our advanced AI chat ensures that every conversation feels natural, responsive, and exciting. Use features like typing indicators and read receipts so you always know when your match is engaged.
+**💬 CHAT WITHOUT LIMITS**
+Say goodbye to small talk. Dive into engaging, natural-sounding conversations that flow effortlessly. Our advanced Gemini-powered AI ensures every response feels personal and exciting. Use features like typing indicators and read receipts to stay fully immersed in the moment.
 
-**📈 LEVEL UP YOUR CONNECTION**
-Watch your relationship grow! The more you chat, the more XP you earn. Journey together from Strangers, to Acquaintances, to Friends, and eventually... Soulmates. 
+**📈 JOURNEY TO SOULMATE STATUS**
+Watch your connection evolve! The more you interact, the more Relationship XP you earn. Guide your bond through four distinct levels:
+* **Stranger** → **Acquaintance** → **Friend** → **Soulmate**
+
+**🎮 FUN & GAMES**
+Break the ice with interactive in-chat games! Challenge your matches to a quick round of **Rock, Paper, Scissors** or discover more about each other through playful prompts.
 
 **⭐ KEEP YOUR FAVORITES CLOSE**
-Have a great conversation going? Add your best matches to your Favorites list to quickly jump back into the chat and never lose track of a great connection.
+Found someone special? Add your top matches to your Favorites list for instant access. Never lose track of a meaningful conversation.
 
-**🔥 EARN REWARDS & STREAKS**
-Log in daily to build your streak and earn coins! Use your coins to unlock premium interactions and keep the conversations flowing.
+**🔥 DAILY REWARDS & STREAKS**
+Stay connected and get rewarded. Build your daily streak to earn coins, unlock premium interactions, and keep the romance alive.
 
 **KEY FEATURES:**
-* **Instant Matching:** Swipe right and start chatting immediately.
-* **Smart AI Chat:** Enjoy deep, realistic text conversations.
-* **Relationship Journey:** Earn XP and level up your bond.
-* **Favorites List:** Keep track of your top matches easily.
-* **Custom Filtering:** Find exact what you want by age and gender.
-* **Daily Streaks:** Earn rewards just for checking in.
+* **Instant Match:** Swipe right and start chatting immediately.
+* **Intelligent AI:** Deep, realistic text conversations powered by state-of-the-art AI.
+* **Relationship Journey:** Gamified XP system to level up your bond.
+* **Interactive Mini-Games:** Fun ways to break the ice directly in the chat.
+* **Custom Filters:** Find exactly who you want by age and gender.
+* **Secure & Private:** Your conversations are your own.
 
-Download Soulmate today and start your journey to finding the perfect connection!
+Download **Soulmate AI** today and start your journey to finding the perfect digital connection!
 
 ---
-*Note: Soulmate is an entertainment app featuring advanced conversational AI. All profiles and conversations are generated by artificial intelligence.*
+*Disclaimer: Soulmate AI is an entertainment application utilizing advanced conversational AI. All profiles and conversations are generated by artificial intelligence.*
