@@ -38,22 +38,33 @@ class MatchProvider extends ChangeNotifier {
     try {
       final chatDocs = await _getActiveChatsUseCase(currentUser.id);
 
-      final List<(String, int)> chatMeta = [];
+      final List<(String, int, String?, int?)> chatMeta = [];
       for (var chat in chatDocs) {
         final participants = List<String>.from(chat['participants'] ?? []);
         final otherUserId = participants.firstWhereOrNull(
           (id) => id != currentUser.id,
         );
         if (otherUserId != null && otherUserId.isNotEmpty) {
-          chatMeta.add((otherUserId, chat['streak'] ?? 0));
+          chatMeta.add((
+            otherUserId,
+            chat['streak'] ?? 0,
+            chat['lastMessage'] as String?,
+            chat['lastMessageTime'] as int?,
+          ));
         }
       }
 
       final futures = chatMeta.map((meta) async {
         try {
-          final (userId, streak) = meta;
+          final (userId, streak, lastMessage, lastMessageTime) = meta;
           final user = await _userRepository.getUser(userId);
-          return user?.copyWith(streak: streak);
+          return user?.copyWith(
+            streak: streak,
+            lastMessage: lastMessage,
+            lastMessageTime: lastMessageTime != null
+                ? DateTime.fromMillisecondsSinceEpoch(lastMessageTime)
+                : null,
+          );
         } catch (e) {
           debugPrint("Matched user load error: $e");
           return null;

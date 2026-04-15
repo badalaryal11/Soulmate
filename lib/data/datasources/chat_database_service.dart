@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/chat_message.dart';
 import '../models/chat_message_model.dart';
@@ -29,7 +29,6 @@ class _SimpleMutex {
 
 /// Handles all chat/message operations using secure local storage.
 class ChatDatabaseService {
-  final FlutterSecureStorage _secureStorage;
   final _SimpleMutex _mutex = _SimpleMutex();
 
   // Local Streams for chat data
@@ -38,30 +37,35 @@ class ChatDatabaseService {
   final Map<String, StreamController<List<ChatMessage>>>
   _messageStreamControllers = {};
 
-  ChatDatabaseService({FlutterSecureStorage? secureStorage})
-    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  ChatDatabaseService();
+
+  Future<SharedPreferences> get _prefs async => await SharedPreferences.getInstance();
 
   Future<String?> _safeRead(String key) async {
     try {
-      return await _secureStorage.read(key: key);
+      final p = await _prefs;
+      return p.getString(key);
     } catch (e) {
-      debugPrint("Secure Storage Read Error (possible Keystore wipe): $e");
-      try {
-        await _secureStorage.deleteAll();
-      } catch (_) {}
+      debugPrint("SharedPreferences Read Error: $e");
       return null;
     }
   }
 
   Future<void> _safeWrite(String key, String value) async {
     try {
-      await _secureStorage.write(key: key, value: value);
+      final p = await _prefs;
+      await p.setString(key, value);
     } catch (e) {
-      debugPrint("Secure Storage Write Error: $e");
-      try {
-        await _secureStorage.deleteAll();
-        await _secureStorage.write(key: key, value: value);
-      } catch (_) {}
+      debugPrint("SharedPreferences Write Error: $e");
+    }
+  }
+  
+  Future<void> _safeDelete(String key) async {
+    try {
+      final p = await _prefs;
+      await p.remove(key);
+    } catch (e) {
+      debugPrint("SharedPreferences Delete Error: $e");
     }
   }
 
@@ -276,7 +280,7 @@ class ChatDatabaseService {
     return _mutex.synchronized(() async {
       try {
         // Delete messages
-        await _secureStorage.delete(key: 'chat_messages_$chatId');
+        await _safeDelete('chat_messages_$chatId');
 
         // Delete metadata
         final chatsJson = await _safeRead('chats_metadata') ?? '{}';

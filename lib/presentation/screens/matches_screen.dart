@@ -300,11 +300,15 @@ class _MatchesScreenState extends State<MatchesScreen> {
     );
   }
 
-  void _openChat(BuildContext context, User user) {
-    Navigator.push(
+  void _openChat(BuildContext context, User user) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ChatScreen(user: user)),
     );
+    // Reload matches to update last message preview after returning from chat
+    if (context.mounted) {
+      context.read<MatchProvider>().loadMatches();
+    }
   }
 }
 
@@ -355,8 +359,23 @@ class _MessageListItem extends StatelessWidget {
 
   const _MessageListItem({required this.user, required this.onTap});
 
+  String _formatTime(DateTime? time) {
+    if (time == null) return '';
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return '${time.day}/${time.month}/${time.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasLastMessage = user.lastMessage != null && user.lastMessage!.isNotEmpty;
+    final subtitleText = hasLastMessage ? user.lastMessage! : 'Say hello! 👋';
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -413,16 +432,31 @@ class _MessageListItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Say hello!',
+                    subtitleText,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: Colors.grey[500],
+                      color: hasLastMessage ? Colors.grey[500] : const Color(0xFFFE3C72),
+                      fontWeight: hasLastMessage ? FontWeight.normal : FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey[300]),
+            if (hasLastMessage && user.lastMessageTime != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Text(
+                  _formatTime(user.lastMessageTime),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              )
+            else
+              Icon(Icons.chevron_right, color: Colors.grey[300]),
           ],
         ),
       ),

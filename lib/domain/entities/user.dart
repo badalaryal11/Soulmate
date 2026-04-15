@@ -17,6 +17,8 @@ class User {
   final List<Map<String, String>> prompts;
   final List<String> badges;
   final List<String> favoriteUserIds;
+  final String? lastMessage;
+  final DateTime? lastMessageTime;
 
   User({
     required this.id,
@@ -37,6 +39,8 @@ class User {
     this.prompts = const [],
     this.badges = const [],
     this.favoriteUserIds = const [],
+    this.lastMessage,
+    this.lastMessageTime,
   });
 
   String get fullName => '$firstName $lastName';
@@ -61,6 +65,8 @@ class User {
     List<Map<String, String>>? prompts,
     List<String>? badges,
     List<String>? favoriteUserIds,
+    String? lastMessage,
+    DateTime? lastMessageTime,
   }) {
     return User(
       id: id ?? this.id,
@@ -81,6 +87,8 @@ class User {
       prompts: prompts ?? this.prompts,
       badges: badges ?? this.badges,
       favoriteUserIds: favoriteUserIds ?? this.favoriteUserIds,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageTime: lastMessageTime ?? this.lastMessageTime,
     );
   }
 }
