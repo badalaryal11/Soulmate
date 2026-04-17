@@ -128,6 +128,12 @@ class _HomeTabState extends State<HomeTab> {
                         return ProfileCard(user: provider.filteredUsers[index]);
                       },
                   onSwipe: (previousIndex, currentIndex, direction) {
+                    // Resolve the user object here while filteredUsers is still
+                    // in its pre-swipe state, before any async list rebuild.
+                    final swipedUser = previousIndex < provider.filteredUsers.length
+                        ? provider.filteredUsers[previousIndex]
+                        : null;
+
                     // Pre-cache upcoming images
                     if (currentIndex != null) {
                       for (int i = 1; i <= 3; i++) {
@@ -141,7 +147,9 @@ class _HomeTabState extends State<HomeTab> {
                       }
                     }
 
-                    provider.userSwiped(previousIndex, direction);
+                    if (swipedUser != null) {
+                      provider.userSwiped(swipedUser, direction);
+                    }
                     return true;
                   },
                 ),

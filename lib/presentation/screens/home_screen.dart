@@ -27,13 +27,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final CardSwiperController controller = CardSwiperController();
+  late final DiscoveryProvider _discoveryProvider;
 
   @override
   void initState() {
     super.initState();
+    _discoveryProvider = context.read<DiscoveryProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final currentUserProvider = context.read<CurrentUserProvider>();
-      final discoveryProvider = context.read<DiscoveryProvider>();
+      final discoveryProvider = _discoveryProvider;
 
       // Set up match listener
       discoveryProvider.onMatchFound = (user) {
@@ -112,8 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    // Prevent closure from holding reference to this widget's context
-    context.read<DiscoveryProvider>().onMatchFound = null;
+    // Use the cached reference — calling context.read<>() inside dispose() is unsafe
+    _discoveryProvider.onMatchFound = null;
     controller.dispose();
     super.dispose();
   }
@@ -270,7 +272,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: IndexedStack(
         index: _selectedIndex,
-        children: [_buildHomeTab(), const MatchesScreen(), const ProfileTab()],
+        children: [
+          _buildHomeTab(),
+          MatchesScreen(isActive: _selectedIndex == 1),
+          const ProfileTab(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

@@ -149,6 +149,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void clearChatData() {
+    _disposed = true; // suppress any in-flight stream notifications immediately
     _chatSubscription?.cancel();
     _chatSubscription = null;
     _metadataSubscription?.cancel();
@@ -163,6 +164,12 @@ class ChatProvider extends ChangeNotifier {
     _messages = [];
     _isLoading = true;
     onSoulmateLevelReached = null;
+  }
+
+  @override
+  void dispose() {
+    clearChatData();
+    super.dispose();
   }
 
   /// Safe wrapper that skips notification if provider has been disposed.

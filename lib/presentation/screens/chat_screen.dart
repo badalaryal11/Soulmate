@@ -208,10 +208,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.dispose();
     _searchController.dispose();
     _scrollController.dispose();
-    // Clean up callbacks and chat subscriptions when leaving the screen
-    final chatProvider = context.read<ChatProvider>();
-    chatProvider.onSoulmateLevelReached = null;
-    chatProvider.clearChatData();
     super.dispose();
   }
 
@@ -270,7 +266,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 imageUrl: widget.user.imageUrl,
                 firstName: widget.user.firstName,
                 lastName: widget.user.lastName,
-                heroTag: 'user-avatar-${widget.user.id}',
+                heroTag: 'user-avatar-${widget.user.id}-chat',
                 isVerified: widget.user.badges.contains('verified'),
                 showGlow: false,
                 useRoundShape: true,

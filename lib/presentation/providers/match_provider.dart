@@ -72,11 +72,18 @@ class MatchProvider extends ChangeNotifier {
       });
 
       final results = await Future.wait(futures);
+      final newMatches = results.whereType<User>().toList();
 
-      _matches.clear();
-      _matches.addAll(results.whereType<User>());
-      notifyListeners();
+      // Only replace the list when we have real data back, or when it was
+      // already empty. This prevents a Firestore race / transient empty
+      // response from wiping the UI on every chat → back navigation.
+      if (newMatches.isNotEmpty || _matches.isEmpty) {
+        _matches.clear();
+        _matches.addAll(newMatches);
+        notifyListeners();
+      }
     } catch (e) {
+      // Keep existing matches on error so the screen doesn't go blank.
       debugPrint("Error loading matches: $e");
     }
   }

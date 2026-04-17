@@ -27,6 +27,8 @@ class CurrentUserProvider extends ChangeNotifier {
       if (_currentUser != null) {
         _handleDailyLogin();
       }
+      // notifyListeners is called here so it includes any copyWith
+      // changes made synchronously inside _handleDailyLogin.
       notifyListeners();
     }
   }

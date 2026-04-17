@@ -10,7 +10,12 @@ import 'login_screen.dart';
 import '../widgets/user_avatar.dart';
 
 class MatchesScreen extends StatefulWidget {
-  const MatchesScreen({super.key});
+  /// Whether this tab is currently the active/visible tab.
+  /// Set by the parent [HomeScreen] so we can skip needless
+  /// Firestore reloads when the user is on a different tab.
+  final bool isActive;
+
+  const MatchesScreen({super.key, this.isActive = true});
 
   @override
   State<MatchesScreen> createState() => _MatchesScreenState();
@@ -303,10 +308,16 @@ class _MatchesScreenState extends State<MatchesScreen> {
   void _openChat(BuildContext context, User user) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ChatScreen(user: user)),
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => ServiceLocator.createChatProvider(),
+          child: ChatScreen(user: user),
+        ),
+      ),
     );
-    // Reload matches to update last message preview after returning from chat
-    if (context.mounted) {
+    // Only reload matches when this tab is actually visible.
+    // If the user is on the Home or Profile tab, skip the Firestore round-trip.
+    if (context.mounted && widget.isActive) {
       context.read<MatchProvider>().loadMatches();
     }
   }
@@ -331,7 +342,7 @@ class _MatchAvatarItem extends StatelessWidget {
               imageUrl: user.imageUrl,
               firstName: user.firstName,
               lastName: user.lastName,
-              heroTag: 'user-avatar-${user.id}',
+              heroTag: 'user-avatar-${user.id}-fav',
               isVerified: user.badges.contains('verified'),
               showGlow: false,
               useRoundShape: true,
@@ -387,8 +398,7 @@ class _MessageListItem extends StatelessWidget {
               imageUrl: user.imageUrl,
               firstName: user.firstName,
               lastName: user.lastName,
-              heroTag:
-                  'user-avatar-${user.id}-list', // Different tag for list items to avoid conflict if both are on screen
+              heroTag: 'user-avatar-${user.id}-msg',
               isVerified: user.badges.contains('verified'),
               showGlow: false,
               useRoundShape: true,

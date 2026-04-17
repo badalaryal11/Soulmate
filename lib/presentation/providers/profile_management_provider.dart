@@ -67,6 +67,9 @@ class ProfileManagementProvider extends ChangeNotifier {
           favoriteUserIds: List<String>.from(data['favoriteUserIds']),
         );
       }
+      if (data.containsKey('imageUrl')) {
+        updatedUser = updatedUser.copyWith(imageUrl: data['imageUrl'] as String);
+      }
       if (data.containsKey('lastLoginDate')) {
         updatedUser = updatedUser.copyWith(
           lastLoginDate: data['lastLoginDate'],

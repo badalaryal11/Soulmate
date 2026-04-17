@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:soulmate/core/constants/app_constants.dart';
 import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/domain/repositories/auth_repository.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
@@ -180,8 +182,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const Divider(),
-
-          const Divider(),
           _buildSectionHeader(context, 'About'),
           ListTile(
             leading: const Icon(
@@ -193,7 +193,7 @@ class SettingsScreen extends StatelessWidget {
               style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
-              'Version 1.0.0 • Learn more',
+              'Version ${AppConstants.appVersion} • Learn more',
               style: GoogleFonts.poppins(fontSize: 12),
             ),
             trailing: const Icon(Icons.chevron_right),
@@ -208,29 +208,31 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // WIPE DATA BUTTON (DEBUG ONLY)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _showWipeDataDialog(context, auth),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[900],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+          // WIPE DATA BUTTON — only rendered in debug builds
+          if (kDebugMode) ...[  
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _showWipeDataDialog(context, auth),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[900],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                ),
-                child: Text(
-                  'WIPE ALL DATA (DEBUG)',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  child: Text(
+                    'WIPE ALL DATA (DEBUG)',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 40),
+            const SizedBox(height: 40),
+          ],
 
           // Actions Section
           _buildSectionHeader(context, 'Actions'),
@@ -341,10 +343,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              final newPassword = passwordController.text.trim();
+              if (newPassword.isEmpty) return;
               try {
-                await authRepository.updatePassword(
-                  passwordController.text.trim(),
-                );
+                await authRepository.updatePassword(newPassword);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -432,7 +434,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             Text(
-              'Version 1.0.0',
+              'Version ${AppConstants.appVersion}',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.grey,

@@ -111,9 +111,8 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.paused:
-      case AppLifecycleState.inactive:
-        // App is backgrounded
-        debugPrint('App lifecycle: $state — resources paused');
+        // App is fully backgrounded — schedule re-engagement notification
+        debugPrint('App lifecycle: paused — scheduling re-engagement notification');
         SharedPreferences.getInstance().then((prefs) {
           final engagementEnabled = prefs.getBool('notifications_engagement') ?? true;
           if (engagementEnabled) {
@@ -127,6 +126,10 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
         }).catchError((e) {
           debugPrint('Error scheduling engagement notification: $e');
         });
+        break;
+      case AppLifecycleState.inactive:
+        // Brief interruption (status bar, phone call, etc.) — do nothing
+        debugPrint('App lifecycle: inactive');
         break;
       case AppLifecycleState.resumed:
         debugPrint('App lifecycle: resumed — resources active');
@@ -238,9 +241,7 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
             notificationRepository: ServiceLocator.notificationRepository,
           ),
         ),
-        ChangeNotifierProvider(
-          create: (_) => ServiceLocator.createChatProvider(),
-        ),
+
         ChangeNotifierProvider(
           create: (_) => ServiceLocator.createLoginProvider(),
         ),

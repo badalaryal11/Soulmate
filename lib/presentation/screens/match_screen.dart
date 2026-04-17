@@ -5,6 +5,7 @@ import '../../core/utils/image_utils.dart';
 import '../../domain/entities/user.dart';
 import '../../core/utils/image_generation_service.dart';
 import '../providers/current_user_provider.dart';
+import '../../core/di/service_locator.dart';
 import 'chat_screen.dart';
 
 class MatchScreen extends StatelessWidget {
@@ -70,9 +71,12 @@ class MatchScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
+                        Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => ChatScreen(user: user),
+                            builder: (context) => ChangeNotifierProvider(
+                              create: (_) => ServiceLocator.createChatProvider(),
+                              child: ChatScreen(user: user),
+                            ),
                           ),
                         );
                       },

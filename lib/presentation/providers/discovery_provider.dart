@@ -196,14 +196,10 @@ class DiscoveryProvider extends ChangeNotifier {
     }
   }
 
-  void userSwiped(int index, CardSwiperDirection direction) {
-    if (index >= filteredUsers.length) return;
-
-    final swipedUser = filteredUsers[index];
-
+  void userSwiped(User swipedUser, CardSwiperDirection direction) {
     // Save for undo
     _undoUserStack.add(swipedUser);
-    _undoIndexStack.add(index);
+    _undoIndexStack.add(0); // index no longer meaningful; kept for undo stack symmetry
     if (_undoUserStack.length > 10) {
       _undoUserStack.removeAt(0);
       _undoIndexStack.removeAt(0);
