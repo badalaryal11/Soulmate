@@ -38,7 +38,11 @@ class CurrentUserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _hasHandledDailyLogin = false;
+
   void _handleDailyLogin() {
+    if (_hasHandledDailyLogin) return;
+    _hasHandledDailyLogin = true;
     // Daily login logic (Streak & Coins)
     final today = DateTime.now();
     final lastLoginStr = _currentUser!.lastLoginDate;

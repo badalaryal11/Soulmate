@@ -79,20 +79,29 @@ class ProfileManagementProvider extends ChangeNotifier {
     }
   }
 
+  bool _isTogglingFavorite = false;
+
   Future<void> toggleFavorite(String targetUserId) async {
-    final currentUser = _currentUserProvider.currentUser;
-    if (currentUser == null) return;
+    if (_isTogglingFavorite) return;
+    _isTogglingFavorite = true;
 
-    final currentFavorites = List<String>.from(currentUser.favoriteUserIds);
-    if (currentFavorites.contains(targetUserId)) {
-      currentFavorites.remove(targetUserId);
-    } else {
-      currentFavorites.add(targetUserId);
+    try {
+      final currentUser = _currentUserProvider.currentUser;
+      if (currentUser == null) return;
+
+      final currentFavorites = List<String>.from(currentUser.favoriteUserIds);
+      if (currentFavorites.contains(targetUserId)) {
+        currentFavorites.remove(targetUserId);
+      } else {
+        currentFavorites.add(targetUserId);
+      }
+
+      await updateUserField(currentUser.id, {
+        'favoriteUserIds': currentFavorites,
+      });
+    } finally {
+      _isTogglingFavorite = false;
     }
-
-    await updateUserField(currentUser.id, {
-      'favoriteUserIds': currentFavorites,
-    });
   }
 
   Future<void> saveFeedback(String userId, String message) async {

@@ -148,6 +148,7 @@ class UserDatabaseService {
 
   DocumentSnapshot? _lastUserDoc;
   String? _lastGenderFilter;
+  bool _isFetchingUsers = false;
 
   /// Get multiple users with optional gender filtering.
   Future<List<domain.User>> getUsers({
@@ -156,6 +157,10 @@ class UserDatabaseService {
     int limit = 10,
     bool refresh = false,
   }) async {
+    // Prevent concurrent calls from corrupting the pagination cursor.
+    if (_isFetchingUsers) return [];
+    _isFetchingUsers = true;
+
     try {
       if (refresh || gender != _lastGenderFilter) {
         _lastUserDoc = null;
@@ -185,6 +190,8 @@ class UserDatabaseService {
     } catch (e) {
       debugPrint("Error getting users: $e");
       return [];
+    } finally {
+      _isFetchingUsers = false;
     }
   }
 

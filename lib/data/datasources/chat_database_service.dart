@@ -124,8 +124,9 @@ class ChatDatabaseService {
         ); // Store newest first to match descending order
         await _safeWrite(messagesKey, jsonEncode(messagesJson));
 
-        // Update Stream
-        _broadcastMessages(chatId);
+        // Broadcast the messages we already have in memory — avoids
+        // re-reading SharedPreferences outside the mutex.
+        _broadcastMessagesFromJson(chatId, messagesJson);
 
         // Update Metadata
         final chatsJson = await _safeRead('chats_metadata') ?? '{}';
@@ -209,7 +210,7 @@ class ChatDatabaseService {
         }
 
         await _safeWrite(messagesKey, jsonEncode(messagesJson));
-        _broadcastMessages(chatId);
+        _broadcastMessagesFromJson(chatId, messagesJson);
       } catch (e) {
         debugPrint("Error updating game message: $e");
         rethrow;
@@ -335,7 +336,7 @@ class ChatDatabaseService {
 
         if (changed) {
           await _safeWrite(messagesKey, jsonEncode(messagesJson));
-          _broadcastMessages(chatId);
+          _broadcastMessagesFromJson(chatId, messagesJson);
         }
       } catch (e) {
         debugPrint("Error marking messages as read: $e");
@@ -355,6 +356,20 @@ class ChatDatabaseService {
 
   // --- Private helpers ---
 
+  /// Broadcast from an already-loaded JSON list (avoids re-reading storage
+  /// outside the mutex, which was the source of CONC-04).
+  void _broadcastMessagesFromJson(String chatId, List<String> messagesJson) {
+    if (_messageStreamControllers.containsKey(chatId)) {
+      final messages = messagesJson.map((jsonStr) {
+        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        final id = map['id'] ?? '';
+        return ChatMessageModel.fromMap(id, map);
+      }).toList();
+      _messageStreamControllers[chatId]!.add(messages);
+    }
+  }
+
+  /// Fallback for cases where we don't have the list in memory.
   void _broadcastMessages(String chatId) async {
     if (_messageStreamControllers.containsKey(chatId)) {
       final history = await getMessageHistory(chatId, limit: 100);

@@ -109,13 +109,16 @@ class DiscoveryProvider extends ChangeNotifier {
       _filterRevision++;
     }
 
+    // Guard must be checked BEFORE notifyListeners, because the rebuild
+    // triggered by notifyListeners can schedule another loadUsers call
+    // via addPostFrameCallback before we reach _isLoadingUsers = true.
+    if (_isLoadingUsers) return;
+    _isLoadingUsers = true;
+
     if (_users.isEmpty) {
       _status = DiscoveryStatus.loading;
       notifyListeners();
     }
-
-    if (_isLoadingUsers) return;
-    _isLoadingUsers = true;
 
     try {
       // Fetch from Firestore and API via the UseCase

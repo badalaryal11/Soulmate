@@ -63,6 +63,7 @@ class ChatProvider extends ChangeNotifier {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _disposed = false;
+  bool _isSending = false;
 
   StreamSubscription<List<ChatMessage>>? _chatSubscription;
   StreamSubscription<Map<String, dynamic>?>? _metadataSubscription;
@@ -250,7 +251,7 @@ class ChatProvider extends ChangeNotifier {
     await _sendMessageUseCase(_chatId!, userMessage);
 
     // Treat as a regular message to the AI but explicitly describe the sticker WITHOUT displaying it as a new chat bubble
-    _sendMessageInternal('[USER_STICKER:$index]', saveToDb: false);
+    await _sendMessageInternal('[USER_STICKER:$index]', saveToDb: false);
   }
 
   Future<void> _sendMessageInternal(
@@ -263,6 +264,11 @@ class ChatProvider extends ChangeNotifier {
         _otherUser == null) {
       return;
     }
+
+    // Prevent concurrent AI calls — a second send while one is in-flight
+    // would cause interleaved responses and typing indicator flicker.
+    if (_isSending) return;
+    _isSending = true;
 
     final userMessageText = text.trim();
 
@@ -350,6 +356,7 @@ class ChatProvider extends ChangeNotifier {
       _safeNotifyListeners();
 
       if (e.toString().contains("RATE_LIMIT")) {
+        _isSending = false;
         return;
       }
 
@@ -361,6 +368,8 @@ class ChatProvider extends ChangeNotifier {
         timestamp: DateTime.now(),
       );
       await _sendMessageUseCase(_chatId!, aiMessage);
+    } finally {
+      _isSending = false;
     }
   }
 }

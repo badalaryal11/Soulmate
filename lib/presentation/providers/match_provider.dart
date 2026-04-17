@@ -30,10 +30,17 @@ class MatchProvider extends ChangeNotifier {
 
   final List<User> _matches = [];
   List<User> get matches => _matches;
+  bool _isLoadingMatches = false;
 
   Future<void> loadMatches() async {
+    if (_isLoadingMatches) return;
+    _isLoadingMatches = true;
+
     final currentUser = _currentUserProvider.currentUser;
-    if (currentUser == null) return;
+    if (currentUser == null) {
+      _isLoadingMatches = false;
+      return;
+    }
 
     try {
       final chatDocs = await _getActiveChatsUseCase(currentUser.id);
@@ -85,6 +92,8 @@ class MatchProvider extends ChangeNotifier {
     } catch (e) {
       // Keep existing matches on error so the screen doesn't go blank.
       debugPrint("Error loading matches: $e");
+    } finally {
+      _isLoadingMatches = false;
     }
   }
 
@@ -96,13 +105,24 @@ class MatchProvider extends ChangeNotifier {
   }
 
   Future<void> unmatchUser(String userId) async {
+    // Optimistic UI update
+    final removedUser = _matches.firstWhereOrNull((u) => u.id == userId);
     _matches.removeWhere((user) => user.id == userId);
     notifyListeners();
 
     final currentUser = _currentUserProvider.currentUser;
     if (currentUser != null) {
-      final chatId = await _getChatIdUseCase(currentUser.id, userId);
-      await _deleteChatUseCase(chatId);
+      try {
+        final chatId = await _getChatIdUseCase(currentUser.id, userId);
+        await _deleteChatUseCase(chatId);
+      } catch (e) {
+        // Rollback: re-insert the removed user so the UI stays consistent.
+        debugPrint("Unmatch failed, rolling back: $e");
+        if (removedUser != null) {
+          _matches.insert(0, removedUser);
+          notifyListeners();
+        }
+      }
     }
   }
 }
