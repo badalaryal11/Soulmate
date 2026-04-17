@@ -151,6 +151,7 @@ class ChatProvider extends ChangeNotifier {
 
   void clearChatData() {
     _disposed = true; // suppress any in-flight stream notifications immediately
+    _isSending = false;
     _chatSubscription?.cancel();
     _chatSubscription = null;
     _metadataSubscription?.cancel();
