@@ -91,8 +91,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        titleTextStyle: const TextStyle(color: Colors.black, fontSize: 20),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -105,7 +103,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF004D40),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF004D40),
                 ),
               ),
               const SizedBox(height: 8),

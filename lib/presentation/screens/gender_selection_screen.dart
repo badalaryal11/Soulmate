@@ -115,8 +115,8 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
   }
 
   Future<void> _handleContinue() async {
-    // Pass null for 'everyone' to load all users
-    final genderToLoad = _selectedGender == 'everyone' ? null : _selectedGender;
+    // Pass null for 'Everyone' to load all users
+    final genderToLoad = _selectedGender?.toLowerCase() == 'everyone' ? null : _selectedGender;
 
     final discoveryProvider = context.read<DiscoveryProvider>();
     discoveryProvider.loadUsers(gender: genderToLoad);
