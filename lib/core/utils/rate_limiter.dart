@@ -2,6 +2,7 @@
 /// Useful for throttling API calls, UI interactions, etc.
 class RateLimiter {
   static final Map<String, _RateLimitData> _limits = {};
+  static const int _maxEntries = 50;
 
   /// Checks if a request for the given [key] is allowed based on the [cooldown].
   ///
@@ -14,6 +15,15 @@ class RateLimiter {
 
     // If this is the very first time we've seen this key, allow it immediately
     if (!_limits.containsKey(key)) {
+      // Evict oldest entries to prevent unbounded growth
+      if (_limits.length >= _maxEntries) {
+        final oldest = _limits.entries.reduce(
+          (a, b) => a.value.lastRequestTime.isBefore(b.value.lastRequestTime)
+              ? a
+              : b,
+        );
+        _limits.remove(oldest.key);
+      }
       _limits[key] = _RateLimitData(now);
       return true;
     }

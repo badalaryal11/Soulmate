@@ -221,8 +221,14 @@ class ChatDatabaseService {
   /// Get a stream of chat metadata changes.
   Stream<Map<String, dynamic>?> getChatStream(String chatId) async* {
     if (!_chatStreamControllers.containsKey(chatId)) {
-      _chatStreamControllers[chatId] =
-          StreamController<Map<String, dynamic>?>.broadcast();
+      late StreamController<Map<String, dynamic>?> ctrl;
+      ctrl = StreamController<Map<String, dynamic>?>.broadcast(
+        onCancel: () {
+          ctrl.close();
+          _chatStreamControllers.remove(chatId);
+        },
+      );
+      _chatStreamControllers[chatId] = ctrl;
     }
 
     // Yield initial value directly to any new subscriber
@@ -237,8 +243,14 @@ class ChatDatabaseService {
   /// Get a stream of messages for a chat.
   Stream<List<ChatMessage>> getMessages(String chatId) async* {
     if (!_messageStreamControllers.containsKey(chatId)) {
-      _messageStreamControllers[chatId] =
-          StreamController<List<ChatMessage>>.broadcast();
+      late StreamController<List<ChatMessage>> ctrl;
+      ctrl = StreamController<List<ChatMessage>>.broadcast(
+        onCancel: () {
+          ctrl.close();
+          _messageStreamControllers.remove(chatId);
+        },
+      );
+      _messageStreamControllers[chatId] = ctrl;
     }
 
     // Yield current history immediately upon subscription

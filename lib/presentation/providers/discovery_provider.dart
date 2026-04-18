@@ -13,6 +13,7 @@ enum DiscoveryStatus { initial, loading, loaded, error }
 class DiscoveryProvider extends ChangeNotifier {
   static const int _maxUsers = 200;
   static const int _maxImageUrls = 300;
+  static const int _maxSeenIds = 500;
 
   final GetUsersUseCase _getUsersUseCase;
   final CurrentUserProvider _currentUserProvider;
@@ -174,6 +175,16 @@ class DiscoveryProvider extends ChangeNotifier {
         final urlList = _usedImageUrls.toList();
         _usedImageUrls.clear();
         _usedImageUrls.addAll(urlList.skip(urlList.length - _maxImageUrls));
+      }
+      if (_seenUserIds.length > _maxSeenIds) {
+        final idList = _seenUserIds.toList();
+        _seenUserIds.clear();
+        _seenUserIds.addAll(idList.skip(idList.length - _maxSeenIds));
+      }
+      if (_swipedUserIds.length > _maxSeenIds) {
+        final idList = _swipedUserIds.toList();
+        _swipedUserIds.clear();
+        _swipedUserIds.addAll(idList.skip(idList.length - _maxSeenIds));
       }
 
       final previousCount = _filteredUsers.length;
