@@ -10,7 +10,7 @@ import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/widgets/home_tab.dart';
 import 'package:soulmate/presentation/providers/match_provider.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
-import 'package:soulmate/presentation/screens/matches_screen.dart';
+import 'package:soulmate/presentation/screens/matches_list_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/core/utils/image_generation_service.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         children: [
           _buildHomeTab(),
-          MatchesScreen(isActive: _selectedIndex == 1),
+          MatchesListScreen(isActive: _selectedIndex == 1),
           const ProfileTab(),
         ],
       ),

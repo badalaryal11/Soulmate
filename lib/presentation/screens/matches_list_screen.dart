@@ -9,19 +9,19 @@ import '../../core/di/service_locator.dart';
 import 'login_screen.dart';
 import '../widgets/user_avatar.dart';
 
-class MatchesScreen extends StatefulWidget {
+class MatchesListScreen extends StatefulWidget {
   /// Whether this tab is currently the active/visible tab.
   /// Set by the parent [HomeScreen] so we can skip needless
   /// Firestore reloads when the user is on a different tab.
   final bool isActive;
 
-  const MatchesScreen({super.key, this.isActive = true});
+  const MatchesListScreen({super.key, this.isActive = true});
 
   @override
-  State<MatchesScreen> createState() => _MatchesScreenState();
+  State<MatchesListScreen> createState() => _MatchesListScreenState();
 }
 
-class _MatchesScreenState extends State<MatchesScreen> {
+class _MatchesListScreenState extends State<MatchesListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 

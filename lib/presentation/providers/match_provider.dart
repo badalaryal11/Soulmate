@@ -6,6 +6,9 @@ import '../../domain/usecases/get_chat_id_usecase.dart';
 import '../../domain/usecases/delete_chat_usecase.dart';
 import '../../domain/repositories/user_repository.dart';
 import 'current_user_provider.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/models/user_model.dart';
 
 class MatchProvider extends ChangeNotifier {
   final GetActiveChatsUseCase _getActiveChatsUseCase;
@@ -32,9 +35,72 @@ class MatchProvider extends ChangeNotifier {
   List<User> get matches => _matches;
   bool _isLoadingMatches = false;
 
+  static const String _cachedMatchesKey = 'cached_matches_list';
+
+  Future<void> _saveMatchesToCache(List<User> matches) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> encoded = matches.map((u) {
+        final model = UserModel(
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          age: u.age,
+          city: u.city,
+          country: u.country,
+          imageUrl: u.imageUrl,
+          gender: u.gender,
+          interests: u.interests,
+          genderPreference: u.genderPreference,
+          bio: u.bio,
+          streak: u.streak,
+          coins: u.coins,
+          lastLoginDate: u.lastLoginDate,
+          prompts: u.prompts,
+          badges: u.badges,
+        );
+        final map = model.toMap();
+        map['lastMessage'] = u.lastMessage;
+        map['lastMessageTime'] = u.lastMessageTime?.millisecondsSinceEpoch;
+        return jsonEncode(map);
+      }).toList();
+      await prefs.setStringList(_cachedMatchesKey, encoded);
+    } catch (e) {
+      debugPrint("Error caching matches: $e");
+    }
+  }
+
+  Future<void> _loadMatchesFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String>? encoded = prefs.getStringList(_cachedMatchesKey);
+      if (encoded != null && encoded.isNotEmpty && _matches.isEmpty) {
+        final cached = encoded.map((str) {
+          final map = jsonDecode(str) as Map<String, dynamic>;
+          var user = UserModel.fromMap(map);
+          return user.copyWith(
+            lastMessage: map['lastMessage'] as String?,
+            lastMessageTime: map['lastMessageTime'] != null
+                ? DateTime.fromMillisecondsSinceEpoch(map['lastMessageTime'] as int)
+                : null,
+          );
+        }).toList();
+        
+        _matches.addAll(cached);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error loading cached matches: $e");
+    }
+  }
+
   Future<void> loadMatches() async {
     if (_isLoadingMatches) return;
     _isLoadingMatches = true;
+    
+    // Load cached matches instantly so the UI isn't empty on cold boot
+    await _loadMatchesFromCache();
 
     final currentUser = _currentUserProvider.currentUser;
     if (currentUser == null) {
@@ -81,13 +147,20 @@ class MatchProvider extends ChangeNotifier {
       final results = await Future.wait(futures);
       final newMatches = results.whereType<User>().toList();
 
-      // Only replace the list when we have real data back, or when it was
-      // already empty. This prevents a Firestore race / transient empty
-      // response from wiping the UI on every chat → back navigation.
-      if (newMatches.isNotEmpty || _matches.isEmpty) {
+      // If chatDocs is empty, the user has genuinely no matches.
+      if (chatDocs.isEmpty) {
+        _matches.clear();
+        notifyListeners();
+        _saveMatchesToCache([]);
+      } 
+      // Replace the list when we have successfully fetched data back.
+      // This prevents a transient empty response (e.g., from Android cold start
+      // offline cache misses) from wiping the UI.
+      else if (newMatches.isNotEmpty) {
         _matches.clear();
         _matches.addAll(newMatches);
         notifyListeners();
+        _saveMatchesToCache(newMatches);
       }
     } catch (e) {
       // Keep existing matches on error so the screen doesn't go blank.
@@ -109,6 +182,7 @@ class MatchProvider extends ChangeNotifier {
     final removedUser = _matches.firstWhereOrNull((u) => u.id == userId);
     _matches.removeWhere((user) => user.id == userId);
     notifyListeners();
+    _saveMatchesToCache(_matches);
 
     final currentUser = _currentUserProvider.currentUser;
     if (currentUser != null) {
