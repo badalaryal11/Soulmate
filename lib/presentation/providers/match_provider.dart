@@ -29,7 +29,10 @@ class MatchProvider extends ChangeNotifier {
        _getChatIdUseCase = getChatIdUseCase,
        _deleteChatUseCase = deleteChatUseCase,
        _userRepository = userRepository,
-       _currentUserProvider = currentUserProvider;
+       _currentUserProvider = currentUserProvider {
+    // Eagerly restore cached matches so the UI is never empty on cold start
+    _loadMatchesFromCache();
+  }
 
   final List<User> _matches = [];
   List<User> get matches => _matches;
@@ -75,7 +78,7 @@ class MatchProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final List<String>? encoded = prefs.getStringList(_cachedMatchesKey);
-      if (encoded != null && encoded.isNotEmpty && _matches.isEmpty) {
+      if (encoded != null && encoded.isNotEmpty) {
         final cached = encoded.map((str) {
           final map = jsonDecode(str) as Map<String, dynamic>;
           var user = UserModel.fromMap(map);
@@ -86,12 +89,25 @@ class MatchProvider extends ChangeNotifier {
                 : null,
           );
         }).toList();
-        
-        _matches.addAll(cached);
-        notifyListeners();
+
+        // Only restore from cache if in-memory list is empty.
+        // This prevents stale cache from overwriting a live network result.
+        if (_matches.isEmpty) {
+          _matches.addAll(cached);
+          notifyListeners();
+        }
       }
     } catch (e) {
       debugPrint("Error loading cached matches: $e");
+    }
+  }
+
+  /// Lightweight restore for lifecycle transitions (e.g. app resume).
+  /// Loads from cache only if the in-memory list is empty, then
+  /// optionally triggers a full network refresh.
+  Future<void> restoreFromCacheIfNeeded() async {
+    if (_matches.isEmpty) {
+      await _loadMatchesFromCache();
     }
   }
 

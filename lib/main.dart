@@ -134,6 +134,20 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         debugPrint('App lifecycle: resumed — resources active');
         ServiceLocator.notificationRepository.cancelNotification(99);
+        // Restore match data after lifecycle transition so the list
+        // is never empty when the user returns to the app.
+        try {
+          final ctx = _navigatorKey.currentContext;
+          if (ctx != null) {
+            final matchProvider = Provider.of<MatchProvider>(ctx, listen: false);
+            // Instantly surface cached data if in-memory list was wiped
+            matchProvider.restoreFromCacheIfNeeded();
+            // Then refresh from the network in the background
+            matchProvider.loadMatches();
+          }
+        } catch (e) {
+          debugPrint('Error restoring matches on resume: $e');
+        }
         break;
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:

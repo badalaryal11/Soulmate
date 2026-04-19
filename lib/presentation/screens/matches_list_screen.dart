@@ -21,14 +21,33 @@ class MatchesListScreen extends StatefulWidget {
   State<MatchesListScreen> createState() => _MatchesListScreenState();
 }
 
-class _MatchesListScreenState extends State<MatchesListScreen> {
+class _MatchesListScreenState extends State<MatchesListScreen>
+    with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed && widget.isActive) {
+      // Ensure match data survives any lifecycle transition
+      final matchProvider = context.read<MatchProvider>();
+      matchProvider.restoreFromCacheIfNeeded();
+      matchProvider.loadMatches();
+    }
   }
 
   List<User> _filterUsers(List<User> users) {
