@@ -260,6 +260,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         lastLoginDate: DateTime.now().toIso8601String(),
         badges: [],
         favoriteUserIds: [],
+        pinnedUserIds: [],
       );
 
       await _userRepository.saveUser(user);

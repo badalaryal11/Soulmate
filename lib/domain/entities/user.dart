@@ -17,6 +17,7 @@ class User {
   final List<Map<String, String>> prompts;
   final List<String> badges;
   final List<String> favoriteUserIds;
+  final List<String> pinnedUserIds;
   final String? lastMessage;
   final DateTime? lastMessageTime;
 
@@ -39,6 +40,7 @@ class User {
     this.prompts = const [],
     this.badges = const [],
     this.favoriteUserIds = const [],
+    this.pinnedUserIds = const [],
     this.lastMessage,
     this.lastMessageTime,
   });
@@ -65,6 +67,7 @@ class User {
     List<Map<String, String>>? prompts,
     List<String>? badges,
     List<String>? favoriteUserIds,
+    List<String>? pinnedUserIds,
     String? lastMessage,
     DateTime? lastMessageTime,
   }) {
@@ -87,6 +90,7 @@ class User {
       prompts: prompts ?? this.prompts,
       badges: badges ?? this.badges,
       favoriteUserIds: favoriteUserIds ?? this.favoriteUserIds,
+      pinnedUserIds: pinnedUserIds ?? this.pinnedUserIds,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
     );

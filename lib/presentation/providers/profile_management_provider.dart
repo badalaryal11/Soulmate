@@ -67,8 +67,15 @@ class ProfileManagementProvider extends ChangeNotifier {
           favoriteUserIds: List<String>.from(data['favoriteUserIds']),
         );
       }
+      if (data.containsKey('pinnedUserIds')) {
+        updatedUser = updatedUser.copyWith(
+          pinnedUserIds: List<String>.from(data['pinnedUserIds']),
+        );
+      }
       if (data.containsKey('imageUrl')) {
-        updatedUser = updatedUser.copyWith(imageUrl: data['imageUrl'] as String);
+        updatedUser = updatedUser.copyWith(
+          imageUrl: data['imageUrl'] as String,
+        );
       }
       if (data.containsKey('lastLoginDate')) {
         updatedUser = updatedUser.copyWith(
@@ -89,7 +96,7 @@ class ProfileManagementProvider extends ChangeNotifier {
       final currentUser = _currentUserProvider.currentUser;
       if (currentUser == null) return;
 
-      final currentFavorites = List<String>.from(currentUser.favoriteUserIds);
+      final currentFavorites = List<String>.from(currentUser.pinnedUserIds);
       if (currentFavorites.contains(targetUserId)) {
         currentFavorites.remove(targetUserId);
       } else {
@@ -97,7 +104,7 @@ class ProfileManagementProvider extends ChangeNotifier {
       }
 
       await updateUserField(currentUser.id, {
-        'favoriteUserIds': currentFavorites,
+        'pinnedUserIds': currentFavorites,
       });
     } finally {
       _isTogglingFavorite = false;

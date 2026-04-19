@@ -96,6 +96,8 @@ class UserDatabaseService {
         lastLoginDate: user.lastLoginDate,
         prompts: user.prompts,
         badges: user.badges,
+        favoriteUserIds: user.favoriteUserIds,
+        pinnedUserIds: user.pinnedUserIds,
       );
       await _firestore
           .collection(_usersCollection)

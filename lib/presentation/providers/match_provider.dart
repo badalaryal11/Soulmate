@@ -64,6 +64,8 @@ class MatchProvider extends ChangeNotifier {
           lastLoginDate: u.lastLoginDate,
           prompts: u.prompts,
           badges: u.badges,
+          favoriteUserIds: u.favoriteUserIds,
+          pinnedUserIds: u.pinnedUserIds,
         );
         final map = model.toMap();
         map['lastMessage'] = u.lastMessage;

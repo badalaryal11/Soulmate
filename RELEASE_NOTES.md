@@ -2,6 +2,24 @@
 
 ---
 
+## v1.6.1 — Match Reliability & Favorites Fix (April 19, 2026)
+
+### ❤️ Matching & Match Screen
+* **Reliable Match Popup** — Fixed an issue where the match screen could fail to open because image precaching errors interrupted navigation.
+* **Safer Image Precache Flow** — Match avatar precaching now runs in the background and safely supports local files, assets, and network URLs without blocking UI transitions.
+* **Improved Right-Swipe Matching** — Right swipes now use mutual-like-aware logic with tuned fallback behavior to prevent "no matches ever" dead-ends.
+
+### ⭐ Favorites Correction
+* **Favorites No Longer Includes Every Match** — Fixed a regression where all matched users appeared in Favorites.
+* **Separated Data Fields** — Introduced dedicated `pinnedUserIds` for Favorites, while swipe-like/match logic continues using `favoriteUserIds`.
+* **Updated Favorites UI Wiring** — Favorites in Matches and Chat now read from explicit pinned users only.
+
+### 🛠 Stability
+* **Swipe Index Guard** — Added defensive swipe index checks to avoid edge-case card callback errors.
+* **Local Match Cache Update** — Newly added matches are cached immediately for more consistent match-list persistence.
+
+---
+
 ## v1.6.0 — Discovery & Login Overhaul (March 19, 2026)
 
 ### 🔍 Smarter Discovery Deck

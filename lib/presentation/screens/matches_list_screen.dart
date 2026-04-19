@@ -118,7 +118,7 @@ class _MatchesListScreenState extends State<MatchesListScreen>
           final filteredMatches = _filterUsers(allMatches);
 
           final favorites = filteredMatches.where((user) {
-            return currentUserProvider.currentUser?.favoriteUserIds.contains(
+            return currentUserProvider.currentUser?.pinnedUserIds.contains(
                   user.id,
                 ) ??
                 false;
@@ -408,7 +408,8 @@ class _MessageListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasLastMessage = user.lastMessage != null && user.lastMessage!.isNotEmpty;
+    final hasLastMessage =
+        user.lastMessage != null && user.lastMessage!.isNotEmpty;
     final subtitleText = hasLastMessage ? user.lastMessage! : 'Say hello! 👋';
 
     return InkWell(
@@ -471,8 +472,12 @@ class _MessageListItem extends StatelessWidget {
                     maxLines: 1,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: hasLastMessage ? Colors.grey[500] : const Color(0xFFFE3C72),
-                      fontWeight: hasLastMessage ? FontWeight.normal : FontWeight.w500,
+                      color: hasLastMessage
+                          ? Colors.grey[500]
+                          : const Color(0xFFFE3C72),
+                      fontWeight: hasLastMessage
+                          ? FontWeight.normal
+                          : FontWeight.w500,
                     ),
                   ),
                 ],

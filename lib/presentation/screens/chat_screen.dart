@@ -245,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final chatProvider = context.read<ChatProvider>();
     final isFav = context.select<CurrentUserProvider, bool>(
-      (p) => p.currentUser?.favoriteUserIds.contains(widget.user.id) ?? false,
+      (p) => p.currentUser?.pinnedUserIds.contains(widget.user.id) ?? false,
     );
 
     return Scaffold(

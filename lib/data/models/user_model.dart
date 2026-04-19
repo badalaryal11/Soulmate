@@ -54,6 +54,7 @@ class UserModel extends User {
     super.prompts = const [],
     super.badges = const [],
     super.favoriteUserIds = const [],
+    super.pinnedUserIds = const [],
   });
 
   // Factory for RandomUser API
@@ -89,6 +90,7 @@ class UserModel extends User {
         prompts: [],
         badges: [],
         favoriteUserIds: [],
+        pinnedUserIds: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -131,6 +133,7 @@ class UserModel extends User {
         prompts: [],
         badges: [],
         favoriteUserIds: [],
+        pinnedUserIds: [],
       );
     } catch (e, stackTrace) {
       developer.log(
@@ -164,6 +167,7 @@ class UserModel extends User {
       'prompts': prompts,
       'badges': badges,
       'favoriteUserIds': favoriteUserIds,
+      'pinnedUserIds': pinnedUserIds,
     };
   }
 
@@ -193,6 +197,7 @@ class UserModel extends User {
       ),
       badges: List<String>.from(map['badges'] ?? []),
       favoriteUserIds: List<String>.from(map['favoriteUserIds'] ?? []),
+      pinnedUserIds: List<String>.from(map['pinnedUserIds'] ?? []),
     );
   }
 }
