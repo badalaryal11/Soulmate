@@ -30,6 +30,11 @@ class _MatchesListScreenState extends State<MatchesListScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<MatchProvider>().restoreFromCacheIfNeeded();
+      }
+    });
   }
 
   @override

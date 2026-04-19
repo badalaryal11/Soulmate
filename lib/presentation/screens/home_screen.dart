@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_list_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/core/utils/image_generation_service.dart';
+import 'package:soulmate/core/utils/image_utils.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
 import 'package:soulmate/presentation/widgets/filter_chip_widget.dart';
 
@@ -39,45 +41,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Set up match listener
       discoveryProvider.onMatchFound = (user) {
-        if (mounted) {
-          final notificationProvider = context.read<NotificationProvider>();
-          if (notificationProvider.matchesEnabled) {
-            ServiceLocator.notificationRepository.scheduleNotification(
-              id: user.hashCode,
-              title: 'New Match! 🎉',
-              body: 'You and ${user.firstName} liked each other. Say hi!',
-              delay: const Duration(seconds: 1), 
-            );
-          }
+        if (!mounted) return;
 
-          // Precache images so the match screen loads instantly
-          final matchedImageUrl = user.imageUrl.isNotEmpty
-              ? user.imageUrl
-              : ImageGenerationService.generateProfileImageUrl(user);
-          final currentImageUrl =
-              currentUserProvider.currentUser?.imageUrl ?? '';
-
-          if (matchedImageUrl.isNotEmpty) {
-            precacheImage(
-              CachedNetworkImageProvider(matchedImageUrl, maxWidth: 300, maxHeight: 450), 
-              context,
-            );
-          }
-          if (currentImageUrl.isNotEmpty &&
-              !currentImageUrl.startsWith('assets/') &&
-              !currentImageUrl.startsWith('file://')) {
-            precacheImage(
-              CachedNetworkImageProvider(currentImageUrl, maxWidth: 300, maxHeight: 450), 
-              context,
-            );
-          }
-
-          context.read<MatchProvider>().addMatch(user);
-
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
+        final notificationProvider = context.read<NotificationProvider>();
+        if (notificationProvider.matchesEnabled) {
+          ServiceLocator.notificationRepository.scheduleNotification(
+            id: user.hashCode,
+            title: 'New Match! 🎉',
+            body: 'You and ${user.firstName} liked each other. Say hi!',
+            delay: const Duration(seconds: 1),
           );
         }
+
+        // Add immediately so match is visible in list even if precache fails.
+        context.read<MatchProvider>().addMatch(user);
+
+        // Pre-cache in background. This must never block navigation.
+        final matchedImageUrl = user.imageUrl.isNotEmpty
+            ? user.imageUrl
+            : ImageGenerationService.generateProfileImageUrl(user);
+        final currentImageUrl = currentUserProvider.currentUser?.imageUrl ?? '';
+        unawaited(_safePrecacheMatchImage(matchedImageUrl));
+        unawaited(_safePrecacheMatchImage(currentImageUrl));
+
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
+        );
       };
 
       // Load current user profile first
@@ -302,6 +291,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHomeTab() {
     return HomeTab(controller: controller);
+  }
+
+  Future<void> _safePrecacheMatchImage(String imageUrl) async {
+    if (!mounted || imageUrl.isEmpty) return;
+
+    final imageProvider = ImageUtils.getImageProvider(
+      imageUrl,
+      maxWidth: 300,
+      maxHeight: 450,
+    );
+    if (imageProvider == null) return;
+
+    try {
+      await precacheImage(imageProvider, context);
+    } catch (e) {
+      debugPrint('Failed to precache match image "$imageUrl": $e');
+    }
   }
 
   void _showFilterDialog(BuildContext context) {

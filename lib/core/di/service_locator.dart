@@ -140,6 +140,7 @@ class ServiceLocator {
     return DiscoveryProvider(
       getUsersUseCase: GetUsersUseCase(_userRepository),
       currentUserProvider: currentUserProvider,
+      userRepository: _userRepository,
     );
   }
 

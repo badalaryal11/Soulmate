@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_active_chats_usecase.dart';
 import '../../domain/usecases/get_chat_id_usecase.dart';
@@ -85,7 +87,9 @@ class MatchProvider extends ChangeNotifier {
           return user.copyWith(
             lastMessage: map['lastMessage'] as String?,
             lastMessageTime: map['lastMessageTime'] != null
-                ? DateTime.fromMillisecondsSinceEpoch(map['lastMessageTime'] as int)
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    map['lastMessageTime'] as int,
+                  )
                 : null,
           );
         }).toList();
@@ -114,7 +118,7 @@ class MatchProvider extends ChangeNotifier {
   Future<void> loadMatches() async {
     if (_isLoadingMatches) return;
     _isLoadingMatches = true;
-    
+
     // Load cached matches instantly so the UI isn't empty on cold boot
     await _loadMatchesFromCache();
 
@@ -122,6 +126,22 @@ class MatchProvider extends ChangeNotifier {
     if (currentUser == null) {
       _isLoadingMatches = false;
       return;
+    }
+
+    // STRICT OFFLINE GUARD
+    // Prevent the provider from fetching empty lists when disconnected, which
+    // would otherwise falsely appear as '0 matches' and wipe the local cache.
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult.contains(ConnectivityResult.none)) {
+        debugPrint(
+          'MatchProvider: Connection offline. Aborting fetch to preserve local cache.',
+        );
+        _isLoadingMatches = false;
+        return;
+      }
+    } catch (_) {
+      // If connectivity check fails for some reason, cautiously proceed.
     }
 
     try {
@@ -163,15 +183,16 @@ class MatchProvider extends ChangeNotifier {
       final results = await Future.wait(futures);
       final newMatches = results.whereType<User>().toList();
 
-      // If chatDocs is empty, the user has genuinely no matches.
+      // If chatDocs is empty, we deliberately do NOTHING.
+      // This solves the termination-state bug where Firebase locally returns []
+      // on a cold boot before the network stream fully authenticates.
       if (chatDocs.isEmpty) {
-        _matches.clear();
-        notifyListeners();
-        _saveMatchesToCache([]);
-      } 
-      // Replace the list when we have successfully fetched data back.
-      // This prevents a transient empty response (e.g., from Android cold start
-      // offline cache misses) from wiping the UI.
+        debugPrint(
+          "MatchProvider: Firebase returned 0 chats on cold boot. Preserving local perpetual cache.",
+        );
+      }
+      // When we genuinely receive an updated populated list from the network,
+      // refresh our cache safely.
       else if (newMatches.isNotEmpty) {
         _matches.clear();
         _matches.addAll(newMatches);
@@ -190,6 +211,7 @@ class MatchProvider extends ChangeNotifier {
     if (!_matches.any((m) => m.id == user.id)) {
       _matches.insert(0, user);
       notifyListeners();
+      unawaited(_saveMatchesToCache(_matches));
     }
   }
 

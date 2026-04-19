@@ -130,7 +130,9 @@ class _HomeTabState extends State<HomeTab> {
                   onSwipe: (previousIndex, currentIndex, direction) {
                     // Resolve the user object here while filteredUsers is still
                     // in its pre-swipe state, before any async list rebuild.
-                    final swipedUser = previousIndex < provider.filteredUsers.length
+                    final swipedUser =
+                        previousIndex >= 0 &&
+                            previousIndex < provider.filteredUsers.length
                         ? provider.filteredUsers[previousIndex]
                         : null;
 

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_users_usecase.dart';
+import '../../domain/repositories/user_repository.dart';
 import '../../core/utils/image_generation_service.dart';
 
 import 'current_user_provider.dart';
@@ -17,17 +19,21 @@ class DiscoveryProvider extends ChangeNotifier {
 
   final GetUsersUseCase _getUsersUseCase;
   final CurrentUserProvider _currentUserProvider;
+  final UserRepository _userRepository;
 
   DiscoveryProvider({
     required GetUsersUseCase getUsersUseCase,
     required CurrentUserProvider currentUserProvider,
+    required UserRepository userRepository,
   }) : _getUsersUseCase = getUsersUseCase,
-       _currentUserProvider = currentUserProvider;
+       _currentUserProvider = currentUserProvider,
+       _userRepository = userRepository;
 
   final List<User> _users = [];
   final Set<String> _usedImageUrls = {};
   final Set<String> _seenUserIds = {};
   final Set<String> _swipedUserIds = {};
+  final Set<String> _matchedUserIds = {};
   DiscoveryStatus _status = DiscoveryStatus.initial;
   String? _errorMessage;
   bool _isLoadingUsers = false;
@@ -50,8 +56,6 @@ class DiscoveryProvider extends ChangeNotifier {
   List<User> _filteredUsers = [];
   List<User> get filteredUsers => _filteredUsers;
 
-  int _swipeCount = 0;
-  int _nextMatchThreshold = 3;
   Function(User)? onMatchFound;
 
   final List<User> _undoUserStack = [];
@@ -107,6 +111,7 @@ class DiscoveryProvider extends ChangeNotifier {
       _usedImageUrls.clear();
       _seenUserIds.clear();
       _swipedUserIds.clear();
+      _matchedUserIds.clear();
       _filterRevision++;
     }
 
@@ -186,6 +191,11 @@ class DiscoveryProvider extends ChangeNotifier {
         _swipedUserIds.clear();
         _swipedUserIds.addAll(idList.skip(idList.length - _maxSeenIds));
       }
+      if (_matchedUserIds.length > _maxSeenIds) {
+        final idList = _matchedUserIds.toList();
+        _matchedUserIds.clear();
+        _matchedUserIds.addAll(idList.skip(idList.length - _maxSeenIds));
+      }
 
       final previousCount = _filteredUsers.length;
       _updateFilteredUsers();
@@ -213,7 +223,9 @@ class DiscoveryProvider extends ChangeNotifier {
   void userSwiped(User swipedUser, CardSwiperDirection direction) {
     // Save for undo
     _undoUserStack.add(swipedUser);
-    _undoIndexStack.add(0); // index no longer meaningful; kept for undo stack symmetry
+    _undoIndexStack.add(
+      0,
+    ); // index no longer meaningful; kept for undo stack symmetry
     if (_undoUserStack.length > 10) {
       _undoUserStack.removeAt(0);
       _undoIndexStack.removeAt(0);
@@ -223,17 +235,7 @@ class DiscoveryProvider extends ChangeNotifier {
     _swipedUserIds.add(swipedUser.id);
 
     if (direction == CardSwiperDirection.right) {
-      _swipeCount++;
-      if (_swipeCount >= _nextMatchThreshold) {
-        if (RateLimiter.check(
-          'swipe_match_trigger',
-          const Duration(seconds: 1),
-        )) {
-          onMatchFound?.call(swipedUser);
-          _swipeCount = 0;
-          _nextMatchThreshold = 5 + (DateTime.now().millisecond % 5);
-        }
-      }
+      _handleRightSwipe(swipedUser);
     }
 
     // Defer deck rebuild to next frame so CardSwiper completes its animation
@@ -261,5 +263,55 @@ class DiscoveryProvider extends ChangeNotifier {
     _updateFilteredUsers();
     _filterRevision++;
     notifyListeners();
+  }
+
+  void _handleRightSwipe(User swipedUser) {
+    final currentUser = _currentUserProvider.currentUser;
+    if (currentUser == null) return;
+
+    // Persist "like" so mutual matches can be detected in future sessions.
+    if (!currentUser.favoriteUserIds.contains(swipedUser.id)) {
+      final updatedFavorites = List<String>.from(currentUser.favoriteUserIds)
+        ..add(swipedUser.id);
+
+      _currentUserProvider.updateLocalUser(
+        currentUser.copyWith(favoriteUserIds: updatedFavorites),
+      );
+
+      unawaited(
+        _userRepository
+            .updateUserField(currentUser.id, {
+              'favoriteUserIds': updatedFavorites,
+            })
+            .catchError((e) {
+              debugPrint('Failed to persist like for ${swipedUser.id}: $e');
+            }),
+      );
+    }
+
+    if (_matchedUserIds.contains(swipedUser.id)) return;
+
+    final isMutualLike = swipedUser.favoriteUserIds.contains(currentUser.id);
+    final isSyntheticProfile =
+        swipedUser.id.startsWith('api_') || swipedUser.id.startsWith('local_');
+
+    // Synthetic profiles cannot reciprocate via backend, so we simulate
+    // a higher mutual-like chance for them. For real profiles, keep a small
+    // fallback chance to avoid a "never matches" dead-end when data is sparse.
+    final base = swipedUser.id.hashCode.abs() + DateTime.now().second;
+    final simulatedMutualLike = isSyntheticProfile
+        ? base % 100 < 35
+        : base % 100 < 12;
+
+    final hasMatch = isMutualLike || simulatedMutualLike;
+    if (!hasMatch) return;
+
+    if (RateLimiter.check(
+      'swipe_match_trigger_${swipedUser.id}',
+      const Duration(seconds: 1),
+    )) {
+      _matchedUserIds.add(swipedUser.id);
+      onMatchFound?.call(swipedUser);
+    }
   }
 }
