@@ -115,6 +115,7 @@ class UserDatabaseService {
       await _firestore.collection(_usersCollection).doc(uid).update(data);
     } catch (e) {
       debugPrint("Error updating user field: $e");
+      rethrow;
     }
   }
 
@@ -150,7 +151,8 @@ class UserDatabaseService {
 
   DocumentSnapshot? _lastUserDoc;
   String? _lastGenderFilter;
-  bool _isFetchingUsers = false;
+  Future<List<domain.User>>? _inFlightUsersRequest;
+  String? _inFlightUsersRequestKey;
 
   /// Get multiple users with optional gender filtering.
   Future<List<domain.User>> getUsers({
@@ -159,10 +161,46 @@ class UserDatabaseService {
     int limit = 10,
     bool refresh = false,
   }) async {
-    // Prevent concurrent calls from corrupting the pagination cursor.
-    if (_isFetchingUsers) return [];
-    _isFetchingUsers = true;
+    final requestKey = '$gender|$currentUserId|$limit|$refresh';
 
+    // Reuse identical in-flight requests; otherwise wait for the current
+    // request to finish before issuing a new one to keep pagination state safe.
+    while (_inFlightUsersRequest != null) {
+      if (_inFlightUsersRequestKey == requestKey) {
+        return _inFlightUsersRequest!;
+      }
+      try {
+        await _inFlightUsersRequest;
+      } catch (_) {
+        // Ignore previous failure and proceed with this request.
+      }
+    }
+
+    final requestFuture = _fetchUsers(
+      gender: gender,
+      currentUserId: currentUserId,
+      limit: limit,
+      refresh: refresh,
+    );
+    _inFlightUsersRequest = requestFuture;
+    _inFlightUsersRequestKey = requestKey;
+
+    try {
+      return await requestFuture;
+    } finally {
+      if (identical(_inFlightUsersRequest, requestFuture)) {
+        _inFlightUsersRequest = null;
+        _inFlightUsersRequestKey = null;
+      }
+    }
+  }
+
+  Future<List<domain.User>> _fetchUsers({
+    required String? gender,
+    required String? currentUserId,
+    required int limit,
+    required bool refresh,
+  }) async {
     try {
       if (refresh || gender != _lastGenderFilter) {
         _lastUserDoc = null;
@@ -192,8 +230,6 @@ class UserDatabaseService {
     } catch (e) {
       debugPrint("Error getting users: $e");
       return [];
-    } finally {
-      _isFetchingUsers = false;
     }
   }
 

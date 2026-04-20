@@ -118,5 +118,22 @@ void main() {
         mockDocumentReference.update({'firstName': 'Updated Name'}),
       ).called(1);
     });
+
+    test('updateUserField rethrows when firestore update fails', () async {
+      when(
+        mockFirestore.collection('users'),
+      ).thenReturn(mockCollectionReference);
+      when(
+        mockCollectionReference.doc('test_uid'),
+      ).thenReturn(mockDocumentReference);
+      when(
+        mockDocumentReference.update(any),
+      ).thenThrow(Exception('firestore failure'));
+
+      expect(
+        () => databaseService.updateUserField('test_uid', {'firstName': 'Bad'}),
+        throwsA(isA<Exception>()),
+      );
+    });
   });
 }
