@@ -175,127 +175,151 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    const double appBarSideSlotWidth = 156;
 
     return Scaffold(
       // Only show AppBar on Home Tab (Index 0)
       // MatchesScreen (Index 1) has its own AppBar
       appBar: _selectedIndex == 0
           ? AppBar(
-              title: Text(
-                'Soulmate',
-                style: GoogleFonts.lobster(
-                  fontSize:
-                      30, // Slightly reduced to fit with balanced side widths
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+              automaticallyImplyLeading: false,
+              titleSpacing: 0,
+              title: Row(
+                children: [
+                  SizedBox(
+                    width: appBarSideSlotWidth,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(
+                              AppThemeTokens.radiusMd,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.tune_rounded,
+                              color: colorScheme.primary,
+                            ),
+                            tooltip: 'Filters',
+                            onPressed: () {
+                              _showFilterDialog(context);
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Soulmate',
+                          style: GoogleFonts.lobster(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: appBarSideSlotWidth,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Selector<CurrentUserProvider, (int, int)>(
+                        selector: (context, provider) {
+                          final user = provider.currentUser;
+                          return (user?.streak ?? 0, user?.coins ?? 0);
+                        },
+                        builder: (context, data, child) {
+                          final streak = data.$1;
+                          final coins = data.$2;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Tooltip(
+                                  message:
+                                      'Keep your streak alive to earn more coins! 🔥',
+                                  triggerMode: TooltipTriggerMode.tap,
+                                  showDuration: const Duration(seconds: 4),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                  ),
+                                  padding: const EdgeInsets.all(12),
+                                  textStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: _StatBadge(
+                                    icon: '🔥',
+                                    value: '$streak',
+                                    background: const Color(
+                                      0xFFFFA647,
+                                    ).withValues(alpha: 0.22),
+                                    textColor: const Color(0xFFB86200),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Tooltip(
+                                  message:
+                                      'Log in daily to earn coins!\nBonus coins awarded for longer streaks.',
+                                  triggerMode: TooltipTriggerMode.tap,
+                                  showDuration: const Duration(seconds: 4),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                  ),
+                                  padding: const EdgeInsets.all(12),
+                                  textStyle: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: _StatBadge(
+                                    icon: '🪙',
+                                    value: '$coins',
+                                    background: const Color(
+                                      0xFFFFD65C,
+                                    ).withValues(alpha: 0.24),
+                                    textColor: const Color(0xFF7A5B00),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              centerTitle: true,
               backgroundColor: colorScheme.surface.withValues(
                 alpha: isDark ? 0.78 : 0.88,
               ),
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               toolbarHeight: 70,
-              leadingWidth: 70,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(
-                        AppThemeTokens.radiusMd,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.tune_rounded,
-                        color: colorScheme.primary,
-                      ),
-                      tooltip: 'Filters',
-                      onPressed: () {
-                        _showFilterDialog(context);
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                Selector<CurrentUserProvider, (int, int)>(
-                  selector: (context, provider) {
-                    final user = provider.currentUser;
-                    return (user?.streak ?? 0, user?.coins ?? 0);
-                  },
-                  builder: (context, data, child) {
-                    final streak = data.$1;
-                    final coins = data.$2;
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Tooltip(
-                          message:
-                              'Keep your streak alive to earn more coins! 🔥',
-                          triggerMode: TooltipTriggerMode.tap,
-                          showDuration: const Duration(seconds: 4),
-                          margin: const EdgeInsets.symmetric(horizontal: 20),
-                          padding: const EdgeInsets.all(12),
-                          textStyle: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black87,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _StatBadge(
-                            icon: '🔥',
-                            value: '$streak',
-                            background: const Color(
-                              0xFFFFA647,
-                            ).withValues(alpha: 0.22),
-                            textColor: const Color(0xFFB86200),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Tooltip(
-                          message:
-                              'Log in daily to earn coins!\nBonus coins awarded for longer streaks.',
-                          triggerMode: TooltipTriggerMode.tap,
-                          showDuration: const Duration(seconds: 4),
-                          margin: const EdgeInsets.symmetric(horizontal: 20),
-                          padding: const EdgeInsets.all(12),
-                          textStyle: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black87,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _StatBadge(
-                            icon: '🪙',
-                            value: '$coins',
-                            background: const Color(
-                              0xFFFFD65C,
-                            ).withValues(alpha: 0.24),
-                            textColor: const Color(0xFF7A5B00),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(width: 10),
-              ],
             )
           : null, // Hide AppBar when not on Home tab
 

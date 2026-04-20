@@ -24,7 +24,10 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Settings',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: ListView(

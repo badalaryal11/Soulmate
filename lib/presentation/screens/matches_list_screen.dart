@@ -73,12 +73,9 @@ class _MatchesListScreenState extends State<MatchesListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Matches & Chats',
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: colorScheme.primary,
-            fontWeight: FontWeight.w800,
-          ),
+        title: const _StylizedMatchesHeading(
+          title: 'Matches & Chats',
+          subtitle: 'Your Conversation',
         ),
         backgroundColor: colorScheme.surface.withValues(
           alpha: isDark ? 0.78 : 0.9,
@@ -375,6 +372,63 @@ class _EmptyMatchesState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StylizedMatchesHeading extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _StylizedMatchesHeading({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: [
+              colorScheme.primary,
+              colorScheme.secondary,
+              colorScheme.primary.withValues(alpha: 0.9),
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ).createShader(bounds),
+          blendMode: BlendMode.srcIn,
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.2,
+              shadows: [
+                Shadow(
+                  color: colorScheme.primary.withValues(alpha: 0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.62),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -16,7 +16,10 @@ class ProfileTab extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Profile',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
