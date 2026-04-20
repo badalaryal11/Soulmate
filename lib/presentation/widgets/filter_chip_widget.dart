@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 
 class FilterChipWidget extends StatelessWidget {
   final String label;
@@ -14,26 +15,31 @@ class FilterChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return FilterChip(
-      label: Text(label),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: const Color(0xFFFE3C72).withValues(alpha: 0.2),
-      checkmarkColor: const Color(0xFFFE3C72),
-      labelStyle: TextStyle(
-        color: isSelected
-            ? const Color(0xFFFE3C72)
-            : Theme.of(context).textTheme.bodyMedium?.color,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      selectedColor: colorScheme.primary.withValues(alpha: 0.14),
+      checkmarkColor: colorScheme.primary,
+      side: BorderSide(
+        color: isSelected ? colorScheme.primary : colorScheme.outline,
       ),
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.grey[800]
-          : Colors.grey[200],
+      backgroundColor: colorScheme.surface,
+      labelStyle: theme.textTheme.labelMedium?.copyWith(
+        color: isSelected
+            ? colorScheme.primary
+            : theme.textTheme.bodyMedium?.color,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppThemeTokens.spaceSm,
+        vertical: AppThemeTokens.spaceXs,
+      ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFFFE3C72) : Colors.transparent,
-        ),
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
       ),
     );
   }

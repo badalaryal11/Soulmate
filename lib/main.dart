@@ -12,6 +12,7 @@ import 'presentation/screens/reset_password_screen.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'core/di/service_locator.dart';
+import 'core/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'presentation/providers/current_user_provider.dart';
 import 'presentation/providers/profile_management_provider.dart';
@@ -112,20 +113,25 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.paused:
         // App is fully backgrounded — schedule re-engagement notification
-        debugPrint('App lifecycle: paused — scheduling re-engagement notification');
-        SharedPreferences.getInstance().then((prefs) {
-          final engagementEnabled = prefs.getBool('notifications_engagement') ?? true;
-          if (engagementEnabled) {
-            ServiceLocator.notificationRepository.scheduleNotification(
-              id: 99,
-              title: "It's busy tonight! 🔥",
-              body: "Hop on to find your match before they're gone.",
-              delay: const Duration(hours: 2),
-            );
-          }
-        }).catchError((e) {
-          debugPrint('Error scheduling engagement notification: $e');
-        });
+        debugPrint(
+          'App lifecycle: paused — scheduling re-engagement notification',
+        );
+        SharedPreferences.getInstance()
+            .then((prefs) {
+              final engagementEnabled =
+                  prefs.getBool('notifications_engagement') ?? true;
+              if (engagementEnabled) {
+                ServiceLocator.notificationRepository.scheduleNotification(
+                  id: 99,
+                  title: "It's busy tonight! 🔥",
+                  body: "Hop on to find your match before they're gone.",
+                  delay: const Duration(hours: 2),
+                );
+              }
+            })
+            .catchError((e) {
+              debugPrint('Error scheduling engagement notification: $e');
+            });
         break;
       case AppLifecycleState.inactive:
         // Brief interruption (status bar, phone call, etc.) — do nothing
@@ -139,7 +145,10 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
         try {
           final ctx = _navigatorKey.currentContext;
           if (ctx != null) {
-            final matchProvider = Provider.of<MatchProvider>(ctx, listen: false);
+            final matchProvider = Provider.of<MatchProvider>(
+              ctx,
+              listen: false,
+            );
             // Instantly surface cached data if in-memory list was wiped
             matchProvider.restoreFromCacheIfNeeded();
             // Then refresh from the network in the background
@@ -213,12 +222,6 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Cache text themes to avoid re-computation on every rebuild
-    final poppinsLight = GoogleFonts.poppinsTextTheme();
-    final poppinsDark = GoogleFonts.poppinsTextTheme(
-      ThemeData.dark().textTheme,
-    );
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -267,141 +270,8 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
             title: 'Soulmate',
             debugShowCheckedModeBanner: false,
             themeMode: themeProvider.themeMode,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFFFE3C72),
-              ),
-              textTheme: poppinsLight,
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: Colors.white,
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFFE3C72)),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-              ),
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFE3C72),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 5,
-                  shadowColor: const Color(0xFFFE3C72).withValues(alpha: 0.4),
-                  textStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFFE3C72),
-                  textStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              checkboxTheme: CheckboxThemeData(
-                fillColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) {
-                    return const Color(0xFFFE3C72);
-                  }
-                  return null;
-                }),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              dividerTheme: DividerThemeData(color: Colors.grey[300]),
-            ),
-            darkTheme: ThemeData.dark().copyWith(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFFFE3C72),
-                brightness: Brightness.dark,
-              ),
-              textTheme: poppinsDark,
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: Colors.grey[800],
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[700]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFFE3C72)),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-              ),
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFE3C72),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 5,
-                  shadowColor: const Color(0xFFFE3C72).withValues(alpha: 0.4),
-                  textStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFFE3C72),
-                  textStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              checkboxTheme: CheckboxThemeData(
-                fillColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) {
-                    return const Color(0xFFFE3C72);
-                  }
-                  return null;
-                }),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              dividerTheme: DividerThemeData(color: Colors.grey[700]),
-            ),
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
             home: ServiceLocator.authRepository.currentUser != null
                 ? const HomeScreen()
                 : const LoginScreen(),

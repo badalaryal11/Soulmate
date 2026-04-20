@@ -13,6 +13,7 @@ import 'package:soulmate/presentation/providers/match_provider.dart';
 import 'package:soulmate/presentation/screens/match_screen.dart';
 import 'package:soulmate/presentation/screens/matches_list_screen.dart';
 import 'package:soulmate/core/di/service_locator.dart';
+import 'package:soulmate/core/theme/app_theme.dart';
 import 'package:soulmate/core/utils/image_generation_service.dart';
 import 'package:soulmate/core/utils/image_utils.dart';
 import 'package:soulmate/presentation/widgets/profile_tab.dart';
@@ -25,6 +26,67 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _StatBadge extends StatelessWidget {
+  final String icon;
+  final String value;
+  final Color background;
+  final Color textColor;
+
+  const _StatBadge({
+    required this.icon,
+    required this.value,
+    required this.background,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgePill extends StatelessWidget {
+  final String label;
+
+  const _AgePill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusSm),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -111,6 +173,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       // Only show AppBar on Home Tab (Index 0)
       // MatchesScreen (Index 1) has its own AppBar
@@ -122,10 +187,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize:
                       30, // Slightly reduced to fit with balanced side widths
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFE3C72),
+                  color: colorScheme.primary,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: Colors.black.withValues(alpha: 0.12),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -133,21 +198,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               centerTitle: true,
-              backgroundColor: Colors.transparent,
+              backgroundColor: colorScheme.surface.withValues(
+                alpha: isDark ? 0.78 : 0.88,
+              ),
+              surfaceTintColor: Colors.transparent,
               elevation: 0,
               toolbarHeight: 70,
-              leadingWidth:
-                  100, // Balanced with actions width, reduced to prevent title truncation
+              leadingWidth: 70,
               leading: Padding(
-                padding: const EdgeInsets.only(left: 8.0),
+                padding: const EdgeInsets.only(left: 10),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.tune_rounded),
-                    tooltip: 'Filters',
-                    onPressed: () {
-                      _showFilterDialog(context);
-                    },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(
+                        AppThemeTokens.radiusMd,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.tune_rounded,
+                        color: colorScheme.primary,
+                      ),
+                      tooltip: 'Filters',
+                      onPressed: () {
+                        _showFilterDialog(context);
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -163,7 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Streak Badge
                         Tooltip(
                           message:
                               'Keep your streak alive to earn more coins! 🔥',
@@ -179,35 +256,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black87,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  '🔥',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '$streak',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          child: _StatBadge(
+                            icon: '🔥',
+                            value: '$streak',
+                            background: const Color(
+                              0xFFFFA647,
+                            ).withValues(alpha: 0.22),
+                            textColor: const Color(0xFFB86200),
                           ),
                         ),
-                        const SizedBox(width: 4), // Tightened spacing
-                        // Coins Badge
+                        const SizedBox(width: 8),
                         Tooltip(
                           message:
                               'Log in daily to earn coins!\nBonus coins awarded for longer streaks.',
@@ -223,38 +281,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black87,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  '🪙',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '$coins',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.amber,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          child: _StatBadge(
+                            icon: '🪙',
+                            value: '$coins',
+                            background: const Color(
+                              0xFFFFD65C,
+                            ).withValues(alpha: 0.24),
+                            textColor: const Color(0xFF7A5B00),
                           ),
                         ),
                       ],
                     );
                   },
                 ),
-                const SizedBox(width: 4), // Tightened end spacing
+                const SizedBox(width: 10),
               ],
             )
           : null, // Hide AppBar when not on Home tab
@@ -269,15 +309,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.forum_rounded),
             label: 'Matches',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFFFE3C72),
+        showUnselectedLabels: true,
         onTap: _onItemTapped,
       ),
     );
@@ -311,124 +357,129 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showFilterDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         return Consumer<DiscoveryProvider>(
           builder: (context, provider, child) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Filter by Gender',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      FilterChipWidget(
-                        label: 'Male',
-                        isSelected: provider.selectedGender == 'male',
-                        onSelected: (bool selected) {
-                          if (selected) {
-                            provider.loadUsers(gender: 'male', clearList: true);
-                            _updateGenderPreference('male');
-                          }
-                        },
-                      ),
-                      FilterChipWidget(
-                        label: 'Female',
-                        isSelected: provider.selectedGender == 'female',
-                        onSelected: (bool selected) {
-                          if (selected) {
-                            provider.loadUsers(
-                              gender: 'female',
-                              clearList: true,
-                            );
-                            _updateGenderPreference('female');
-                          }
-                        },
-                      ),
-                      FilterChipWidget(
-                        label: 'Everyone',
-                        isSelected:
-                            provider.selectedGender == 'everyone' ||
-                            provider.selectedGender == null,
-                        onSelected: (bool selected) {
-                          if (selected) {
-                            provider.loadUsers(
-                              gender: 'everyone',
-                              clearList: true,
-                            );
-                            _updateGenderPreference('everyone');
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Filter by Age',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${provider.minAge.round()} years',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        '${provider.maxAge.round()} years',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  RangeSlider(
-                    values: RangeValues(provider.minAge, provider.maxAge),
-                    min: 18,
-                    max: 100,
-                    divisions: 82,
-                    activeColor: const Color(0xFFFE3C72),
-                    labels: RangeLabels(
-                      provider.minAge.round().toString(),
-                      provider.maxAge.round().toString(),
-                    ),
-                    onChanged: (RangeValues values) {
-                      provider.updateAgeRange(values.start, values.end);
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFE3C72),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Apply',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: theme.dividerTheme.color,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 18),
+                    Text('Refine Discovery', style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Set who appears in your swipe deck.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color?.withValues(
+                          alpha: 0.72,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text('Gender', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        FilterChipWidget(
+                          label: 'Male',
+                          isSelected: provider.selectedGender == 'male',
+                          onSelected: (bool selected) {
+                            if (selected) {
+                              provider.loadUsers(
+                                gender: 'male',
+                                clearList: true,
+                              );
+                              _updateGenderPreference('male');
+                            }
+                          },
+                        ),
+                        FilterChipWidget(
+                          label: 'Female',
+                          isSelected: provider.selectedGender == 'female',
+                          onSelected: (bool selected) {
+                            if (selected) {
+                              provider.loadUsers(
+                                gender: 'female',
+                                clearList: true,
+                              );
+                              _updateGenderPreference('female');
+                            }
+                          },
+                        ),
+                        FilterChipWidget(
+                          label: 'Everyone',
+                          isSelected:
+                              provider.selectedGender == 'everyone' ||
+                              provider.selectedGender == null,
+                          onSelected: (bool selected) {
+                            if (selected) {
+                              provider.loadUsers(
+                                gender: 'everyone',
+                                clearList: true,
+                              );
+                              _updateGenderPreference('everyone');
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text('Age Range', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _AgePill(label: '${provider.minAge.round()} years'),
+                        _AgePill(label: '${provider.maxAge.round()} years'),
+                      ],
+                    ),
+                    RangeSlider(
+                      values: RangeValues(provider.minAge, provider.maxAge),
+                      min: 18,
+                      max: 100,
+                      divisions: 82,
+                      labels: RangeLabels(
+                        provider.minAge.round().toString(),
+                        provider.maxAge.round().toString(),
+                      ),
+                      onChanged: (RangeValues values) {
+                        provider.updateAgeRange(values.start, values.end);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Apply Filters'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/user.dart';
 import '../../core/utils/image_utils.dart';
 import '../../core/utils/image_generation_service.dart';
+import '../../core/theme/app_theme.dart';
 
 class TypingBubble extends StatelessWidget {
   final User user;
@@ -10,7 +11,9 @@ class TypingBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final imageUrl =
         (user.imageUrl.isNotEmpty && !user.imageUrl.startsWith('assets/'))
         ? user.imageUrl
@@ -22,6 +25,7 @@ class TypingBubble extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          const SizedBox(width: AppThemeTokens.spaceXs),
           ClipOval(
             child: ImageUtils.getImageWidget(
               imageUrl,
@@ -35,7 +39,12 @@ class TypingBubble extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: isDark ? 0.64 : 0.88,
+              ),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.45),
+              ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -45,10 +54,11 @@ class TypingBubble extends StatelessWidget {
             ),
             child: Text(
               'typing...',
-              style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(
+                  alpha: 0.72,
+                ),
                 fontStyle: FontStyle.italic,
-                fontSize: 14,
               ),
             ),
           ),

@@ -3,6 +3,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../core/utils/image_utils.dart';
 import '../../core/utils/image_generation_service.dart';
+import '../../core/theme/app_theme.dart';
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
@@ -22,6 +23,9 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final avatarImageUrl =
         (otherUser.imageUrl.isNotEmpty &&
             !otherUser.imageUrl.startsWith('assets/'))
@@ -68,11 +72,10 @@ class MessageBubble extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   _formatTime(message.timestamp),
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white54
-                        : Colors.black54,
-                    fontSize: 10,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.textTheme.labelSmall?.color?.withValues(
+                      alpha: 0.65,
+                    ),
                   ),
                 ),
               ],
@@ -84,21 +87,24 @@ class MessageBubble extends StatelessWidget {
 
     final bubble = Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       constraints: BoxConstraints(
         maxWidth: MediaQuery.of(context).size.width * 0.70,
       ),
       decoration: BoxDecoration(
         color: isMe
-            ? const Color(0xFFFE3C72)
-            : (Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]
-                  : Colors.grey[200]),
+            ? colorScheme.primary
+            : colorScheme.surfaceContainerHighest.withValues(
+                alpha: isDark ? 0.62 : 0.85,
+              ),
+        border: isMe
+            ? null
+            : Border.all(color: colorScheme.outline.withValues(alpha: 0.45)),
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: const Radius.circular(16),
-          bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-          bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+          topLeft: const Radius.circular(18),
+          topRight: const Radius.circular(18),
+          bottomLeft: isMe ? const Radius.circular(18) : Radius.zero,
+          bottomRight: isMe ? Radius.zero : const Radius.circular(18),
         ),
       ),
       child: Column(
@@ -106,13 +112,11 @@ class MessageBubble extends StatelessWidget {
         children: [
           Text(
             message.text,
-            style: TextStyle(
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: isMe
                   ? Colors.white
-                  : (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87),
-              fontSize: 16,
+                  : theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.94),
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 4),
@@ -121,13 +125,12 @@ class MessageBubble extends StatelessWidget {
             children: [
               Text(
                 _formatTime(message.timestamp),
-                style: TextStyle(
+                style: theme.textTheme.labelSmall?.copyWith(
                   color: isMe
                       ? Colors.white70
-                      : (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black54),
-                  fontSize: 10,
+                      : theme.textTheme.labelSmall?.color?.withValues(
+                          alpha: 0.65,
+                        ),
                 ),
               ),
               if (isMe) ...[
@@ -136,7 +139,7 @@ class MessageBubble extends StatelessWidget {
                   message.isRead ? Icons.done_all : Icons.done,
                   size: 14,
                   color: message.isRead
-                      ? const Color(0xFF4FC3F7)
+                      ? const Color(0xFF58D5FF)
                       : Colors.white70,
                 ),
               ],
@@ -154,6 +157,7 @@ class MessageBubble extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        const SizedBox(width: AppThemeTokens.spaceXs),
         ClipOval(
           child: ImageUtils.getImageWidget(
             avatarImageUrl,

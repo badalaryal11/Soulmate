@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/discovery_provider.dart';
 import '../../core/utils/image_generation_service.dart';
 import '../../core/utils/image_utils.dart';
+import '../../core/theme/app_theme.dart';
 import 'profile_card.dart';
 
 class HomeTab extends StatefulWidget {
@@ -25,39 +26,25 @@ class _HomeTabState extends State<HomeTab> {
         if ((provider.status == DiscoveryStatus.loading ||
                 provider.status == DiscoveryStatus.initial) &&
             provider.users.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const _StatusPanel(
+            icon: CircularProgressIndicator(),
+            title: 'Finding great profiles',
+            subtitle: 'We are curating a new stack for you.',
+          );
         }
 
         if (provider.status == DiscoveryStatus.error &&
             provider.users.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(
-                  'Something went wrong',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  provider.errorMessage ?? 'Unknown error',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => provider.loadUsers(clearList: true),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFE3C72),
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
+          return _StatusPanel(
+            icon: Icon(
+              Icons.error_outline_rounded,
+              size: 46,
+              color: Theme.of(context).colorScheme.error,
             ),
+            title: 'Could not load discovery',
+            subtitle: provider.errorMessage ?? 'Please try again.',
+            actionLabel: 'Retry',
+            onAction: () => provider.loadUsers(clearList: true),
           );
         }
 
@@ -67,29 +54,12 @@ class _HomeTabState extends State<HomeTab> {
             if (mounted) provider.loadUsers(gender: provider.selectedGender);
           });
 
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 24),
-                Text(
-                  'Searching for new profiles...',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Hold on, we\'re finding people for you!',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => provider.loadUsers(clearList: true),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
-                ),
-              ],
-            ),
+          return _StatusPanel(
+            icon: const CircularProgressIndicator(),
+            title: 'Refreshing your deck',
+            subtitle: 'Hold on while we load more people nearby.',
+            actionLabel: 'Refresh',
+            onAction: () => provider.loadUsers(clearList: true),
           );
         }
 
@@ -105,78 +75,122 @@ class _HomeTabState extends State<HomeTab> {
           });
         }
 
-        return SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: CardSwiper(
-                  key: ValueKey(provider.filterRevision),
-                  controller: widget.controller,
-                  cardsCount: provider.filteredUsers.length,
-                  numberOfCardsDisplayed: provider.filteredUsers.length < 3
-                      ? provider.filteredUsers.length
-                      : 3,
-                  backCardOffset: const Offset(0, 40),
-                  padding: const EdgeInsets.all(24.0),
-                  cardBuilder:
-                      (
-                        context,
-                        index,
-                        horizontalOffsetPercentage,
-                        verticalOffsetPercentage,
-                      ) {
-                        return ProfileCard(user: provider.filteredUsers[index]);
-                      },
-                  onSwipe: (previousIndex, currentIndex, direction) {
-                    // Resolve the user object here while filteredUsers is still
-                    // in its pre-swipe state, before any async list rebuild.
-                    final swipedUser =
-                        previousIndex >= 0 &&
-                            previousIndex < provider.filteredUsers.length
-                        ? provider.filteredUsers[previousIndex]
-                        : null;
+        final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
-                    // Pre-cache upcoming images
-                    if (currentIndex != null) {
-                      for (int i = 1; i <= 3; i++) {
-                        final nextIndex = currentIndex + i;
-                        if (nextIndex < provider.filteredUsers.length) {
-                          _precacheUserImage(
-                            context,
-                            provider.filteredUsers[nextIndex],
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colorScheme.surfaceContainerHighest.withValues(
+                  alpha: isDark ? 0.22 : 0.55,
+                ),
+                Theme.of(context).scaffoldBackgroundColor,
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: CardSwiper(
+                    key: ValueKey(provider.filterRevision),
+                    controller: widget.controller,
+                    cardsCount: provider.filteredUsers.length,
+                    numberOfCardsDisplayed: provider.filteredUsers.length < 3
+                        ? provider.filteredUsers.length
+                        : 3,
+                    backCardOffset: const Offset(0, 36),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    cardBuilder:
+                        (
+                          context,
+                          index,
+                          horizontalOffsetPercentage,
+                          verticalOffsetPercentage,
+                        ) {
+                          return ProfileCard(
+                            user: provider.filteredUsers[index],
                           );
+                        },
+                    onSwipe: (previousIndex, currentIndex, direction) {
+                      // Resolve the user object here while filteredUsers is still
+                      // in its pre-swipe state, before any async list rebuild.
+                      final swipedUser =
+                          previousIndex >= 0 &&
+                              previousIndex < provider.filteredUsers.length
+                          ? provider.filteredUsers[previousIndex]
+                          : null;
+
+                      // Pre-cache upcoming images
+                      if (currentIndex != null) {
+                        for (int i = 1; i <= 3; i++) {
+                          final nextIndex = currentIndex + i;
+                          if (nextIndex < provider.filteredUsers.length) {
+                            _precacheUserImage(
+                              context,
+                              provider.filteredUsers[nextIndex],
+                            );
+                          }
                         }
                       }
-                    }
 
-                    if (swipedUser != null) {
-                      provider.userSwiped(swipedUser, direction);
-                    }
-                    return true;
-                  },
+                      if (swipedUser != null) {
+                        provider.userSwiped(swipedUser, direction);
+                      }
+                      return true;
+                    },
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _ActionButton(
-                      icon: Icons.close,
-                      color: Colors.red,
-                      onPressed: () =>
-                          widget.controller.swipe(CardSwiperDirection.left),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppThemeTokens.spaceLg,
+                      vertical: 12,
                     ),
-                    _ActionButton(
-                      icon: Icons.favorite,
-                      color: Colors.green,
-                      onPressed: () =>
-                          widget.controller.swipe(CardSwiperDirection.right),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(
+                        alpha: isDark ? 0.84 : 0.92,
+                      ),
+                      borderRadius: BorderRadius.circular(
+                        AppThemeTokens.radiusLg,
+                      ),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.65),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _ActionButton(
+                          icon: Icons.close_rounded,
+                          color: const Color(0xFFE0526D),
+                          onPressed: () =>
+                              widget.controller.swipe(CardSwiperDirection.left),
+                        ),
+                        _ActionButton(
+                          icon: Icons.favorite_rounded,
+                          color: const Color(0xFF1DAD75),
+                          onPressed: () => widget.controller.swipe(
+                            CardSwiperDirection.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -222,23 +236,85 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: color.withValues(alpha: 0.14),
+      shape: const CircleBorder(),
       child: IconButton(
         onPressed: onPressed,
         icon: Icon(icon, color: color, size: 30),
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(16),
+        style: IconButton.styleFrom(
+          backgroundColor: color.withValues(alpha: 0.14),
+          foregroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+            side: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.35),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPanel extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _StatusPanel({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            icon,
+            const SizedBox(height: 18),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.8,
+                ),
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 20),
+              SizedBox(
+                width: 180,
+                child: FilledButton.icon(
+                  onPressed: onAction,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(actionLabel!),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../providers/match_provider.dart';
-import '../providers/current_user_provider.dart';
-import 'chat_screen.dart';
-import '../../domain/entities/user.dart';
 import '../../core/di/service_locator.dart';
-import 'login_screen.dart';
+import '../../core/theme/app_theme.dart';
+import '../../domain/entities/user.dart';
+import '../providers/current_user_provider.dart';
+import '../providers/match_provider.dart';
 import '../widgets/user_avatar.dart';
+import 'chat_screen.dart';
+import 'login_screen.dart';
 
 class MatchesListScreen extends StatefulWidget {
   /// Whether this tab is currently the active/visible tab.
@@ -67,17 +67,23 @@ class _MatchesListScreenState extends State<MatchesListScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Matches & Chats',
-          style: GoogleFonts.poppins(
-            color: const Color(0xFFFE3C72),
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.primary,
+            fontWeight: FontWeight.w800,
           ),
         ),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: isDark ? 0.78 : 0.9,
+        ),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
@@ -95,8 +101,8 @@ class _MatchesListScreenState extends State<MatchesListScreen>
               }
             },
             itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
+              return const [
+                PopupMenuItem<String>(
                   value: 'logout',
                   child: Row(
                     children: [
@@ -108,8 +114,9 @@ class _MatchesListScreenState extends State<MatchesListScreen>
                 ),
               ];
             },
-            icon: const Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert_rounded, color: colorScheme.primary),
           ),
+          const SizedBox(width: 6),
         ],
       ),
       body: Consumer2<MatchProvider, CurrentUserProvider>(
@@ -126,94 +133,71 @@ class _MatchesListScreenState extends State<MatchesListScreen>
 
           return CustomScrollView(
             slivers: [
-              // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() => _searchQuery = value);
-                    },
-                    style: GoogleFonts.poppins(fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: 'Search matches...',
-                      hintStyle: GoogleFonts.poppins(
-                        color: isDark ? Colors.grey[500] : Colors.grey[400],
-                        fontSize: 14,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(
+                        alpha: isDark ? 0.75 : 0.95,
                       ),
-                      prefixIcon: Icon(
-                        Icons.search_rounded,
-                        color: isDark ? Colors.grey[400] : Colors.grey[500],
+                      borderRadius: BorderRadius.circular(
+                        AppThemeTokens.radiusLg,
                       ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.close_rounded,
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[500],
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: isDark ? Colors.grey[800] : Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.55),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFFE3C72),
-                          width: 1.5,
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
+                      style: theme.textTheme.bodyMedium,
+                      decoration: InputDecoration(
+                        hintText: 'Search matches...',
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 20),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: Text(
-                    'Favorites',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFFE3C72),
-                    ),
-                  ),
+              const SliverToBoxAdapter(
+                child: _SectionHeading(
+                  title: 'Favorites',
+                  subtitle: 'Pinned matches for quick access',
                 ),
               ),
               if (favorites.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                     child: Text(
                       _searchQuery.isNotEmpty
                           ? 'No favorites matching "$_searchQuery"'
                           : 'No favorites yet',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[500],
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color?.withValues(
+                          alpha: 0.62,
+                        ),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -222,10 +206,10 @@ class _MatchesListScreenState extends State<MatchesListScreen>
               else
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 100,
+                    height: 104,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
                       itemCount: favorites.length,
                       itemBuilder: (context, index) {
                         return RepaintBoundary(
@@ -238,90 +222,46 @@ class _MatchesListScreenState extends State<MatchesListScreen>
                     ),
                   ),
                 ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Divider(height: 1),
-                ),
-              ),
-
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Messages',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFFE3C72),
-                    ),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: Divider(
+                    height: 1,
+                    color: colorScheme.outline.withValues(alpha: 0.45),
                   ),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: _SectionHeading(
+                  title: 'Messages',
+                  subtitle: 'Recent conversations',
                 ),
               ),
               if (filteredMatches.isEmpty)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 60),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _searchQuery.isNotEmpty
-                              ? Icons.search_off_rounded
-                              : Icons.favorite_border,
-                          size: 80,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No matches found'
-                              : 'No matches yet.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            color: Colors.grey[500],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'Try a different name'
-                              : 'Keep swiping to find your soulmate!',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _EmptyMatchesState(
+                    isSearchEmpty: _searchQuery.isEmpty,
+                    searchQuery: _searchQuery,
                   ),
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final user = filteredMatches[index];
                       return RepaintBoundary(
-                        child: Column(
-                          children: [
-                            _MessageListItem(
-                              user: user,
-                              onTap: () => _openChat(context, user),
-                            ),
-                            if (index < filteredMatches.length - 1)
-                              const Divider(height: 1), // Separator
-                          ],
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _MessageListItem(
+                            user: user,
+                            onTap: () => _openChat(context, user),
+                          ),
                         ),
                       );
                     }, childCount: filteredMatches.length),
                   ),
                 ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
             ],
           );
         },
@@ -347,6 +287,98 @@ class _MatchesListScreenState extends State<MatchesListScreen>
   }
 }
 
+class _SectionHeading extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SectionHeading({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.68),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyMatchesState extends StatelessWidget {
+  final bool isSearchEmpty;
+  final String searchQuery;
+
+  const _EmptyMatchesState({
+    required this.isSearchEmpty,
+    required this.searchQuery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.84),
+          borderRadius: BorderRadius.circular(AppThemeTokens.radiusLg),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.45),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              isSearchEmpty
+                  ? Icons.favorite_border_rounded
+                  : Icons.search_off_rounded,
+              size: 56,
+              color: colorScheme.primary.withValues(alpha: 0.62),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              isSearchEmpty ? 'No matches yet' : 'No matches found',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isSearchEmpty
+                  ? 'Keep swiping to start more conversations.'
+                  : 'No results for "$searchQuery". Try a different name.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.7,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MatchAvatarItem extends StatelessWidget {
   final User user;
   final VoidCallback onTap;
@@ -355,33 +387,41 @@ class _MatchAvatarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          children: [
-            UserAvatar(
-              radius: 28,
-              imageUrl: user.imageUrl,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              heroTag: 'user-avatar-${user.id}-fav',
-              isVerified: user.badges.contains('verified'),
-              showGlow: false,
-              useRoundShape: true,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              user.firstName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Column(
+            children: [
+              UserAvatar(
+                radius: 28,
+                imageUrl: user.imageUrl,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                heroTag: 'user-avatar-${user.id}-fav',
+                isVerified: user.badges.contains('verified'),
+                showGlow: false,
+                useRoundShape: true,
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              SizedBox(
+                width: 64,
+                child: Text(
+                  user.firstName,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -408,95 +448,109 @@ class _MessageListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final hasLastMessage =
         user.lastMessage != null && user.lastMessage!.isNotEmpty;
     final subtitleText = hasLastMessage ? user.lastMessage! : 'Say hello! 👋';
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        child: Row(
-          children: [
-            UserAvatar(
-              radius: 26,
-              imageUrl: user.imageUrl,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              heroTag: 'user-avatar-${user.id}-msg',
-              isVerified: user.badges.contains('verified'),
-              showGlow: false,
-              useRoundShape: true,
+    return Material(
+      color: colorScheme.surface.withValues(alpha: 0.9),
+      borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.45),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          user.firstName,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+          ),
+          child: Row(
+            children: [
+              UserAvatar(
+                radius: 26,
+                imageUrl: user.imageUrl,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                heroTag: 'user-avatar-${user.id}-msg',
+                isVerified: user.badges.contains('verified'),
+                showGlow: false,
+                useRoundShape: true,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            user.firstName,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      if (user.streak > 0) ...[
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.local_fire_department,
-                          color: Colors.orange,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${user.streak}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
+                        if (user.streak > 0) ...[
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.local_fire_department_rounded,
+                            color: Color(0xFFFF9D3D),
+                            size: 16,
                           ),
-                        ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${user.streak}',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFFF9D3D),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitleText,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: hasLastMessage
-                          ? Colors.grey[500]
-                          : const Color(0xFFFE3C72),
-                      fontWeight: hasLastMessage
-                          ? FontWeight.normal
-                          : FontWeight.w500,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitleText,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: hasLastMessage
+                            ? theme.textTheme.bodyMedium?.color?.withValues(
+                                alpha: 0.68,
+                              )
+                            : colorScheme.primary,
+                        fontWeight: hasLastMessage
+                            ? FontWeight.w500
+                            : FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (hasLastMessage && user.lastMessageTime != null)
+                Text(
+                  _formatTime(user.lastMessageTime),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.textTheme.labelSmall?.color?.withValues(
+                      alpha: 0.58,
                     ),
                   ),
-                ],
-              ),
-            ),
-            if (hasLastMessage && user.lastMessageTime != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Text(
-                  _formatTime(user.lastMessageTime),
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.grey[400],
-                  ),
+                )
+              else
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: theme.iconTheme.color?.withValues(alpha: 0.42),
                 ),
-              )
-            else
-              Icon(Icons.chevron_right, color: Colors.grey[300]),
-          ],
+            ],
+          ),
         ),
       ),
     );

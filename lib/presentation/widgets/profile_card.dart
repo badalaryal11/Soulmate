@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/user.dart';
 import '../../core/utils/image_generation_service.dart';
+import '../../core/theme/app_theme.dart';
 import '../screens/details_screen.dart';
 
 class ProfileCard extends StatelessWidget {
@@ -12,6 +13,8 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -20,8 +23,12 @@ class ProfileCard extends StatelessWidget {
         );
       },
       child: Card(
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        shadowColor: Colors.black.withValues(alpha: 0.22),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.6)),
+        ),
         clipBehavior: Clip.antiAlias,
         child: RepaintBoundary(
           child: Stack(
@@ -114,76 +121,108 @@ class ProfileCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
+                    end: Alignment.center,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.16),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.35],
+                  ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.8),
+                      Colors.black.withValues(alpha: 0.92),
                     ],
-                    stops: const [0.6, 1.0],
+                    stops: const [0.52, 1.0],
                   ),
                 ),
               ),
               Positioned(
-                bottom: 20,
-                left: 20,
-                right: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${user.firstName}, ${user.age}',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    borderRadius: BorderRadius.circular(
+                      AppThemeTokens.radiusMd,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            user.locationString,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: Colors.white70),
-                          ),
-                        ),
-                      ],
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.16),
                     ),
-                    const SizedBox(height: 12),
-                    // Bio
-                    if (user.bio != null && user.bio!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${user.firstName}, ${user.age}',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontSize: 31,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.26),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_rounded,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              user.locationString,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (user.bio != null && user.bio!.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
                           user.bio!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
-                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w500,
                               ),
                         ),
-                      ),
-                    // Interests Chips
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: user.interests
-                          .take(3)
-                          .map((interest) => _InterestChip(label: interest))
-                          .toList(),
-                    ),
-                  ],
+                      ],
+                      if (user.interests.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: user.interests
+                              .take(3)
+                              .map((interest) => _InterestChip(label: interest))
+                              .toList(),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -208,15 +247,19 @@ class _InterestChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
       ),
       child: Text(
         label,
-        style: const TextStyle(color: Colors.white, fontSize: 12),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
