@@ -4,9 +4,11 @@ import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:soulmate/core/di/service_locator.dart';
 import 'package:soulmate/domain/repositories/auth_repository.dart';
+import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/presentation/screens/settings_screen.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
 import 'package:soulmate/presentation/providers/notification_provider.dart';
+import 'package:soulmate/presentation/providers/login_provider.dart';
 import 'package:soulmate/domain/repositories/notification_repository.dart';
 import 'package:soulmate/data/datasources/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +26,8 @@ class MockAuthRepository extends Mock implements AuthRepository {
 class MockNotificationRepository extends Mock
     implements NotificationRepository {}
 
+class MockUserRepository extends Mock implements UserRepository {}
+
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 
 class MockGoogleSignIn extends Mock implements GoogleSignIn {}
@@ -31,12 +35,14 @@ class MockGoogleSignIn extends Mock implements GoogleSignIn {}
 void main() {
   late MockAuthRepository mockAuthRepository;
   late MockNotificationRepository mockNotificationRepository;
+  late MockUserRepository mockUserRepository;
   late MockFirebaseAuth mockFirebaseAuth;
   late MockGoogleSignIn mockGoogleSignIn;
 
   setUp(() {
     mockAuthRepository = MockAuthRepository();
     mockNotificationRepository = MockNotificationRepository();
+    mockUserRepository = MockUserRepository();
     mockFirebaseAuth = MockFirebaseAuth();
     mockGoogleSignIn = MockGoogleSignIn();
 
@@ -45,7 +51,10 @@ void main() {
       googleSignIn: mockGoogleSignIn,
     );
 
-    ServiceLocator.setMockRepositories(authRepository: mockAuthRepository);
+    ServiceLocator.setMockRepositories(
+      authRepository: mockAuthRepository,
+      userRepository: mockUserRepository,
+    );
   });
 
   Widget createWidgetUnderTest() {
@@ -56,6 +65,9 @@ void main() {
           create: (_) => NotificationProvider(
             notificationRepository: mockNotificationRepository,
           ),
+        ),
+        ChangeNotifierProvider<LoginProvider>(
+          create: (_) => ServiceLocator.createLoginProvider(),
         ),
       ],
       child: const MaterialApp(home: SettingsScreen()),

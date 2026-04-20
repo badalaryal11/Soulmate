@@ -7,6 +7,7 @@ import 'package:soulmate/domain/repositories/auth_repository.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/providers/theme_provider.dart';
+import 'package:soulmate/presentation/providers/login_provider.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {
   @override
@@ -35,7 +36,12 @@ void main() {
 
   Widget createWidgetUnderTest() {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ThemeProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<LoginProvider>(
+          create: (_) => ServiceLocator.createLoginProvider(),
+        ),
+      ],
       child: const MaterialApp(home: LoginScreen()),
     );
   }
@@ -73,7 +79,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
-      expect(find.text('Please enter email and password'), findsOneWidget);
+      expect(find.text('Please enter your email'), findsOneWidget);
+      expect(find.text('Please enter your password'), findsOneWidget);
     });
   });
 }

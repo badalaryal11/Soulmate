@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
+import 'package:soulmate/presentation/providers/theme_provider.dart';
 import '../unit/providers/user_provider_test.mocks.dart';
 
 import 'package:soulmate/core/di/service_locator.dart';
@@ -20,7 +22,10 @@ void main() {
   });
 
   Widget createScreen() {
-    return MaterialApp(home: CreateProfileScreen(firebaseUser: mockUser));
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => ThemeProvider())],
+      child: MaterialApp(home: CreateProfileScreen(firebaseUser: mockUser)),
+    );
   }
 
   testWidgets('Renders correctly with fallback avatar when no photoURL', (

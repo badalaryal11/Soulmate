@@ -2,5 +2,6 @@
     "java.configuration.updateBuildConfiguration": "interactive",
     "java.jdt.ls.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
     "gradle.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
-    "java.import.gradle.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+    "java.import.gradle.java.home": "/Applications/Android Studio.app/Contents/jbr/Contents/Home",
+    "cmake.sourceDirectory": "/Users/badalaryal/Soulmate/linux"
 }

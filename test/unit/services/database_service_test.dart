@@ -87,9 +87,15 @@ void main() {
         'prompts': [],
         'badges': [],
         'favoriteUserIds': [],
+        'pinnedUserIds': [],
       };
 
-      verify(mockDocumentReference.set(expectedMap, any)).called(1);
+      verify(
+        mockDocumentReference.set(
+          expectedMap,
+          argThat(isA<SetOptions>().having((s) => s.merge, 'merge', true)),
+        ),
+      ).called(1);
     });
 
     test('updateUserField updates user data', () async {

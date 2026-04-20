@@ -14,7 +14,7 @@ void main() {
     });
 
     test('loads theme from shared preferences', () async {
-      SharedPreferences.setMockInitialValues({'isDarkMode': true});
+      SharedPreferences.setMockInitialValues({'themeMode': 'dark'});
       final themeProvider = ThemeProvider();
 
       // Wait for async load to complete.
@@ -38,7 +38,8 @@ void main() {
       expect(themeProvider.themeMode, ThemeMode.dark);
 
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool('isDarkMode'), true);
+      expect(prefs.getString('themeMode'), 'dark');
+      expect(prefs.getBool('isDarkMode'), null);
     });
   });
 }
