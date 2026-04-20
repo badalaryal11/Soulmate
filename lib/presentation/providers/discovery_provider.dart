@@ -16,6 +16,8 @@ class DiscoveryProvider extends ChangeNotifier {
   static const int _maxUsers = 200;
   static const int _maxImageUrls = 300;
   static const int _maxSeenIds = 500;
+  static const int _minRightSwipesBeforeSimulatedMatch = 3;
+  static const int _maxRightSwipesBeforeSimulatedMatch = 8;
 
   final GetUsersUseCase _getUsersUseCase;
   final CurrentUserProvider _currentUserProvider;
@@ -37,6 +39,10 @@ class DiscoveryProvider extends ChangeNotifier {
   DiscoveryStatus _status = DiscoveryStatus.initial;
   String? _errorMessage;
   bool _isLoadingUsers = false;
+  final Random _random = Random();
+  int _rightSwipesSinceLastMatch = 0;
+  late int _nextSimulatedMatchSwipeTarget =
+      _pickNextSimulatedMatchSwipeTarget();
 
   List<User> get users => _users;
   DiscoveryStatus get status => _status;
@@ -112,6 +118,8 @@ class DiscoveryProvider extends ChangeNotifier {
       _seenUserIds.clear();
       _swipedUserIds.clear();
       _matchedUserIds.clear();
+      _rightSwipesSinceLastMatch = 0;
+      _nextSimulatedMatchSwipeTarget = _pickNextSimulatedMatchSwipeTarget();
       _filterRevision++;
     }
 
@@ -268,6 +276,7 @@ class DiscoveryProvider extends ChangeNotifier {
   void _handleRightSwipe(User swipedUser) {
     final currentUser = _currentUserProvider.currentUser;
     if (currentUser == null) return;
+    _rightSwipesSinceLastMatch++;
 
     // Persist "like" so mutual matches can be detected in future sessions.
     if (!currentUser.favoriteUserIds.contains(swipedUser.id)) {
@@ -292,18 +301,22 @@ class DiscoveryProvider extends ChangeNotifier {
     if (_matchedUserIds.contains(swipedUser.id)) return;
 
     final isMutualLike = swipedUser.favoriteUserIds.contains(currentUser.id);
-    final isSyntheticProfile =
-        swipedUser.id.startsWith('api_') || swipedUser.id.startsWith('local_');
+    bool hasMatch = isMutualLike;
 
-    // Synthetic profiles cannot reciprocate via backend, so we simulate
-    // a higher mutual-like chance for them. For real profiles, keep a small
-    // fallback chance to avoid a "never matches" dead-end when data is sparse.
-    final base = swipedUser.id.hashCode.abs() + DateTime.now().second;
-    final simulatedMutualLike = isSyntheticProfile
-        ? base % 100 < 35
-        : base % 100 < 12;
+    // Make simulated matches feel more playful by waiting for a random number
+    // of right swipes before allowing a chance-based match.
+    if (!hasMatch) {
+      final canAttemptSimulatedMatch =
+          _rightSwipesSinceLastMatch >= _nextSimulatedMatchSwipeTarget;
+      if (!canAttemptSimulatedMatch) return;
 
-    final hasMatch = isMutualLike || simulatedMutualLike;
+      final isSyntheticProfile =
+          swipedUser.id.startsWith('api_') ||
+          swipedUser.id.startsWith('local_');
+      final simulatedMatchChancePercent = isSyntheticProfile ? 40 : 20;
+      hasMatch = _random.nextInt(100) < simulatedMatchChancePercent;
+    }
+
     if (!hasMatch) return;
 
     if (RateLimiter.check(
@@ -312,6 +325,16 @@ class DiscoveryProvider extends ChangeNotifier {
     )) {
       _matchedUserIds.add(swipedUser.id);
       onMatchFound?.call(swipedUser);
+      _rightSwipesSinceLastMatch = 0;
+      _nextSimulatedMatchSwipeTarget = _pickNextSimulatedMatchSwipeTarget();
     }
+  }
+
+  int _pickNextSimulatedMatchSwipeTarget() {
+    final range =
+        _maxRightSwipesBeforeSimulatedMatch -
+        _minRightSwipesBeforeSimulatedMatch +
+        1;
+    return _minRightSwipesBeforeSimulatedMatch + _random.nextInt(range);
   }
 }
