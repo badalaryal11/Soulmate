@@ -13,6 +13,19 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<void> syncPushPreferences({
+    required bool matchesEnabled,
+    required bool messagesEnabled,
+    required bool engagementEnabled,
+  }) async {
+    await _notificationService.syncPushPreferences(
+      matchesEnabled: matchesEnabled,
+      messagesEnabled: messagesEnabled,
+      engagementEnabled: engagementEnabled,
+    );
+  }
+
+  @override
   Future<void> scheduleNotification({
     required int id,
     required String title,
@@ -37,5 +50,35 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<void> cancelAll() async {
     await _notificationService.cancelAll();
+  }
+
+  @override
+  Future<void> sendMessagePush({
+    required String recipientUserId,
+    required String senderName,
+    required String messagePreview,
+    required String chatId,
+    String? idempotencyKey,
+  }) async {
+    await _notificationService.sendMessagePush(
+      recipientUserId: recipientUserId,
+      senderName: senderName,
+      messagePreview: messagePreview,
+      chatId: chatId,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  @override
+  Future<void> sendMatchPush({
+    required String recipientUserId,
+    required String matcherName,
+    String? idempotencyKey,
+  }) async {
+    await _notificationService.sendMatchPush(
+      recipientUserId: recipientUserId,
+      matcherName: matcherName,
+      idempotencyKey: idempotencyKey,
+    );
   }
 }

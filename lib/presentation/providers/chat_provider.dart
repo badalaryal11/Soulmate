@@ -295,6 +295,19 @@ class ChatProvider extends ChangeNotifier {
               'Come back and continue your conversation with ${_otherUser!.firstName}.',
           delay: const Duration(hours: 6),
         );
+        if (!_otherUser!.id.startsWith('api_') &&
+            !_otherUser!.id.startsWith('local_')) {
+          final preview = userMessageText.length > 120
+              ? '${userMessageText.substring(0, 120)}...'
+              : userMessageText;
+          await _notificationRepository.sendMessagePush(
+            recipientUserId: _otherUser!.id,
+            senderName: _currentUser!.firstName,
+            messagePreview: preview,
+            chatId: _chatId!,
+            idempotencyKey: userMessage.id,
+          );
+        }
       } catch (e) {
         debugPrint("Error scheduling notification: $e");
       }

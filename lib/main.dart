@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/reset_password_screen.dart';
+import 'presentation/screens/chat_screen.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/chat_provider.dart';
 import 'core/di/service_locator.dart';
 import 'core/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,7 +23,14 @@ import 'presentation/providers/discovery_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('Handling background push message: ${message.messageId}');
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +64,7 @@ void main() async {
     debugPrint("Error loading .env file: $e");
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await FirebaseAppCheck.instance.activate(
     providerAndroid: const AndroidPlayIntegrityProvider(),
@@ -88,6 +98,7 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initDeepLinks();
+    _initNotificationNavigation();
   }
 
   @override
@@ -218,6 +229,52 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
         );
       });
     }
+  }
+
+  void _initNotificationNavigation() {
+    FirebaseMessaging.onMessageOpenedApp.listen(_handlePushNavigation);
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        _handlePushNavigation(message);
+      }
+    });
+  }
+
+  Future<void> _handlePushNavigation(RemoteMessage message) async {
+    final data = message.data;
+    final type = (data['type'] ?? '').toString().toLowerCase();
+    if (type != 'message') return;
+
+    final chatId = (data['chatId'] ?? '').toString().trim();
+    if (chatId.isEmpty) return;
+
+    final currentUid = ServiceLocator.authRepository.currentUser?.uid;
+    if (currentUid == null) return;
+
+    String otherUserId = (data['senderId'] ?? '').toString().trim();
+    if (otherUserId.isEmpty) {
+      final participants = chatId.split('_');
+      otherUserId = participants.firstWhere(
+        (id) => id.isNotEmpty && id != currentUid,
+        orElse: () => '',
+      );
+    }
+    if (otherUserId.isEmpty || otherUserId == currentUid) return;
+
+    final user = await ServiceLocator.userRepository.getUser(otherUserId);
+    if (user == null) return;
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => ChangeNotifierProvider<ChatProvider>(
+            create: (_) => ServiceLocator.createChatProvider(),
+            child: ChatScreen(user: user),
+          ),
+        ),
+      );
+    });
   }
 
   @override

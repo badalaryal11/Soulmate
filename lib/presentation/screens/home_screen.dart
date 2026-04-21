@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const double appBarSideSlotWidth = 156;
+    const double appBarSideSlotWidth = 132;
 
     return Scaffold(
       // Only show AppBar on Home Tab (Index 0)
@@ -219,6 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           'Soulmate',
+                          maxLines: 1,
                           style: GoogleFonts.lobster(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
