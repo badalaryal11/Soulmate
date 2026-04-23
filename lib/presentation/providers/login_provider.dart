@@ -137,9 +137,11 @@ class LoginProvider extends ChangeNotifier {
       // User does not exist, redirect to Create Profile
       return true; // isNewUser = true
     } else {
-      // User exists, update last login date
-      await _userRepository.updateUserField(firebaseUser.uid, {
+      // User exists, update last login date in the background without blocking login
+      _userRepository.updateUserField(firebaseUser.uid, {
         'lastLoginDate': DateTime.now().toIso8601String(),
+      }).catchError((e) {
+        debugPrint('Failed to update last login date: $e');
       });
       return false; // isNewUser = false
     }
