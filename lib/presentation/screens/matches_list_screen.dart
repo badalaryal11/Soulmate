@@ -7,7 +7,7 @@ import '../providers/current_user_provider.dart';
 import '../providers/match_provider.dart';
 import '../widgets/user_avatar.dart';
 import 'chat_screen.dart';
-import 'login_screen.dart';
+
 
 class MatchesListScreen extends StatefulWidget {
   /// Whether this tab is currently the active/visible tab.
@@ -82,39 +82,7 @@ class _MatchesListScreenState extends State<MatchesListScreen>
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'logout') {
-                await ServiceLocator.authRepository.signOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
-                    (route) => false,
-                  );
-                }
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return const [
-                PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout),
-                      SizedBox(width: 8),
-                      Text('Sign Out'),
-                    ],
-                  ),
-                ),
-              ];
-            },
-            icon: Icon(Icons.more_vert_rounded, color: colorScheme.primary),
-          ),
-          const SizedBox(width: 6),
-        ],
+
       ),
       body: Consumer2<MatchProvider, CurrentUserProvider>(
         builder: (context, matchProvider, currentUserProvider, child) {

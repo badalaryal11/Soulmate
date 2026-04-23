@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
@@ -29,7 +30,22 @@ class DiscoveryProvider extends ChangeNotifier {
     required UserRepository userRepository,
   }) : _getUsersUseCase = getUsersUseCase,
        _currentUserProvider = currentUserProvider,
-       _userRepository = userRepository;
+       _userRepository = userRepository {
+    _loadSavedFilters();
+  }
+
+  Future<void> _loadSavedFilters() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _minAge = prefs.getDouble('filter_min_age') ?? 18;
+      _maxAge = prefs.getDouble('filter_max_age') ?? 100;
+      _updateFilteredUsers();
+      _filterRevision++;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load filters: $e');
+    }
+  }
 
   final List<User> _users = [];
   final Set<String> _usedImageUrls = {};
@@ -95,12 +111,20 @@ class DiscoveryProvider extends ChangeNotifier {
     }).toList();
   }
 
-  void updateAgeRange(double min, double max) {
+  void updateAgeRange(double min, double max) async {
     _minAge = min;
     _maxAge = max;
     _updateFilteredUsers();
     _filterRevision++;
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('filter_min_age', min);
+      await prefs.setDouble('filter_max_age', max);
+    } catch (e) {
+      debugPrint('Failed to save filters: $e');
+    }
   }
 
   Future<void> loadUsers({String? gender, bool clearList = false}) async {
