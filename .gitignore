@@ -50,3 +50,9 @@ ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
 macos/Runner/GoogleService-Info.plist
 .env
+
+# Android signing files
+**/android/app/*.jks
+**/android/app/*.keystore
+**/android/key.properties
+*.pem

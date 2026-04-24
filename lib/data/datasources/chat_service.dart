@@ -101,11 +101,22 @@ class ChatService {
         final model = _geminiModel!;
 
         List<Content> geminiHistory = [];
+        String? lastRole;
         for (var msg in messages) {
           if (msg['role'] == 'system') continue;
 
           final role = msg['role'] == 'assistant' ? 'model' : 'user';
-          geminiHistory.add(Content(role, [TextPart(msg['content'] ?? '')]));
+          final contentText = msg['content'] ?? '';
+          
+          if (lastRole == role && geminiHistory.isNotEmpty) {
+             // Collapse consecutive messages from the same role
+             final lastContent = geminiHistory.last;
+             final oldText = (lastContent.parts.first as TextPart).text;
+             geminiHistory[geminiHistory.length - 1] = Content(role, [TextPart("$oldText\n\n$contentText")]);
+          } else {
+             geminiHistory.add(Content(role, [TextPart(contentText)]));
+             lastRole = role;
+          }
         }
 
         // Add system instructions explicitly if supported, or just inject at start
