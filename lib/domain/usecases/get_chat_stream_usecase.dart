@@ -6,7 +6,7 @@ class GetChatStreamUseCase {
 
   GetChatStreamUseCase(this.repository);
 
-  Stream<List<ChatMessage>> call(String chatId) {
+  Future<Stream<List<ChatMessage>>> call(String chatId) {
     return repository.getChatStream(chatId);
   }
 }

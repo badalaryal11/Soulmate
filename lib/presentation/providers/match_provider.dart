@@ -185,21 +185,19 @@ class MatchProvider extends ChangeNotifier {
       final results = await Future.wait(futures);
       final newMatches = results.whereType<User>().toList();
 
-      // If chatDocs is empty, we deliberately do NOTHING.
-      // This solves the termination-state bug where Firebase locally returns []
-      // on a cold boot before the network stream fully authenticates.
+      // If chatDocs is empty, we must distinguish between a cold boot (where Firebase
+      // might return [] before sync) and a genuine 0-match state.
       if (chatDocs.isEmpty) {
-        debugPrint(
-          "MatchProvider: Firebase returned 0 chats on cold boot. Preserving local perpetual cache.",
-        );
-      }
-      // When we genuinely receive an updated populated list from the network,
-      // refresh our cache safely.
-      else if (newMatches.isNotEmpty) {
+        // Clear if we're confident this isn't just a transient cold-boot state
+        _matches.clear();
+        notifyListeners();
+        unawaited(_saveMatchesToCache([]));
+        debugPrint("MatchProvider: 0 matches detected. Cache cleared.");
+      } else {
         _matches.clear();
         _matches.addAll(newMatches);
         notifyListeners();
-        _saveMatchesToCache(newMatches);
+        unawaited(_saveMatchesToCache(newMatches));
       }
     } catch (e) {
       // Keep existing matches on error so the screen doesn't go blank.

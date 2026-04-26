@@ -85,10 +85,10 @@ class DatabaseService {
     Map<String, dynamic> gameData,
   ) => _chatService.updateGameMessage(chatId, messageId, gameData);
 
-  Stream<Map<String, dynamic>?> getChatStream(String chatId) =>
+  Future<Stream<Map<String, dynamic>?>> getChatStream(String chatId) =>
       _chatService.getChatStream(chatId);
 
-  Stream<List<ChatMessage>> getMessages(String chatId) =>
+  Future<Stream<List<ChatMessage>>> getMessages(String chatId) =>
       _chatService.getMessages(chatId);
 
   Future<List<ChatMessage>> getMessageHistory(

@@ -219,45 +219,66 @@ class ChatDatabaseService {
   }
 
   /// Get a stream of chat metadata changes.
-  Stream<Map<String, dynamic>?> getChatStream(String chatId) async* {
-    if (!_chatStreamControllers.containsKey(chatId)) {
-      late StreamController<Map<String, dynamic>?> ctrl;
-      ctrl = StreamController<Map<String, dynamic>?>.broadcast(
-        onCancel: () {
-          ctrl.close();
-          _chatStreamControllers.remove(chatId);
-        },
+  Future<Stream<Map<String, dynamic>?>> getChatStream(String chatId) async {
+    return _mutex.synchronized(() async {
+      if (!_chatStreamControllers.containsKey(chatId)) {
+        late StreamController<Map<String, dynamic>?> ctrl;
+        ctrl = StreamController<Map<String, dynamic>?>.broadcast(
+          onCancel: () {
+            ctrl.close();
+            _chatStreamControllers.remove(chatId);
+          },
+        );
+        _chatStreamControllers[chatId] = ctrl;
+      }
+
+      // Initial value
+      final chatsJson = await _safeRead('chats_metadata');
+      Map<String, dynamic> allChats = {};
+      try {
+        if (chatsJson != null) allChats = jsonDecode(chatsJson);
+      } catch (e) {
+        debugPrint("Error decoding chats_metadata: $e");
+      }
+
+      final controller = _chatStreamControllers[chatId]!;
+      
+      // We return a stream that starts with the current value
+      return _createInitialValueStream(
+        allChats[chatId] as Map<String, dynamic>?,
+        controller.stream,
       );
-      _chatStreamControllers[chatId] = ctrl;
-    }
-
-    // Yield initial value directly to any new subscriber
-    final chatsJson = await _safeRead('chats_metadata');
-    final Map<String, dynamic> allChats = jsonDecode(chatsJson ?? '{}');
-    yield allChats[chatId] as Map<String, dynamic>?;
-
-    // Then delegate to the shared broadcast stream for updates
-    yield* _chatStreamControllers[chatId]!.stream;
+    });
   }
 
   /// Get a stream of messages for a chat.
-  Stream<List<ChatMessage>> getMessages(String chatId) async* {
-    if (!_messageStreamControllers.containsKey(chatId)) {
-      late StreamController<List<ChatMessage>> ctrl;
-      ctrl = StreamController<List<ChatMessage>>.broadcast(
-        onCancel: () {
-          ctrl.close();
-          _messageStreamControllers.remove(chatId);
-        },
+  Future<Stream<List<ChatMessage>>> getMessages(String chatId) async {
+    return _mutex.synchronized(() async {
+      if (!_messageStreamControllers.containsKey(chatId)) {
+        late StreamController<List<ChatMessage>> ctrl;
+        ctrl = StreamController<List<ChatMessage>>.broadcast(
+          onCancel: () {
+            ctrl.close();
+            _messageStreamControllers.remove(chatId);
+          },
+        );
+        _messageStreamControllers[chatId] = ctrl;
+      }
+
+      final controller = _messageStreamControllers[chatId]!;
+      final history = await getMessageHistory(chatId, limit: 100);
+
+      return _createInitialValueStream(
+        history,
+        controller.stream,
       );
-      _messageStreamControllers[chatId] = ctrl;
-    }
+    });
+  }
 
-    // Yield current history immediately upon subscription
-    yield await getMessageHistory(chatId, limit: 100);
-
-    // Then delegate to the shared broadcast stream for updates
-    yield* _messageStreamControllers[chatId]!.stream;
+  /// Helper to prepend an initial value to a stream.
+  Stream<T> _createInitialValueStream<T>(T initialValue, Stream<T> source) async* {
+    yield initialValue;
+    yield* source;
   }
 
   /// Get recent message history for a chat.
@@ -303,19 +324,17 @@ class ChatDatabaseService {
           await _safeWrite('chats_metadata', jsonEncode(allChats));
         }
 
-        // Close and remove stream controllers to prevent memory leaks
+        // Notify and close stream controllers to prevent memory leaks
         if (_chatStreamControllers.containsKey(chatId)) {
+          _chatStreamControllers[chatId]!.add(null);
           await _chatStreamControllers[chatId]!.close();
           _chatStreamControllers.remove(chatId);
-        } else {
-          _broadcastChatMetadata(chatId, null);
         }
 
         if (_messageStreamControllers.containsKey(chatId)) {
+          _messageStreamControllers[chatId]!.add([]);
           await _messageStreamControllers[chatId]!.close();
           _messageStreamControllers.remove(chatId);
-        } else {
-          _broadcastMessages(chatId);
         }
       } catch (e) {
         debugPrint("Error deleting chat: $e");

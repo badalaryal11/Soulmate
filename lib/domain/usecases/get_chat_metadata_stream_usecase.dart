@@ -5,7 +5,7 @@ class GetChatMetadataStreamUseCase {
 
   GetChatMetadataStreamUseCase(this.repository);
 
-  Stream<Map<String, dynamic>?> call(String chatId) {
+  Future<Stream<Map<String, dynamic>?>> call(String chatId) {
     return repository.getChatMetadataStream(chatId);
   }
 }

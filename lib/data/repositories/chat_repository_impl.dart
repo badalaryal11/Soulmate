@@ -30,17 +30,19 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Stream<List<ChatMessage>> getChatStream(String chatId) {
+  Future<Stream<List<ChatMessage>>> getChatStream(String chatId) async {
     // Streams handle errors differently (via handleError), but usually
     // it's passed through here unless we want to transform the stream.
-    return _databaseService.getMessages(chatId).handleError((e) {
+    final stream = await _databaseService.getMessages(chatId);
+    return stream.handleError((e) {
       throw ServerFailure(e.toString());
     });
   }
 
   @override
-  Stream<Map<String, dynamic>?> getChatMetadataStream(String chatId) {
-    return _databaseService.getChatStream(chatId).handleError((e) {
+  Future<Stream<Map<String, dynamic>?>> getChatMetadataStream(String chatId) async {
+    final stream = await _databaseService.getChatStream(chatId);
+    return stream.handleError((e) {
       throw ServerFailure(e.toString());
     });
   }

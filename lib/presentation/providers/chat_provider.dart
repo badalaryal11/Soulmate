@@ -120,7 +120,8 @@ class ChatProvider extends ChangeNotifier {
     _markMessagesAsReadUseCase(_chatId!, _currentUserId);
 
     // Listen to messages
-    _chatSubscription = _getChatStreamUseCase(_chatId!).listen(
+    final messagesStream = await _getChatStreamUseCase(_chatId!);
+    _chatSubscription = messagesStream.listen(
       (messages) {
         _messages = messages;
         _isLoading = false;
@@ -137,7 +138,8 @@ class ChatProvider extends ChangeNotifier {
     _notificationRepository.cancelNotification(_chatId.hashCode);
 
     // Listen to metadata for real-time XP changes
-    _metadataSubscription = _getChatMetadataStreamUseCase(_chatId!).listen(
+    final metadataStream = await _getChatMetadataStreamUseCase(_chatId!);
+    _metadataSubscription = metadataStream.listen(
       (metadata) {
         if (metadata != null && metadata.containsKey('xp')) {
           updateXp(metadata['xp'] as int);
