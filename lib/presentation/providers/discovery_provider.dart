@@ -17,8 +17,8 @@ class DiscoveryProvider extends ChangeNotifier {
   static const int _maxUsers = 200;
   static const int _maxImageUrls = 300;
   static const int _maxSeenIds = 500;
-  static const int _minRightSwipesBeforeSimulatedMatch = 3;
-  static const int _maxRightSwipesBeforeSimulatedMatch = 8;
+  static const int _minRightSwipesBeforeSimulatedMatch = 1;
+  static const int _maxRightSwipesBeforeSimulatedMatch = 3;
 
   final GetUsersUseCase _getUsersUseCase;
   final CurrentUserProvider _currentUserProvider;
@@ -337,7 +337,7 @@ class DiscoveryProvider extends ChangeNotifier {
       final isSyntheticProfile =
           swipedUser.id.startsWith('api_') ||
           swipedUser.id.startsWith('local_');
-      final simulatedMatchChancePercent = isSyntheticProfile ? 40 : 20;
+      final simulatedMatchChancePercent = isSyntheticProfile ? 70 : 50;
       hasMatch = _random.nextInt(100) < simulatedMatchChancePercent;
     }
 
