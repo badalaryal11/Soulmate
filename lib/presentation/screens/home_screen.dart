@@ -97,39 +97,39 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _discoveryProvider = context.read<DiscoveryProvider>();
+
+    // Set up match listener immediately so we don't miss early swipes
+    _discoveryProvider.onMatchFound = (user) {
+      if (!mounted) return;
+
+      final notificationProvider = context.read<NotificationProvider>();
+      if (notificationProvider.matchesEnabled) {
+        ServiceLocator.notificationRepository.scheduleNotification(
+          id: user.hashCode,
+          title: 'New Match! 🎉',
+          body: 'You and ${user.firstName} liked each other. Say hi!',
+          delay: const Duration(seconds: 1),
+        );
+      }
+
+      // Add immediately so match is visible in list even if precache fails.
+      context.read<MatchProvider>().addMatch(user);
+
+      // Pre-cache in background. This must never block navigation.
+      final matchedImageUrl = user.imageUrl.isNotEmpty
+          ? user.imageUrl
+          : ImageGenerationService.generateProfileImageUrl(user);
+      final currentImageUrl = context.read<CurrentUserProvider>().currentUser?.imageUrl ?? '';
+      unawaited(_safePrecacheMatchImage(matchedImageUrl));
+      unawaited(_safePrecacheMatchImage(currentImageUrl));
+
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
+      );
+    };
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final currentUserProvider = context.read<CurrentUserProvider>();
-      final discoveryProvider = _discoveryProvider;
-
-      // Set up match listener
-      discoveryProvider.onMatchFound = (user) {
-        if (!mounted) return;
-
-        final notificationProvider = context.read<NotificationProvider>();
-        if (notificationProvider.matchesEnabled) {
-          ServiceLocator.notificationRepository.scheduleNotification(
-            id: user.hashCode,
-            title: 'New Match! 🎉',
-            body: 'You and ${user.firstName} liked each other. Say hi!',
-            delay: const Duration(seconds: 1),
-          );
-        }
-
-        // Add immediately so match is visible in list even if precache fails.
-        context.read<MatchProvider>().addMatch(user);
-
-        // Pre-cache in background. This must never block navigation.
-        final matchedImageUrl = user.imageUrl.isNotEmpty
-            ? user.imageUrl
-            : ImageGenerationService.generateProfileImageUrl(user);
-        final currentImageUrl = currentUserProvider.currentUser?.imageUrl ?? '';
-        unawaited(_safePrecacheMatchImage(matchedImageUrl));
-        unawaited(_safePrecacheMatchImage(currentImageUrl));
-
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => MatchScreen(user: user)),
-        );
-      };
 
       // Load current user profile first
       await currentUserProvider.loadCurrentUser();
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Now load users with the correct gender preference from the start
       if (mounted) {
-        discoveryProvider.loadUsers(
+        _discoveryProvider.loadUsers(
           gender: currentUserProvider.currentUser?.genderPreference,
           clearList: true,
         );

@@ -17,8 +17,8 @@ class DiscoveryProvider extends ChangeNotifier {
   static const int _maxUsers = 200;
   static const int _maxImageUrls = 300;
   static const int _maxSeenIds = 500;
-  static const int _minRightSwipesBeforeSimulatedMatch = 1;
-  static const int _maxRightSwipesBeforeSimulatedMatch = 3;
+  static const int _minRightSwipesBeforeSimulatedMatch = 3;
+  static const int _maxRightSwipesBeforeSimulatedMatch = 8;
 
   final GetUsersUseCase _getUsersUseCase;
   final CurrentUserProvider _currentUserProvider;
@@ -290,8 +290,10 @@ class DiscoveryProvider extends ChangeNotifier {
     final lastUser = _undoUserStack.removeLast();
     _undoIndexStack.removeLast();
 
-    // Un-mark as swiped so it reappears
+    // Un-mark as swiped and matched so it reappears and can match again
     _swipedUserIds.remove(lastUser.id);
+    _matchedUserIds.remove(lastUser.id);
+    
     _updateFilteredUsers();
     _filterRevision++;
     notifyListeners();
@@ -337,20 +339,29 @@ class DiscoveryProvider extends ChangeNotifier {
       final isSyntheticProfile =
           swipedUser.id.startsWith('api_') ||
           swipedUser.id.startsWith('local_');
-      final simulatedMatchChancePercent = isSyntheticProfile ? 70 : 50;
+      final simulatedMatchChancePercent = isSyntheticProfile ? 45 : 25; // Slightly boosted
       hasMatch = _random.nextInt(100) < simulatedMatchChancePercent;
     }
 
     if (!hasMatch) return;
 
-    if (RateLimiter.check(
-      'swipe_match_trigger_${swipedUser.id}',
-      const Duration(seconds: 1),
-    )) {
-      _matchedUserIds.add(swipedUser.id);
-      onMatchFound?.call(swipedUser);
-      _rightSwipesSinceLastMatch = 0;
-      _nextSimulatedMatchSwipeTarget = _pickNextSimulatedMatchSwipeTarget();
+    // Only trigger if a listener is actually attached, otherwise we'd waste the match
+    if (onMatchFound != null) {
+      if (RateLimiter.check(
+        'swipe_match_trigger_${swipedUser.id}',
+        const Duration(seconds: 1),
+      )) {
+        _matchedUserIds.add(swipedUser.id);
+        
+        // Defer navigation to MatchScreen until after the current frame/animation completes
+        final capturedUser = swipedUser;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          onMatchFound?.call(capturedUser);
+        });
+
+        _rightSwipesSinceLastMatch = 0;
+        _nextSimulatedMatchSwipeTarget = _pickNextSimulatedMatchSwipeTarget();
+      }
     }
   }
 
