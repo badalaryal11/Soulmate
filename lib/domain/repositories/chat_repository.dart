@@ -11,6 +11,7 @@ abstract class ChatRepository {
     String messageId,
     Map<String, dynamic> gameData,
   );
+  Future<void> initializeChat(String userId1, String userId2);
   Future<String> getChatId(String userId1, String userId2);
   Future<void> deleteChat(String chatId);
   Future<void> markMessagesAsRead(String chatId, String currentUserId);

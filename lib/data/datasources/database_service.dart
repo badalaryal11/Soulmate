@@ -76,6 +76,9 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> getActiveChats(String userId) =>
       _chatService.getActiveChats(userId);
 
+  Future<void> initializeChat(String userId1, String userId2) =>
+      _chatService.initializeChat(userId1, userId2);
+
   Future<void> sendMessage(String chatId, ChatMessage message) =>
       _chatService.sendMessage(chatId, message);
 

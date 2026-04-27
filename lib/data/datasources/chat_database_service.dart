@@ -85,8 +85,25 @@ class ChatDatabaseService {
       List<Map<String, dynamic>> userChats = [];
       allChats.forEach((chatId, chatData) {
         final data = chatData as Map<String, dynamic>;
-        final participants = List<String>.from(data['participants'] ?? []);
-        if (participants.contains(userId)) {
+        
+        // Use stored participants if available, otherwise try to deduce from chatId.
+        // We use a more robust check than split('_') which fails for IDs with underscores.
+        List<String> participants = List<String>.from(data['participants'] ?? []);
+        
+        bool isParticipant = false;
+        if (participants.isNotEmpty) {
+          isParticipant = participants.contains(userId);
+        } else {
+          // Fallback: check if the chatId contains the userId as a component
+          // Chat IDs are deterministic: userId1_userId2 where IDs are sorted.
+          if (chatId.startsWith('${userId}_') || 
+              chatId.endsWith('_${userId}') || 
+              chatId == userId) {
+            isParticipant = true;
+          }
+        }
+
+        if (isParticipant) {
           data['id'] = chatId;
           userChats.add(data);
         }
@@ -103,6 +120,31 @@ class ChatDatabaseService {
       debugPrint("Error fetching active chats: $e");
       return [];
     }
+  }
+
+  /// Initialize a chat entry when a match occurs.
+  Future<void> initializeChat(String userId1, String userId2) async {
+    return _mutex.synchronized(() async {
+      try {
+        final chatId = getChatId(userId1, userId2);
+        final chatsJson = await _safeRead('chats_metadata') ?? '{}';
+        final Map<String, dynamic> allChats = jsonDecode(chatsJson);
+
+        if (!allChats.containsKey(chatId)) {
+          allChats[chatId] = {
+            'participants': [userId1, userId2],
+            'lastMessage': null,
+            'lastMessageTime': null,
+            'streak': 0,
+            'xp': 0,
+          };
+          await _safeWrite('chats_metadata', jsonEncode(allChats));
+          _broadcastChatMetadata(chatId, allChats[chatId]);
+        }
+      } catch (e) {
+        debugPrint("Error initializing chat: $e");
+      }
+    });
   }
 
   /// Send a message to a chat.
@@ -166,7 +208,7 @@ class ChatDatabaseService {
           ...chatData,
           'lastMessage': message.text,
           'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
-          'participants': chatData['participants'] ?? chatId.split('_'),
+          'participants': chatData['participants'] ?? chatId.split('_'), // Still used for legacy, but initializeChat should have set this.
           'xp': currentXp + 1,
           'streak': currentStreak,
         };

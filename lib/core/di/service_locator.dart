@@ -21,6 +21,7 @@ import '../../domain/usecases/send_message_usecase.dart';
 import '../../domain/usecases/mark_messages_as_read_usecase.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../domain/usecases/get_active_chats_usecase.dart';
+import '../../domain/usecases/initialize_chat_usecase.dart';
 import '../../domain/usecases/delete_chat_usecase.dart';
 import '../../domain/usecases/save_feedback_usecase.dart';
 import '../../domain/usecases/upload_profile_image_usecase.dart';
@@ -127,6 +128,7 @@ class ServiceLocator {
     return MatchProvider(
       getActiveChatsUseCase: GetActiveChatsUseCase(_chatRepository),
       getChatIdUseCase: GetChatIdUseCase(_chatRepository),
+      initializeChatUseCase: InitializeChatUseCase(_chatRepository),
       deleteChatUseCase: DeleteChatUseCase(_chatRepository),
       userRepository: _userRepository,
       currentUserProvider: currentUserProvider,

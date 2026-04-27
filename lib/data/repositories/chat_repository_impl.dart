@@ -18,6 +18,15 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
+  Future<void> initializeChat(String userId1, String userId2) async {
+    try {
+      await _databaseService.initializeChat(userId1, userId2);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
   Future<List<ChatMessage>> getMessageHistory(
     String chatId, {
     int limit = 10,

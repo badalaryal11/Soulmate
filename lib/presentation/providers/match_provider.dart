@@ -5,6 +5,7 @@ import 'dart:async';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/get_active_chats_usecase.dart';
 import '../../domain/usecases/get_chat_id_usecase.dart';
+import '../../domain/usecases/initialize_chat_usecase.dart';
 import '../../domain/usecases/delete_chat_usecase.dart';
 import '../../domain/repositories/user_repository.dart';
 import 'current_user_provider.dart';
@@ -15,6 +16,7 @@ import '../../data/models/user_model.dart';
 class MatchProvider extends ChangeNotifier {
   final GetActiveChatsUseCase _getActiveChatsUseCase;
   final GetChatIdUseCase _getChatIdUseCase;
+  final InitializeChatUseCase _initializeChatUseCase;
   final DeleteChatUseCase _deleteChatUseCase;
   final UserRepository _userRepository;
   final CurrentUserProvider _currentUserProvider;
@@ -24,11 +26,13 @@ class MatchProvider extends ChangeNotifier {
   MatchProvider({
     required GetActiveChatsUseCase getActiveChatsUseCase,
     required GetChatIdUseCase getChatIdUseCase,
+    required InitializeChatUseCase initializeChatUseCase,
     required DeleteChatUseCase deleteChatUseCase,
     required UserRepository userRepository,
     required CurrentUserProvider currentUserProvider,
   }) : _getActiveChatsUseCase = getActiveChatsUseCase,
        _getChatIdUseCase = getChatIdUseCase,
+       _initializeChatUseCase = initializeChatUseCase,
        _deleteChatUseCase = deleteChatUseCase,
        _userRepository = userRepository,
        _currentUserProvider = currentUserProvider {
@@ -212,6 +216,14 @@ class MatchProvider extends ChangeNotifier {
       _matches.insert(0, user);
       notifyListeners();
       unawaited(_saveMatchesToCache(_matches));
+      
+      // PERSIST MATCH TO DATABASE
+      // By initializing the chat entry, the match becomes visible in getActiveChats()
+      // even before the first message is sent, ensuring it survives app restarts.
+      final currentUserId = _currentUserProvider.currentUser?.id;
+      if (currentUserId != null) {
+        unawaited(_initializeChatUseCase(currentUserId, user.id));
+      }
     }
   }
 
