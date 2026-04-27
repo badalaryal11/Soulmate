@@ -172,7 +172,16 @@ class MatchProvider extends ChangeNotifier {
       final futures = chatMeta.map((meta) async {
         try {
           final (userId, streak, lastMessage, lastMessageTime) = meta;
-          final user = await _userRepository.getUser(userId);
+          
+          // Try to get the latest profile from the repository
+          var user = await _userRepository.getUser(userId);
+          
+          // Fallback: If the user lookup fails (e.g. offline or synthetic user not yet synced),
+          // try to find them in our current in-memory list so they don't disappear.
+          if (user == null) {
+            user = _matches.firstWhereOrNull((m) => m.id == userId);
+          }
+
           return user?.copyWith(
             streak: streak,
             lastMessage: lastMessage,
@@ -218,12 +227,20 @@ class MatchProvider extends ChangeNotifier {
       unawaited(_saveMatchesToCache(_matches));
       
       // PERSIST MATCH TO DATABASE
-      // By initializing the chat entry, the match becomes visible in getActiveChats()
-      // even before the first message is sent, ensuring it survives app restarts.
+      // 1. Initialize the chat metadata
       final currentUserId = _currentUserProvider.currentUser?.id;
       if (currentUserId != null) {
         unawaited(_initializeChatUseCase(currentUserId, user.id));
       }
+
+      // 2. Promote synthetic users (API/Local) to persistent Firestore users
+      // This ensures that loadMatches() can find them via _userRepository.getUser() later.
+      // We do this for all users to ensure their latest profile is cached/merged.
+      unawaited(
+        _userRepository.saveUser(user).catchError((e) {
+          debugPrint("Failed to persist matched user ${user.id}: $e");
+        }),
+      );
     }
   }
 
