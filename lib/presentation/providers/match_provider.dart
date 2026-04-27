@@ -178,9 +178,7 @@ class MatchProvider extends ChangeNotifier {
           
           // Fallback: If the user lookup fails (e.g. offline or synthetic user not yet synced),
           // try to find them in our current in-memory list so they don't disappear.
-          if (user == null) {
-            user = _matches.firstWhereOrNull((m) => m.id == userId);
-          }
+          user ??= _matches.firstWhereOrNull((m) => m.id == userId);
 
           return user?.copyWith(
             streak: streak,
