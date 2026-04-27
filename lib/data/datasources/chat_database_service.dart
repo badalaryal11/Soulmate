@@ -97,7 +97,7 @@ class ChatDatabaseService {
           // Fallback: check if the chatId contains the userId as a component
           // Chat IDs are deterministic: userId1_userId2 where IDs are sorted.
           if (chatId.startsWith('${userId}_') || 
-              chatId.endsWith('_${userId}') || 
+              chatId.endsWith('_$userId') || 
               chatId == userId) {
             isParticipant = true;
           }
@@ -442,13 +442,6 @@ class ChatDatabaseService {
     }
   }
 
-  /// Fallback for cases where we don't have the list in memory.
-  void _broadcastMessages(String chatId) async {
-    if (_messageStreamControllers.containsKey(chatId)) {
-      final history = await getMessageHistory(chatId, limit: 100);
-      _messageStreamControllers[chatId]!.add(history);
-    }
-  }
 
   void _broadcastChatMetadata(String chatId, Map<String, dynamic>? data) {
     if (_chatStreamControllers.containsKey(chatId)) {
