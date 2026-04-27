@@ -128,6 +128,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     };
 
+    _discoveryProvider.onMatchUndone = (user) {
+      if (!mounted) return;
+      context.read<MatchProvider>().unmatchUser(user.id);
+    };
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final currentUserProvider = context.read<CurrentUserProvider>();
 
@@ -167,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     // Use the cached reference — calling context.read<>() inside dispose() is unsafe
     _discoveryProvider.onMatchFound = null;
+    _discoveryProvider.onMatchUndone = null;
     controller.dispose();
     super.dispose();
   }

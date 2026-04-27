@@ -79,6 +79,7 @@ class DiscoveryProvider extends ChangeNotifier {
   List<User> get filteredUsers => _filteredUsers;
 
   Function(User)? onMatchFound;
+  Function(User)? onMatchUndone;
 
   final List<User> _undoUserStack = [];
   final List<int> _undoIndexStack = [];
@@ -169,7 +170,10 @@ class DiscoveryProvider extends ChangeNotifier {
 
       final List<User> uniqueUsers = [];
       for (var user in allNewUsers) {
-        if (_seenUserIds.contains(user.id)) continue;
+        // Exclude self and already seen users
+        if (user.id == currentUser?.id || _seenUserIds.contains(user.id)) {
+          continue;
+        }
 
         String finalUrl = user.imageUrl;
         bool isGenerated = false;
@@ -290,9 +294,16 @@ class DiscoveryProvider extends ChangeNotifier {
     final lastUser = _undoUserStack.removeLast();
     _undoIndexStack.removeLast();
 
+    // Check if this was a match
+    final wasMatch = _matchedUserIds.contains(lastUser.id);
+
     // Un-mark as swiped and matched so it reappears and can match again
     _swipedUserIds.remove(lastUser.id);
     _matchedUserIds.remove(lastUser.id);
+
+    if (wasMatch && onMatchUndone != null) {
+      onMatchUndone!(lastUser);
+    }
     
     _updateFilteredUsers();
     _filterRevision++;

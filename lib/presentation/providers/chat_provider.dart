@@ -91,6 +91,8 @@ class ChatProvider extends ChangeNotifier {
     "What's your ideal first date?",
   ];
 
+  String? _currentInFlightChatId;
+
   Future<void> initChat(User currentUser, User otherUser) async {
     _disposed = false; // Reset in case provider is being reused
     final newChatId = await _getChatIdUseCase(currentUser.id, otherUser.id);
@@ -104,9 +106,14 @@ class ChatProvider extends ChangeNotifier {
       return;
     }
 
+    _currentInFlightChatId = newChatId;
+
     // Clean up previous state if any
     await _chatSubscription?.cancel();
     await _metadataSubscription?.cancel();
+
+    // Check if a newer request has started while we were awaiting cleanup
+    if (_currentInFlightChatId != newChatId) return;
 
     _currentUser = currentUser;
     _currentUserId = currentUser.id;

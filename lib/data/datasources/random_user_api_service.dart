@@ -177,11 +177,13 @@ class RandomUserApiService {
 
     // Cache Miss: fetch directly
     _isFetching = true;
-    final apiUsers = await _fetchFromApi(count: count, gender: gender);
-    _isFetching = false;
-
-    if (apiUsers.isNotEmpty) {
-      return apiUsers;
+    try {
+      final apiUsers = await _fetchFromApi(count: count, gender: gender);
+      if (apiUsers.isNotEmpty) {
+        return apiUsers;
+      }
+    } finally {
+      _isFetching = false;
     }
 
     // Fallback: generate profiles locally
