@@ -14,6 +14,7 @@ import '../../domain/usecases/get_chat_stream_usecase.dart';
 import '../../domain/usecases/get_message_history_usecase.dart';
 import '../../domain/usecases/send_message_usecase.dart';
 import '../../domain/usecases/mark_messages_as_read_usecase.dart';
+import '../../domain/usecases/initialize_chat_usecase.dart';
 import '../../domain/usecases/send_ai_message_usecase.dart';
 import '../../domain/usecases/get_chat_metadata_stream_usecase.dart';
 
@@ -27,6 +28,7 @@ class ChatProvider extends ChangeNotifier {
   final GetMessageHistoryUseCase _getMessageHistoryUseCase;
   final SendMessageUseCase _sendMessageUseCase;
   final MarkMessagesAsReadUseCase _markMessagesAsReadUseCase;
+  final InitializeChatUseCase _initializeChatUseCase;
   final SendAiMessageUseCase _sendAiMessageUseCase;
   final GetChatMetadataStreamUseCase _getChatMetadataStreamUseCase;
 
@@ -38,6 +40,7 @@ class ChatProvider extends ChangeNotifier {
     required GetMessageHistoryUseCase getMessageHistoryUseCase,
     required SendMessageUseCase sendMessageUseCase,
     required MarkMessagesAsReadUseCase markMessagesAsReadUseCase,
+    required InitializeChatUseCase initializeChatUseCase,
     required SendAiMessageUseCase sendAiMessageUseCase,
     required GetChatMetadataStreamUseCase getChatMetadataStreamUseCase,
   }) : _aiChatRepository = aiChatRepository,
@@ -47,6 +50,7 @@ class ChatProvider extends ChangeNotifier {
        _getMessageHistoryUseCase = getMessageHistoryUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _markMessagesAsReadUseCase = markMessagesAsReadUseCase,
+       _initializeChatUseCase = initializeChatUseCase,
        _sendAiMessageUseCase = sendAiMessageUseCase,
        _getChatMetadataStreamUseCase = getChatMetadataStreamUseCase;
 
@@ -107,6 +111,7 @@ class ChatProvider extends ChangeNotifier {
     }
 
     _currentInFlightChatId = newChatId;
+    await _initializeChatUseCase(currentUser.id, otherUser.id);
 
     // Clean up previous state if any
     await _chatSubscription?.cancel();

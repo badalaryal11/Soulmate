@@ -1,10 +1,25 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/chat_message.dart';
 import '../models/chat_message_model.dart';
+
+class _MergedMessageEntry {
+  final String encoded;
+  final int timestamp;
+  final bool isRead;
+  final int readAt;
+
+  const _MergedMessageEntry({
+    required this.encoded,
+    required this.timestamp,
+    required this.isRead,
+    required this.readAt,
+  });
+}
 
 /// A simple asynchronous mutex to serialize operations.
 class _SimpleMutex {
@@ -69,9 +84,130 @@ class ChatDatabaseService {
     }
   }
 
+  String _messagesKey(String chatId) => 'chat_messages_$chatId';
+
+  String _legacyHashChatId(String userId1, String userId2) {
+    return userId1.hashCode <= userId2.hashCode
+        ? '${userId1}_$userId2'
+        : '${userId2}_$userId1';
+  }
+
+  int _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  List<String> _decodeJsonStringList(String? raw) {
+    if (raw == null || raw.isEmpty) return <String>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<String>().toList();
+      }
+    } catch (_) {
+      // Corrupt payloads are treated as empty so migration can proceed.
+    }
+    return <String>[];
+  }
+
+  List<String> _mergeMessageJsonLists(
+    List<String> primary,
+    List<String> secondary,
+  ) {
+    final entries = <_MergedMessageEntry>[];
+    final byKey = <String, int>{};
+
+    void addEncoded(String encoded) {
+      try {
+        final map = jsonDecode(encoded) as Map<String, dynamic>;
+        final id = (map['id'] ?? '').toString();
+        final dedupeKey = id.isNotEmpty ? 'id:$id' : 'json:$encoded';
+        final timestamp = _asInt(map['timestamp']);
+        final isRead = map['isRead'] == true;
+        final readAt = _asInt(map['readAt']);
+
+        final existingIndex = byKey[dedupeKey];
+        if (existingIndex == null) {
+          byKey[dedupeKey] = entries.length;
+          entries.add(
+            _MergedMessageEntry(
+              encoded: encoded,
+              timestamp: timestamp,
+              isRead: isRead,
+              readAt: readAt,
+            ),
+          );
+          return;
+        }
+
+        final existing = entries[existingIndex];
+        final shouldReplace =
+            timestamp > existing.timestamp ||
+            (timestamp == existing.timestamp &&
+                ((isRead && !existing.isRead) || readAt > existing.readAt));
+        if (shouldReplace) {
+          entries[existingIndex] = _MergedMessageEntry(
+            encoded: encoded,
+            timestamp: timestamp,
+            isRead: isRead,
+            readAt: readAt,
+          );
+        }
+      } catch (_) {
+        final dedupeKey = 'json:$encoded';
+        if (byKey.containsKey(dedupeKey)) return;
+        byKey[dedupeKey] = entries.length;
+        entries.add(
+          _MergedMessageEntry(
+            encoded: encoded,
+            timestamp: 0,
+            isRead: false,
+            readAt: 0,
+          ),
+        );
+      }
+    }
+
+    for (final encoded in primary) {
+      addEncoded(encoded);
+    }
+    for (final encoded in secondary) {
+      addEncoded(encoded);
+    }
+
+    entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return entries.map((e) => e.encoded).toList();
+  }
+
+  Map<String, dynamic> _mergeChatMetadata({
+    required Map<String, dynamic>? stableData,
+    required Map<String, dynamic>? legacyData,
+    required List<String> participants,
+  }) {
+    final stable = Map<String, dynamic>.from(stableData ?? const {});
+    final legacy = Map<String, dynamic>.from(legacyData ?? const {});
+
+    final stableTime = _asInt(stable['lastMessageTime']);
+    final legacyTime = _asInt(legacy['lastMessageTime']);
+    final latestTime = math.max(stableTime, legacyTime);
+    final newestPayload = legacyTime > stableTime ? legacy : stable;
+
+    return {
+      ...legacy,
+      ...stable,
+      'participants': participants,
+      'lastMessageTime': latestTime == 0 ? null : latestTime,
+      'lastMessage': newestPayload['lastMessage'] ?? stable['lastMessage'],
+      'xp': math.max(_asInt(stable['xp']), _asInt(legacy['xp'])),
+      'streak': math.max(_asInt(stable['streak']), _asInt(legacy['streak'])),
+    };
+  }
+
   /// Generate a deterministic chat ID from two user IDs.
   String getChatId(String userId1, String userId2) {
-    return userId1.hashCode <= userId2.hashCode
+    return userId1.compareTo(userId2) <= 0
         ? '${userId1}_$userId2'
         : '${userId2}_$userId1';
   }
@@ -127,20 +263,87 @@ class ChatDatabaseService {
     return _mutex.synchronized(() async {
       try {
         final chatId = getChatId(userId1, userId2);
+        final legacyChatId = _legacyHashChatId(userId1, userId2);
+        final userOrderChatId = '${userId1}_$userId2';
+        final reverseUserOrderChatId = '${userId2}_$userId1';
         final chatsJson = await _safeRead('chats_metadata') ?? '{}';
         final Map<String, dynamic> allChats = jsonDecode(chatsJson);
 
+        var metadataChanged = false;
+        final participants = [userId1, userId2];
+
+        // Backward-compatible migration: merge legacy keys into the new stable
+        // lexicographic key without dropping messages.
+        final legacyCandidates = {
+          legacyChatId,
+          userOrderChatId,
+          reverseUserOrderChatId,
+        }
+          ..remove(chatId);
+        for (final candidateChatId in legacyCandidates) {
+          if (!allChats.containsKey(candidateChatId)) continue;
+
+          final stableData = allChats[chatId] as Map<String, dynamic>?;
+          final legacyData = allChats[candidateChatId] as Map<String, dynamic>?;
+          allChats[chatId] = _mergeChatMetadata(
+            stableData: stableData,
+            legacyData: legacyData,
+            participants: participants,
+          );
+          allChats.remove(candidateChatId);
+          metadataChanged = true;
+
+          final stableMessagesRaw = await _safeRead(_messagesKey(chatId));
+          final legacyMessagesRaw = await _safeRead(
+            _messagesKey(candidateChatId),
+          );
+          final stableMessages = _decodeJsonStringList(stableMessagesRaw);
+          final legacyMessages = _decodeJsonStringList(legacyMessagesRaw);
+          final mergedMessages = _mergeMessageJsonLists(
+            stableMessages,
+            legacyMessages,
+          );
+          if (mergedMessages.isNotEmpty) {
+            await _safeWrite(_messagesKey(chatId), jsonEncode(mergedMessages));
+          }
+          if (legacyMessagesRaw != null) {
+            await _safeDelete(_messagesKey(candidateChatId));
+          }
+        }
+
         if (!allChats.containsKey(chatId)) {
           allChats[chatId] = {
-            'participants': [userId1, userId2],
+            'participants': participants,
             'lastMessage': null,
             'lastMessageTime': null,
             'streak': 0,
             'xp': 0,
           };
-          await _safeWrite('chats_metadata', jsonEncode(allChats));
-          _broadcastChatMetadata(chatId, allChats[chatId]);
+          metadataChanged = true;
+        } else {
+          final existing = Map<String, dynamic>.from(
+            allChats[chatId] as Map<String, dynamic>? ?? {},
+          );
+          final existingParticipants = List<String>.from(
+            existing['participants'] ?? const [],
+          );
+          if (existingParticipants.length < 2 ||
+              !existingParticipants.contains(userId1) ||
+              !existingParticipants.contains(userId2)) {
+            existing['participants'] = participants;
+            allChats[chatId] = existing;
+            metadataChanged = true;
+          }
         }
+
+        if (metadataChanged) {
+          await _safeWrite('chats_metadata', jsonEncode(allChats));
+        }
+
+        _broadcastChatMetadata(
+          chatId,
+          allChats[chatId] as Map<String, dynamic>?,
+        );
       } catch (e) {
         debugPrint("Error initializing chat: $e");
       }
@@ -152,7 +355,7 @@ class ChatDatabaseService {
     return _mutex.synchronized(() async {
       try {
         // Save Message
-        final messagesKey = 'chat_messages_$chatId';
+        final messagesKey = _messagesKey(chatId);
         final msgsStr = await _safeRead(messagesKey);
         List<String> messagesJson = msgsStr != null
             ? List<String>.from(jsonDecode(msgsStr))
@@ -208,7 +411,9 @@ class ChatDatabaseService {
           ...chatData,
           'lastMessage': message.text,
           'lastMessageTime': message.timestamp.millisecondsSinceEpoch,
-          'participants': chatData['participants'] ?? chatId.split('_'), // Still used for legacy, but initializeChat should have set this.
+          // Keep participants only when explicitly available. Avoid parsing
+          // chatId with split('_') because user IDs can contain underscores.
+          'participants': List<String>.from(chatData['participants'] ?? []),
           'xp': currentXp + 1,
           'streak': currentStreak,
         };
@@ -233,7 +438,7 @@ class ChatDatabaseService {
   ) async {
     return _mutex.synchronized(() async {
       try {
-        final messagesKey = 'chat_messages_$chatId';
+        final messagesKey = _messagesKey(chatId);
         final msgsStr = await _safeRead(messagesKey);
         List<String> messagesJson = msgsStr != null
             ? List<String>.from(jsonDecode(msgsStr))
@@ -329,7 +534,7 @@ class ChatDatabaseService {
     int limit = 10,
   }) async {
     try {
-      final messagesKey = 'chat_messages_$chatId';
+      final messagesKey = _messagesKey(chatId);
       final msgsStr = await _safeRead(messagesKey);
       List<String> messagesJson = msgsStr != null
           ? List<String>.from(jsonDecode(msgsStr))
@@ -355,28 +560,51 @@ class ChatDatabaseService {
   Future<void> deleteChat(String chatId) async {
     return _mutex.synchronized(() async {
       try {
-        // Delete messages
-        await _safeDelete('chat_messages_$chatId');
-
         // Delete metadata
         final chatsJson = await _safeRead('chats_metadata') ?? '{}';
         final Map<String, dynamic> allChats = jsonDecode(chatsJson);
-        if (allChats.containsKey(chatId)) {
-          allChats.remove(chatId);
+
+        final keysToDelete = <String>{chatId};
+        allChats.forEach((key, rawData) {
+          if (rawData is! Map) return;
+          final data = Map<String, dynamic>.from(
+            rawData.map((k, v) => MapEntry(k.toString(), v)),
+          );
+          final participants = List<String>.from(data['participants'] ?? const []);
+          if (participants.length < 2) return;
+
+          final canonical = getChatId(participants[0], participants[1]);
+          if (canonical == chatId) {
+            keysToDelete.add(key);
+          }
+        });
+
+        var metadataChanged = false;
+        for (final key in keysToDelete) {
+          // Delete messages for every matching key (canonical + legacy aliases).
+          await _safeDelete(_messagesKey(key));
+          if (allChats.remove(key) != null) {
+            metadataChanged = true;
+          }
+        }
+
+        if (metadataChanged) {
           await _safeWrite('chats_metadata', jsonEncode(allChats));
         }
 
         // Notify and close stream controllers to prevent memory leaks
-        if (_chatStreamControllers.containsKey(chatId)) {
-          _chatStreamControllers[chatId]!.add(null);
-          await _chatStreamControllers[chatId]!.close();
-          _chatStreamControllers.remove(chatId);
-        }
+        for (final key in keysToDelete) {
+          if (_chatStreamControllers.containsKey(key)) {
+            _chatStreamControllers[key]!.add(null);
+            await _chatStreamControllers[key]!.close();
+            _chatStreamControllers.remove(key);
+          }
 
-        if (_messageStreamControllers.containsKey(chatId)) {
-          _messageStreamControllers[chatId]!.add([]);
-          await _messageStreamControllers[chatId]!.close();
-          _messageStreamControllers.remove(chatId);
+          if (_messageStreamControllers.containsKey(key)) {
+            _messageStreamControllers[key]!.add([]);
+            await _messageStreamControllers[key]!.close();
+            _messageStreamControllers.remove(key);
+          }
         }
       } catch (e) {
         debugPrint("Error deleting chat: $e");
@@ -389,7 +617,7 @@ class ChatDatabaseService {
   Future<void> markMessagesAsRead(String chatId, String currentUserId) async {
     return _mutex.synchronized(() async {
       try {
-        final messagesKey = 'chat_messages_$chatId';
+        final messagesKey = _messagesKey(chatId);
         final msgsStr = await _safeRead(messagesKey);
         if (msgsStr == null) return;
 

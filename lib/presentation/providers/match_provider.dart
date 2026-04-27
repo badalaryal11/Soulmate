@@ -43,6 +43,8 @@ class MatchProvider extends ChangeNotifier {
   final List<User> _matches = [];
   List<User> get matches => _matches;
   bool _isLoadingMatches = false;
+  int _consecutiveEmptyFetches = 0;
+  final Set<String> _optimisticMatchIds = <String>{};
 
   static const String _cachedMatchesKey = 'cached_matches_list';
 
@@ -156,9 +158,23 @@ class MatchProvider extends ChangeNotifier {
       final List<(String, int, String?, int?)> chatMeta = [];
       for (var chat in chatDocs) {
         final participants = List<String>.from(chat['participants'] ?? []);
-        final otherUserId = participants.firstWhereOrNull(
+        String? otherUserId = participants.firstWhereOrNull(
           (id) => id != currentUser.id,
         );
+
+        // Legacy fallback: derive counterpart user from deterministic chat id.
+        if ((otherUserId == null || otherUserId.isEmpty) && chat['id'] != null) {
+          final chatId = chat['id'].toString();
+          final prefix = '${currentUser.id}_';
+          final suffix = '_${currentUser.id}';
+          if (chatId.startsWith(prefix) && chatId.length > prefix.length) {
+            otherUserId = chatId.substring(prefix.length);
+          } else if (chatId.endsWith(suffix) &&
+              chatId.length > suffix.length) {
+            otherUserId = chatId.substring(0, chatId.length - suffix.length);
+          }
+        }
+
         if (otherUserId != null && otherUserId.isNotEmpty) {
           chatMeta.add((
             otherUserId,
@@ -168,6 +184,8 @@ class MatchProvider extends ChangeNotifier {
           ));
         }
       }
+      final chatUserIds = chatMeta.map((meta) => meta.$1).toSet();
+      _optimisticMatchIds.removeAll(chatUserIds);
 
       final futures = chatMeta.map((meta) async {
         try {
@@ -196,20 +214,49 @@ class MatchProvider extends ChangeNotifier {
       final results = await Future.wait(futures);
       final newMatches = results.whereType<User>().toList();
 
-      // If chatDocs is empty, we must distinguish between a cold boot (where Firebase
-      // might return [] before sync) and a genuine 0-match state.
-      if (chatDocs.isEmpty) {
-        // Clear if we're confident this isn't just a transient cold-boot state
+      // Build the next list while preserving optimistic rows that haven't yet
+      // been reflected in chat metadata.
+      final Map<String, User> byId = {
+        for (final user in newMatches) user.id: user,
+      };
+      for (final optimisticId in _optimisticMatchIds) {
+        if (!byId.containsKey(optimisticId)) {
+          final optimisticUser = _matches.firstWhereOrNull(
+            (m) => m.id == optimisticId,
+          );
+          if (optimisticUser != null) {
+            byId[optimisticId] = optimisticUser;
+          }
+        }
+      }
+
+      final mergedMatches = byId.values.toList()
+        ..sort((a, b) {
+          final timeA = a.lastMessageTime?.millisecondsSinceEpoch ?? 0;
+          final timeB = b.lastMessageTime?.millisecondsSinceEpoch ?? 0;
+          return timeB.compareTo(timeA);
+        });
+
+      // Avoid wiping local state on a transient empty fetch.
+      if (chatDocs.isEmpty && _optimisticMatchIds.isEmpty) {
+        _consecutiveEmptyFetches++;
+      } else {
+        _consecutiveEmptyFetches = 0;
+      }
+
+      if (_consecutiveEmptyFetches >= 2 && _optimisticMatchIds.isEmpty) {
         _matches.clear();
         notifyListeners();
         unawaited(_saveMatchesToCache([]));
-        debugPrint("MatchProvider: 0 matches detected. Cache cleared.");
-      } else {
-        _matches.clear();
-        _matches.addAll(newMatches);
-        notifyListeners();
-        unawaited(_saveMatchesToCache(newMatches));
+        debugPrint("MatchProvider: confirmed 0 matches. Cache cleared.");
+        return;
       }
+
+      _matches
+        ..clear()
+        ..addAll(mergedMatches);
+      notifyListeners();
+      unawaited(_saveMatchesToCache(_matches));
     } catch (e) {
       // Keep existing matches on error so the screen doesn't go blank.
       debugPrint("Error loading matches: $e");
@@ -220,6 +267,7 @@ class MatchProvider extends ChangeNotifier {
 
   void addMatch(User user) {
     if (!_matches.any((m) => m.id == user.id)) {
+      _optimisticMatchIds.add(user.id);
       _matches.insert(0, user);
       notifyListeners();
       unawaited(_saveMatchesToCache(_matches));
@@ -243,6 +291,7 @@ class MatchProvider extends ChangeNotifier {
   }
 
   Future<void> unmatchUser(String userId) async {
+    _optimisticMatchIds.remove(userId);
     // Optimistic UI update
     final removedUser = _matches.firstWhereOrNull((u) => u.id == userId);
     _matches.removeWhere((user) => user.id == userId);

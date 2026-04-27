@@ -93,6 +93,7 @@ class ServiceLocator {
       getMessageHistoryUseCase: GetMessageHistoryUseCase(_chatRepository),
       sendMessageUseCase: SendMessageUseCase(_chatRepository),
       markMessagesAsReadUseCase: MarkMessagesAsReadUseCase(_chatRepository),
+      initializeChatUseCase: InitializeChatUseCase(_chatRepository),
       sendAiMessageUseCase: SendAiMessageUseCase(_aiChatRepository),
       getChatMetadataStreamUseCase: GetChatMetadataStreamUseCase(
         _chatRepository,

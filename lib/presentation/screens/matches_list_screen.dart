@@ -45,6 +45,16 @@ class _MatchesListScreenState extends State<MatchesListScreen>
   }
 
   @override
+  void didUpdateWidget(covariant MatchesListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isActive && widget.isActive && mounted) {
+      final matchProvider = context.read<MatchProvider>();
+      matchProvider.restoreFromCacheIfNeeded();
+      matchProvider.loadMatches();
+    }
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && widget.isActive) {

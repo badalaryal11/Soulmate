@@ -253,11 +253,14 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
 
     String otherUserId = (data['senderId'] ?? '').toString().trim();
     if (otherUserId.isEmpty) {
-      final participants = chatId.split('_');
-      otherUserId = participants.firstWhere(
-        (id) => id.isNotEmpty && id != currentUid,
-        orElse: () => '',
-      );
+      final prefix = '${currentUid}_';
+      final suffix = '_$currentUid';
+      if (chatId.startsWith(prefix) && chatId.length > prefix.length) {
+        otherUserId = chatId.substring(prefix.length);
+      } else if (chatId.endsWith(suffix) &&
+          chatId.length > suffix.length) {
+        otherUserId = chatId.substring(0, chatId.length - suffix.length);
+      }
     }
     if (otherUserId.isEmpty || otherUserId == currentUid) return;
 
