@@ -41,46 +41,52 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD2HM_am1LWgADBgairKqRzqqKEFA8ORVM',
-    appId: '1:19231371655:web:5c7223330f31196bbf6322',
-    messagingSenderId: '19231371655',
-    projectId: 'my-soulmate-app',
-    authDomain: 'my-soulmate-app.firebaseapp.com',
-    storageBucket: 'my-soulmate-app.firebasestorage.app',
+    apiKey: 'AIzaSyBSYcaP-fMHmj5zfoHJjHPYSlI0WQ_likI',
+    appId: '1:822069382132:web:8d3c6dd3f71d0e8d0487a1',
+    messagingSenderId: '822069382132',
+    projectId: 'fir-stuff-73d8e',
+    authDomain: 'fir-stuff-73d8e.firebaseapp.com',
+    databaseURL: 'https://fir-stuff-73d8e.firebaseio.com',
+    storageBucket: 'fir-stuff-73d8e.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU',
-    appId: '1:19231371655:android:8c5539eb1eeec761bf6322',
-    messagingSenderId: '19231371655',
-    projectId: 'my-soulmate-app',
-    storageBucket: 'my-soulmate-app.firebasestorage.app',
+    apiKey: 'AIzaSyB8Cx65cJKXyWzjjVPI4Oq-tw-vo_hO2N8',
+    appId: '1:822069382132:android:caf760f2783deb830487a1',
+    messagingSenderId: '822069382132',
+    projectId: 'fir-stuff-73d8e',
+    databaseURL: 'https://fir-stuff-73d8e.firebaseio.com',
+    storageBucket: 'fir-stuff-73d8e.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBA0wBli9WJLZ_tdHsdXV0WSyRsB2BBMDw',
-    appId: '1:19231371655:ios:4151608326d5471fbf6322',
-    messagingSenderId: '19231371655',
-    projectId: 'my-soulmate-app',
-    storageBucket: 'my-soulmate-app.firebasestorage.app',
+    apiKey: 'AIzaSyAyIXKtpgwdxT1eDEsBb-B75sZNYr1UJhI',
+    appId: '1:822069382132:ios:343260a76ecc34df0487a1',
+    messagingSenderId: '822069382132',
+    projectId: 'fir-stuff-73d8e',
+    databaseURL: 'https://fir-stuff-73d8e.firebaseio.com',
+    storageBucket: 'fir-stuff-73d8e.firebasestorage.app',
     iosBundleId: 'com.badalaryal.soulmate',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBA0wBli9WJLZ_tdHsdXV0WSyRsB2BBMDw',
-    appId: '1:19231371655:ios:4151608326d5471fbf6322',
-    messagingSenderId: '19231371655',
-    projectId: 'my-soulmate-app',
-    storageBucket: 'my-soulmate-app.firebasestorage.app',
-    iosBundleId: 'com.badalaryal.soulmate',
+    apiKey: 'AIzaSyAyIXKtpgwdxT1eDEsBb-B75sZNYr1UJhI',
+    appId: '1:822069382132:ios:e1e4d4edc157fd280487a1',
+    messagingSenderId: '822069382132',
+    projectId: 'fir-stuff-73d8e',
+    databaseURL: 'https://fir-stuff-73d8e.firebaseio.com',
+    storageBucket: 'fir-stuff-73d8e.firebasestorage.app',
+    iosBundleId: 'com.soulmate.soulmate',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD2HM_am1LWgADBgairKqRzqqKEFA8ORVM',
-    appId: '1:19231371655:web:6a78695b76955ba7bf6322',
-    messagingSenderId: '19231371655',
-    projectId: 'my-soulmate-app',
-    authDomain: 'my-soulmate-app.firebaseapp.com',
-    storageBucket: 'my-soulmate-app.firebasestorage.app',
+    apiKey: 'AIzaSyBSYcaP-fMHmj5zfoHJjHPYSlI0WQ_likI',
+    appId: '1:822069382132:web:bd4fe7cb19000c260487a1',
+    messagingSenderId: '822069382132',
+    projectId: 'fir-stuff-73d8e',
+    authDomain: 'fir-stuff-73d8e.firebaseapp.com',
+    databaseURL: 'https://fir-stuff-73d8e.firebaseio.com',
+    storageBucket: 'fir-stuff-73d8e.firebasestorage.app',
   );
+
 }

@@ -1,57 +1,35 @@
 {
   "project_info": {
-    "project_number": "19231371655",
-    "project_id": "my-soulmate-app",
-    "storage_bucket": "my-soulmate-app.firebasestorage.app"
+    "project_number": "822069382132",
+    "firebase_url": "https://fir-stuff-73d8e.firebaseio.com",
+    "project_id": "fir-stuff-73d8e",
+    "storage_bucket": "fir-stuff-73d8e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:19231371655:android:c539d351605dec72bf6322",
+        "mobilesdk_app_id": "1:822069382132:android:caf760f2783deb830487a1",
         "android_client_info": {
           "package_name": "com.badalaryal.soulmate"
         }
       },
       "oauth_client": [
         {
-          "client_id": "19231371655-09djohbh9u8nsl16vdtf8irspfgdebrr.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.badalaryal.soulmate",
-            "certificate_hash": "2410fc16b83266087b1f6dca53ec46d1b8132b64"
-          }
-        },
-        {
-          "client_id": "19231371655-n4bfcrjdjiqgiuic6b8t5ji89c67u1nn.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.badalaryal.soulmate",
-            "certificate_hash": "b5ea6f6c492ae43d8666207d7e9a2223b08b9b41"
-          }
-        },
-        {
-          "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+          "client_id": "822069382132-2mos5v5mttqq7mbll21bgnh7m6udmcoj.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU"
+          "current_key": "AIzaSyB8Cx65cJKXyWzjjVPI4Oq-tw-vo_hO2N8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+              "client_id": "822069382132-2mos5v5mttqq7mbll21bgnh7m6udmcoj.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "19231371655-dbr1oksvq6dfg9i4917835ofvjjvre2v.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.soulmate.soulmate"
-              }
             }
           ]
         }
@@ -59,51 +37,28 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:19231371655:android:8c5539eb1eeec761bf6322",
+        "mobilesdk_app_id": "1:822069382132:android:4317990d90ea4bf00487a1",
         "android_client_info": {
           "package_name": "com.soulmate.soulmate"
         }
       },
       "oauth_client": [
         {
-          "client_id": "19231371655-1m2clt18djc7gguap16up3sqq3qemvt5.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.soulmate.soulmate",
-            "certificate_hash": "2410fc16b83266087b1f6dca53ec46d1b8132b64"
-          }
-        },
-        {
-          "client_id": "19231371655-c8fi8gatbt505tkfhl9f4stafhqt0dnn.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.soulmate.soulmate",
-            "certificate_hash": "03ddcc6359e39c9718b5621dab1dac0a411015fe"
-          }
-        },
-        {
-          "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+          "client_id": "822069382132-2mos5v5mttqq7mbll21bgnh7m6udmcoj.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAseud7oWioF5Kc1Ta2Ez8eKjOCmxpIULU"
+          "current_key": "AIzaSyB8Cx65cJKXyWzjjVPI4Oq-tw-vo_hO2N8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "19231371655-1i5g1iqjo7vvs67qhiobng6fbdlncku1.apps.googleusercontent.com",
+              "client_id": "822069382132-2mos5v5mttqq7mbll21bgnh7m6udmcoj.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "19231371655-dbr1oksvq6dfg9i4917835ofvjjvre2v.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.soulmate.soulmate"
-              }
             }
           ]
         }
