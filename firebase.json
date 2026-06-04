@@ -1,1 +1,61 @@
-{"functions":{"source":"functions"},"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:android:c539d351605dec72bf6322","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:ios:fc453d24e761f231bf6322","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"my-soulmate-app","appId":"1:19231371655:ios:4151608326d5471fbf6322","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"fir-stuff-73d8e","configurations":{"android":"1:822069382132:android:caf760f2783deb830487a1","ios":"1:822069382132:ios:343260a76ecc34df0487a1","macos":"1:822069382132:ios:e1e4d4edc157fd280487a1","web":"1:822069382132:web:8d3c6dd3f71d0e8d0487a1","windows":"1:822069382132:web:bd4fe7cb19000c260487a1"}}}}}}
+{
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "soulmate-app-51739",
+          "appId": "1:182120669929:android:33919648e23679cfd14678",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "soulmate-app-51739",
+          "appId": "1:182120669929:ios:4df29560bacd00cad14678",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "soulmate-app-51739",
+          "appId": "1:182120669929:ios:ce3258e833febcafd14678",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "soulmate-app-51739",
+          "configurations": {
+            "android": "1:182120669929:android:33919648e23679cfd14678",
+            "ios": "1:182120669929:ios:4df29560bacd00cad14678",
+            "macos": "1:182120669929:ios:ce3258e833febcafd14678",
+            "web": "1:182120669929:web:740971d2df6a6498d14678",
+            "windows": "1:182120669929:web:97e1056e10a61285d14678"
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Soulmate",
+        "supportEmail": "badal.aryal@gmail.com",
+        "authorizedRedirectUris": [
+          "https://soulmate-app-51739.firebaseapp.com",
+          "https://soulmate-app-51739.web.app"
+        ]
+      }
+    }
+  }
+}

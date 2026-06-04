@@ -63,19 +63,26 @@ void main() async {
   } catch (e) {
     debugPrint("Error loading .env file: $e");
   }
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  await FirebaseAppCheck.instance.activate(
-    providerAndroid: const AndroidPlayIntegrityProvider(),
-    providerApple: const AppleDeviceCheckProvider(),
-  );
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // Configure Firestore cache to prevent unbounded local storage growth
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
-  );
+    await FirebaseAppCheck.instance.activate(
+      providerAndroid: const AndroidPlayIntegrityProvider(),
+      providerApple: const AppleDeviceCheckProvider(),
+    );
+
+    // Configure Firestore cache to prevent unbounded local storage growth
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
+    );
+  } catch (e) {
+    debugPrint("Firebase initialization error: $e");
+  }
 
   runApp(const SoulmateApp());
 }
