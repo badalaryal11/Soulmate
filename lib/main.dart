@@ -77,7 +77,6 @@ void main() async {
     cacheSizeBytes: 40 * 1024 * 1024, // 40MB cache limit
   );
 
-  await ServiceLocator.notificationRepository.initialize();
   runApp(const SoulmateApp());
 }
 
@@ -99,6 +98,12 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initDeepLinks();
     _initNotificationNavigation();
+    
+    // Initialize notifications after the app is mounted to prevent 
+    // blocking the splash screen with permission dialogs.
+    Future.microtask(() {
+      ServiceLocator.notificationRepository.initialize();
+    });
   }
 
   @override
