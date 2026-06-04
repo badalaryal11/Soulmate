@@ -13,7 +13,13 @@ class AuthService {
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
     : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
-      _googleSignIn = googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn();
+      _googleSignIn =
+          googleSignIn ??
+          _mockGoogleSignIn ??
+          GoogleSignIn(
+            serverClientId:
+                '182120669929-guh82nbc5e803t4t4sj5psecgvl3e7bd.apps.googleusercontent.com',
+          );
 
   @visibleForTesting
   static void setMockInstances({
