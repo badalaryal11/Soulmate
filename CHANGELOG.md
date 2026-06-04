@@ -1,5 +1,26 @@
 # Changelog
 
+## [15.0.0] - 2026-06-04
+
+### 🎨 Visuals & Styling
+* **Edge-to-Edge Support**: Enabled native edge-to-edge rendering in MainActivity for a bezel-less visual experience.
+* **UI & Typography Consistency**: Consolidated screen titles and text styles across the app using centralized theme tokens.
+
+### 🔑 Authentication
+* **Google Sign-In**: Corrected server client ID settings for authentication.
+* **Login Flow**: Defer login timestamp update asynchronously, avoiding UI-blocking, and removed redundant pre-signout triggers.
+
+### ❤️ Matching & Chat
+* **Age Filter Persistence**: Enabled local persistence of user age filtering configuration.
+* **Dynamic Matching**: Integrated dynamic swipe thresholds for enhanced matching probability.
+* **Streamlined Chat**: Implemented message collapsing logic for consecutive chat bubbles and resolved stream control thread safety.
+
+### ⚡ Performance & Maintenance
+* **Gradle Performance**: Activated parallel execution, daemon, and build caching for faster compiler speeds.
+* **Startup Boost**: Postponed local notification initialization until post-mount to secure instantaneous startup.
+
+***
+
 ## [14.0.0] - 2026-03-24
 
 ### 🚀 Performance & System Optimizations

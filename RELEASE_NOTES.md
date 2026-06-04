@@ -2,6 +2,29 @@
 
 ---
 
+## v1.7.0 — Immersive Display, Authentication & Startup Polish (June 4, 2026)
+
+### 🎨 Visuals & Styling
+* **Edge-to-Edge Screen Support** — Enabled native edge-to-edge layouts on Android, letting application content flow beautifully behind status and navigation bars.
+* **UI Typography & Theming** — Unified AppBar titles and text styling across multiple screens using centralized theme tokens for consistent light/dark mode experiences.
+
+### 🔑 Authentication & Login Flow
+* **Google Sign-In Configuration** — Updated client ID configuration to ensure stable authentication.
+* **Optimized Login Experience** — Removed redundant sign-out prompts before Google Sign-In, and updated last login timestamp writes asynchronously to prevent startup delays.
+
+### ❤️ Matching & Chat Enhancements
+* **Dynamic Swipe Thresholds** — Fine-tuned matching simulation logic and swipe thresholds for a more responsive deck experience.
+* **Persistent Age Filters** — Swiping preferences like age filters are now saved persistently across sessions.
+* **Chat Persistence & Reliability** — Re-engineered chat stream initialization to run asynchronously. Added `InitializeChatUseCase` to secure match storage on initial pairing.
+* **Message Collapsing** — Consecutive chat messages from the same sender are now collapsed for cleaner chat layouts.
+
+### ⚡ Performance & System Optimization
+* **Faster Startup** — Deferred notification initialization to post-mount, preventing start-up blocks and accelerating initial load times.
+* **Improved Build & Launch Speed** — Optimized Gradle configurations (enabled daemon, parallel compilation, and caching) for faster build speeds.
+* **Resource Management** — Improved memory safety by implementing proper cleanup for active stream controllers and rate-limiter entries.
+
+---
+
 ## v1.6.1 — Match Reliability & Favorites Fix (April 19, 2026)
 
 ### ❤️ Matching & Match Screen
