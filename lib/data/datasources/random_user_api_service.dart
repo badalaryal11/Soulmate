@@ -227,7 +227,7 @@ class RandomUserApiService {
       final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParams);
       final response = await _client
           .get(uri)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 2));
 
       if (response.statusCode != 200) {
         debugPrint('RandomUser API error: ${response.statusCode}');

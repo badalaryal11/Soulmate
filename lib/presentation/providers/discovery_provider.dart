@@ -90,9 +90,6 @@ class DiscoveryProvider extends ChangeNotifier {
     final currentUserInterests = currentUser?.interests ?? [];
 
     _filteredUsers = _users.where((user) {
-      // Exclude already-swiped users from the deck
-      if (_swipedUserIds.contains(user.id)) return false;
-
       final matchesAge = user.age >= _minAge && user.age <= _maxAge;
       final userGender = user.gender.trim().toLowerCase();
       final selected = _selectedGender?.trim().toLowerCase();
@@ -164,7 +161,7 @@ class DiscoveryProvider extends ChangeNotifier {
       final allNewUsers = await _getUsersUseCase.call(
         gender: _selectedGender,
         currentUserId: currentUser?.id,
-        limit: 20,
+        limit: 10,
         refresh: clearList,
       );
 
@@ -236,8 +233,8 @@ class DiscoveryProvider extends ChangeNotifier {
       final previousCount = _filteredUsers.length;
       _updateFilteredUsers();
 
-      // Rebuild CardSwiper when new unswiped cards become available
-      if (_filteredUsers.length != previousCount) {
+      // Only rebuild CardSwiper entirely if we cleared the list
+      if (clearList) {
         _filterRevision++;
       }
 
@@ -274,19 +271,11 @@ class DiscoveryProvider extends ChangeNotifier {
       _handleRightSwipe(swipedUser);
     }
 
-    // Defer deck rebuild to next frame so CardSwiper completes its animation
-    // before being destroyed/rebuilt (prevents "deactivated widget" crash)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateFilteredUsers();
-      _filterRevision++;
-
-      // Pre-load more users when running low
-      if (_filteredUsers.length < 10) {
-        loadUsers(gender: _selectedGender);
-      }
-
-      notifyListeners();
-    });
+    // Trigger loadUsers asynchronously if running low on cards
+    final remainingCards = _filteredUsers.length - _swipedUserIds.length;
+    if (remainingCards < 5) {
+      loadUsers(gender: _selectedGender);
+    }
   }
 
   void undoSwipe() {

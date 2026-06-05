@@ -2,22 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/discovery_provider.dart';
-import '../../core/utils/image_generation_service.dart';
-import '../../core/utils/image_utils.dart';
 import '../../core/theme/app_theme.dart';
 import 'profile_card.dart';
 
-class HomeTab extends StatefulWidget {
+class HomeTab extends StatelessWidget {
   final CardSwiperController controller;
 
   const HomeTab({super.key, required this.controller});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> {
-  int _lastPrecachedRevision = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +40,8 @@ class _HomeTabState extends State<HomeTab> {
         }
 
         if (provider.filteredUsers.isEmpty) {
-          // Auto-load more users when deck is empty
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) provider.loadUsers(gender: provider.selectedGender);
+            provider.loadUsers(gender: provider.selectedGender);
           });
 
           return _StatusPanel(
@@ -61,18 +51,6 @@ class _HomeTabState extends State<HomeTab> {
             actionLabel: 'Refresh',
             onAction: () => provider.loadUsers(clearList: true),
           );
-        }
-
-        // Fire-and-forget precaching of upcoming images (no UI blocking)
-        if (_lastPrecachedRevision != provider.filterRevision) {
-          _lastPrecachedRevision = provider.filterRevision;
-
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            for (int i = 0; i < 3 && i < provider.filteredUsers.length; i++) {
-              _precacheUserImage(context, provider.filteredUsers[i]);
-            }
-          });
         }
 
         final colorScheme = Theme.of(context).colorScheme;
@@ -97,45 +75,31 @@ class _HomeTabState extends State<HomeTab> {
                 Expanded(
                   child: CardSwiper(
                     key: ValueKey(provider.filterRevision),
-                    controller: widget.controller,
+                    controller: controller,
                     cardsCount: provider.filteredUsers.length,
-                    numberOfCardsDisplayed: provider.filteredUsers.length < 3
-                        ? provider.filteredUsers.length
-                        : 3,
+                    numberOfCardsDisplayed:
+                        provider.filteredUsers.length < 3
+                            ? provider.filteredUsers.length
+                            : 3,
                     backCardOffset: const Offset(0, 36),
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    cardBuilder:
-                        (
-                          context,
-                          index,
-                          horizontalOffsetPercentage,
-                          verticalOffsetPercentage,
-                        ) {
-                          return ProfileCard(
-                            user: provider.filteredUsers[index],
-                          );
-                        },
+                    cardBuilder: (
+                      context,
+                      index,
+                      horizontalOffsetPercentage,
+                      verticalOffsetPercentage,
+                    ) {
+                      return ProfileCard(
+                        user: provider.filteredUsers[index],
+                      );
+                    },
                     onSwipe: (previousIndex, currentIndex, direction) {
-                      // Resolve the user object here while filteredUsers is still
-                      // in its pre-swipe state, before any async list rebuild.
                       final swipedUser =
                           previousIndex >= 0 &&
-                              previousIndex < provider.filteredUsers.length
-                          ? provider.filteredUsers[previousIndex]
-                          : null;
-
-                      // Pre-cache upcoming images
-                      if (currentIndex != null) {
-                        for (int i = 1; i <= 3; i++) {
-                          final nextIndex = currentIndex + i;
-                          if (nextIndex < provider.filteredUsers.length) {
-                            _precacheUserImage(
-                              context,
-                              provider.filteredUsers[nextIndex],
-                            );
-                          }
-                        }
-                      }
+                                  previousIndex <
+                                      provider.filteredUsers.length
+                              ? provider.filteredUsers[previousIndex]
+                              : null;
 
                       if (swipedUser != null) {
                         provider.userSwiped(swipedUser, direction);
@@ -176,12 +140,12 @@ class _HomeTabState extends State<HomeTab> {
                           icon: Icons.close_rounded,
                           color: const Color(0xFFE0526D),
                           onPressed: () =>
-                              widget.controller.swipe(CardSwiperDirection.left),
+                              controller.swipe(CardSwiperDirection.left),
                         ),
                         _ActionButton(
                           icon: Icons.favorite_rounded,
                           color: const Color(0xFF1DAD75),
-                          onPressed: () => widget.controller.swipe(
+                          onPressed: () => controller.swipe(
                             CardSwiperDirection.right,
                           ),
                         ),
@@ -195,31 +159,6 @@ class _HomeTabState extends State<HomeTab> {
         );
       },
     );
-  }
-
-  Future<void> _precacheUserImage(BuildContext context, dynamic user) async {
-    if (user == null) return;
-
-    String? url;
-    if (user.imageUrl.isNotEmpty && !user.imageUrl.startsWith('assets/')) {
-      url = user.imageUrl;
-    } else if (user.imageUrl.isEmpty) {
-      url = ImageGenerationService.generateProfileImageUrl(user);
-    }
-
-    if (url != null && url.isNotEmpty) {
-      final imageProvider = ImageUtils.getImageProvider(
-        url,
-        maxWidth: 300,
-        maxHeight: 450,
-      );
-      if (imageProvider == null) return;
-      try {
-        await precacheImage(imageProvider, context);
-      } catch (e) {
-        debugPrint('Image precache error: $e');
-      }
-    }
   }
 }
 

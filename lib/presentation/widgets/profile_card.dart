@@ -11,10 +11,17 @@ class ProfileCard extends StatelessWidget {
 
   const ProfileCard({super.key, required this.user});
 
+  String _resolveImageUrl() {
+    if (user.imageUrl.isNotEmpty &&
+        !user.imageUrl.startsWith('assets/') &&
+        !user.imageUrl.startsWith('file://')) {
+      return user.imageUrl;
+    }
+    return ImageGenerationService.generateProfileImageUrl(user);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -24,206 +31,41 @@ class ProfileCard extends StatelessWidget {
       },
       child: Card(
         elevation: 0,
-        shadowColor: Colors.black.withValues(alpha: 0.22),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
-          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.6)),
         ),
-        clipBehavior: Clip.antiAlias,
+        // hardEdge is much cheaper than antiAlias on the GPU
+        clipBehavior: Clip.hardEdge,
         child: RepaintBoundary(
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Use AI Generated Image for Cards to match description
-              // Handle local assets
-              if (user.imageUrl.startsWith('assets/'))
-                Image.asset(
-                  user.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(child: Icon(Icons.error));
-                  },
-                )
-              else if (user.imageUrl.startsWith('file://'))
-                Image.file(
-                  File(user.imageUrl.substring(7)),
-                  fit: BoxFit.cover,
-                  cacheWidth: 300,
-                  cacheHeight: 450,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
-                )
-              else
-                CachedNetworkImage(
-                  // Use original image if valid, otherwise generate one
-                  imageUrl:
-                      (user.imageUrl.isNotEmpty &&
-                          !user.imageUrl.startsWith('assets/') &&
-                          !user.imageUrl.startsWith('file://'))
-                      ? user.imageUrl
-                      : _generateAndLogUrl(user),
-                  fit: BoxFit.cover,
-                  // Optimization: Match cache dimensions to image source (300x450)
-                  memCacheWidth: 300,
-                  memCacheHeight: 450,
-                  maxWidthDiskCache: 300,
-                  // Optimization: Instant appearance (no fade-in) for faster "feel"
-                  fadeInDuration: Duration.zero,
-                  fadeOutDuration: Duration.zero,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFFFE3C72),
-                        ),
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, errorUrl, error) {
-                    // Try fallback URL if primary fails
-                    final fallbackUrl = ImageGenerationService.getFallbackUrl(
-                      user,
-                      errorUrl,
-                    );
-                    debugPrint(
-                      'Image failed: $errorUrl. Trying fallback: $fallbackUrl',
-                    );
+              // --- Background image ---
+              _buildImage(),
 
-                    return CachedNetworkImage(
-                      imageUrl: fallbackUrl,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 300,
-                      memCacheHeight: 450,
-                      maxWidthDiskCache: 300,
-                      fadeInDuration: Duration.zero,
-                      fadeOutDuration: Duration.zero,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFE3C72),
-                            ),
-                          ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.broken_image, color: Colors.grey),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.center,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.16),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.35],
-                  ),
-                ),
-              ),
-              Container(
+              // --- Single merged gradient overlay (top vignette + bottom fade) ---
+              const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
+                      Color(0x29000000), // 0.16 alpha
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.92),
+                      Colors.transparent,
+                      Color(0xEB000000), // 0.92 alpha
                     ],
-                    stops: const [0.52, 1.0],
+                    stops: [0.0, 0.25, 0.52, 1.0],
                   ),
                 ),
               ),
+
+              // --- Info overlay ---
               Positioned(
                 bottom: 16,
                 left: 16,
                 right: 16,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    borderRadius: BorderRadius.circular(
-                      AppThemeTokens.radiusMd,
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.16),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${user.firstName}, ${user.age}',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              color: Colors.white,
-                              fontSize: 31,
-                              fontWeight: FontWeight.w600,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withValues(alpha: 0.26),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            color: Colors.white70,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              user.locationString,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(color: Colors.white70),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (user.bio != null && user.bio!.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          user.bio!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                      ],
-                      if (user.interests.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: user.interests
-                              .take(3)
-                              .map((interest) => _InterestChip(label: interest))
-                              .toList(),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                child: _InfoOverlay(user: user),
               ),
             ],
           ),
@@ -232,10 +74,124 @@ class ProfileCard extends StatelessWidget {
     );
   }
 
-  String _generateAndLogUrl(User user) {
-    final url = ImageGenerationService.generateProfileImageUrl(user);
-    debugPrint('Generated Image URL for ${user.firstName}: $url');
-    return url;
+  Widget _buildImage() {
+    if (user.imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        user.imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            const Center(child: Icon(Icons.error)),
+      );
+    }
+
+    if (user.imageUrl.startsWith('file://')) {
+      return Image.file(
+        File(user.imageUrl.substring(7)),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            const Center(child: Icon(Icons.error)),
+      );
+    }
+
+    final imageUrl = _resolveImageUrl();
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      fadeInDuration: Duration.zero,
+      fadeOutDuration: Duration.zero,
+      // Lightweight placeholder — just a colored box, no spinner
+      placeholder: (_, __) => const ColoredBox(color: Color(0xFFEEEEEE)),
+      // Lightweight error — no nested CachedNetworkImage
+      errorWidget: (_, __, ___) => const ColoredBox(
+        color: Color(0xFFE0E0E0),
+        child: Center(
+          child: Icon(Icons.person, color: Colors.grey, size: 48),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoOverlay extends StatelessWidget {
+  final User user;
+  const _InfoOverlay({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: const Color(0x47000000), // 0.28 alpha
+        borderRadius: BorderRadius.circular(AppThemeTokens.radiusMd),
+        border: Border.all(color: const Color(0x29FFFFFF)), // 0.16 alpha
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${user.firstName}, ${user.age}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 31,
+              fontWeight: FontWeight.w600,
+              shadows: [
+                Shadow(
+                  color: Color(0x42000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.location_on_rounded,
+                color: Colors.white70,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  user.locationString,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (user.bio != null && user.bio!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              user.bio!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xE6FFFFFF), // 0.9 alpha
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+          if (user.interests.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: user.interests
+                  .take(3)
+                  .map((interest) => _InterestChip(label: interest))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
@@ -249,9 +205,9 @@ class _InterestChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: const Color(0x2EFFFFFF), // 0.18 alpha
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        border: Border.all(color: const Color(0x40FFFFFF)), // 0.25 alpha
       ),
       child: Text(
         label,
