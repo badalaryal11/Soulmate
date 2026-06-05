@@ -179,8 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     const double appBarSideSlotWidth = 132;
 
     return Scaffold(
@@ -223,20 +224,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Center(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(
-                          'Soulmate',
-                          maxLines: 1,
-                          style: GoogleFonts.lobster(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.12),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                        child: ShaderMask(
+                          shaderCallback: (bounds) {
+                            return const LinearGradient(
+                              colors: [Color(0xFFFE3C72), Color(0xFFFF8E53)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ).createShader(bounds);
+                          },
+                          child: Text(
+                            'Soulmate',
+                            maxLines: 1,
+                            style: GoogleFonts.lobster(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

@@ -51,8 +51,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(find.text('Welcome!'), findsOneWidget);
-      expect(find.text('Log in to find your soulmate.'), findsOneWidget);
+      expect(find.text('Soulmate'), findsOneWidget);
+      expect(find.text('Find your perfect connection.'), findsOneWidget);
       expect(find.byType(TextFormField), findsNWidgets(2));
 
       // Specific image checks

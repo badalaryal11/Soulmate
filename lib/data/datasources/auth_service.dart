@@ -18,7 +18,7 @@ class AuthService {
           _mockGoogleSignIn ??
           GoogleSignIn(
             serverClientId:
-                '182120669929-guh82nbc5e803t4t4sj5psecgvl3e7bd.apps.googleusercontent.com',
+                '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
           );
 
   @visibleForTesting
