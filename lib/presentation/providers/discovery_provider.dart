@@ -230,7 +230,6 @@ class DiscoveryProvider extends ChangeNotifier {
         _matchedUserIds.addAll(idList.skip(idList.length - _maxSeenIds));
       }
 
-      final previousCount = _filteredUsers.length;
       _updateFilteredUsers();
 
       // Only rebuild CardSwiper entirely if we cleared the list
