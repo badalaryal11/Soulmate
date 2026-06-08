@@ -86,9 +86,6 @@ class DiscoveryProvider extends ChangeNotifier {
   bool get canUndo => _undoUserStack.isNotEmpty;
 
   void _updateFilteredUsers() {
-    final currentUser = _currentUserProvider.currentUser;
-    final currentUserInterests = currentUser?.interests ?? [];
-
     _filteredUsers = _users.where((user) {
       final matchesAge = user.age >= _minAge && user.age <= _maxAge;
       final userGender = user.gender.trim().toLowerCase();
@@ -97,15 +94,7 @@ class DiscoveryProvider extends ChangeNotifier {
       final matchesGender =
           selected == null || selected == 'everyone' || userGender == selected;
 
-      // Filter by shared interests
-      bool matchesInterests = true;
-      if (currentUserInterests.isNotEmpty && user.interests.isNotEmpty) {
-        matchesInterests = user.interests.any(
-          (interest) => currentUserInterests.contains(interest),
-        );
-      }
-
-      return matchesAge && matchesGender && matchesInterests;
+      return matchesAge && matchesGender;
     }).toList();
   }
 
@@ -161,7 +150,7 @@ class DiscoveryProvider extends ChangeNotifier {
       final allNewUsers = await _getUsersUseCase.call(
         gender: _selectedGender,
         currentUserId: currentUser?.id,
-        limit: 10,
+        limit: 20,
         refresh: clearList,
       );
 
@@ -200,6 +189,19 @@ class DiscoveryProvider extends ChangeNotifier {
 
       // Shuffle to mix Firestore + API users randomly
       uniqueUsers.shuffle(Random());
+
+      // Prioritize users with shared interests by sorting them to the front
+      final currentUserInterests = currentUser?.interests ?? [];
+      if (currentUserInterests.isNotEmpty) {
+        uniqueUsers.sort((a, b) {
+          final aShares = a.interests.any((i) => currentUserInterests.contains(i));
+          final bShares = b.interests.any((i) => currentUserInterests.contains(i));
+          if (aShares && !bShares) return -1;
+          if (!aShares && bShares) return 1;
+          return 0; // maintain relative order
+        });
+      }
+
       _users.addAll(uniqueUsers);
 
       // Belt-and-suspenders: ensure no duplicate IDs in the list

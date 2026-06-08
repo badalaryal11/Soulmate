@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — Soulmate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0d0a1a 0%, #1a102f 50%, #0a0714 100%);
+            --primary: #ff4d6d;
+            --primary-glow: rgba(255, 77, 109, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(26, 16, 47, 0.5);
+            --glass-border: rgba(255, 77, 109, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff85a2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #ffe3e8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        main {
+            flex: 1;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            z-index: 1;
+        }
+
+        .policy-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 3rem;
+            backdrop-filter: blur(30px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f7a4b5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .last-updated {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            border-left: 3px solid var(--primary);
+            padding-left: 0.75rem;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #ffffff;
+        }
+
+        ul {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        footer {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #7928ca;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        @media (max-width: 768px) {
+            .policy-container {
+                padding: 1.75rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            footer {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <header>
+        <a href="index.html" class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </div>
+            <span class="logo-text">Soulmate</span>
+        </a>
+    </header>
+
+    <main>
+        <div class="policy-container">
+            <h1>Privacy Policy</h1>
+            <div class="last-updated">Last Updated: March 17, 2026</div>
+
+            <p>Welcome to Soulmate! This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application (the "App") or visit our website. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the application.</p>
+
+            <h2>1. Information We Collect</h2>
+
+            <h3>A. Personal Data</h3>
+            <p>When you register for an account, we may collect personally identifiable information, such as:</p>
+            <ul>
+                <li>Email address</li>
+                <li>Name or Username</li>
+                <li>Profile picture (if provided)</li>
+                <li>Date of birth or age</li>
+                <li>Gender and gender preferences</li>
+            </ul>
+
+            <h3>B. Usage Data and Interactions</h3>
+            <ul>
+                <li><strong>Chat Data:</strong> We collect the contents of the messages you send to the AI profiles within the App. This is necessary to generate contextual responses. <strong>Please note: All "companion" profiles in this app are AI models. You are not chatting with real humans.</strong></li>
+                <li><strong>App Activity:</strong> We collect data on your interactions within the app, such as profiles you "Favorite", swipe history, relationship XP (experience points), and daily login streaks.</li>
+                <li><strong>Device Information:</strong> We may collect information about your mobile device, including device model, operating system version, unique device identifiers, and mobile network information.</li>
+            </ul>
+
+            <h3>C. Device Permissions</h3>
+            <p>With your consent, we may request access or permission to certain features from your mobile device, including:</p>
+            <ul>
+                <li><strong>Storage/Photos:</strong> To allow you to upload a custom profile picture.</li>
+                <li><strong>Push Notifications:</strong> To send you updates, alerts, and other information regarding the App.</li>
+            </ul>
+            <p>You may change our access or permissions at any time in your device's settings.</p>
+
+            <h2>2. How We Use Your Information</h2>
+            <p>We use the information we collect to:</p>
+            <ul>
+                <li>Create and manage your account.</li>
+                <li>Provide, operate, and maintain our App.</li>
+                <li>Generate AI responses to your chat messages using third-party AI service providers.</li>
+                <li>Personalize your user experience, including filtering AI profiles based on your age and gender preferences.</li>
+                <li>Track your progress and gamification elements (e.g., Relationship XP, streaks, coins).</li>
+                <li>Send you push notifications regarding your account or app updates.</li>
+                <li>Improve the App and develop new features.</li>
+                <li>Prevent fraudulent activity and enforce our terms.</li>
+            </ul>
+
+            <h2>3. Disclosure of Your Information</h2>
+            <p>We may share information we have collected about you in certain situations:</p>
+            <ul>
+                <li><strong>Third-Party AI Service Providers:</strong> To provide the core chat functionality, your message content is securely transmitted via API to third-party AI models. These providers are subject to strict data processing agreements and are not permitted to use your personal chat logs to train their public models.</li>
+                <li><strong>Backend Services:</strong> We use Firebase (Google Cloud) for authentication, database storage (Firestore), and image storage. Your data is stored securely on their servers.</li>
+                <li><strong>Legal Compliance:</strong> If required by law, we may disclose your information to comply with legal processes or legitimate government requests.</li>
+            </ul>
+
+            <h2>4. Security of Your Information</h2>
+            <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse.</p>
+
+            <h2>5. Children's Privacy</h2>
+            <p>The App is not intended for children under the age of 18. We do not knowingly collect personally identifiable information from children under 18. If you become aware that a child has provided us with personal data, please contact us.</p>
+
+            <h2>6. Your Data Rights</h2>
+            <p>Depending on your location, you may have the right to:</p>
+            <ul>
+                <li>Access the personal data we hold about you.</li>
+                <li>Request correction of inaccurate data.</li>
+                <li>Request deletion of your account and associated data. You can delete your account from within the app settings.</li>
+            </ul>
+
+            <h2>7. Changes to This Privacy Policy</h2>
+            <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
+
+            <h2>8. Contact Us</h2>
+            <p>If you have questions or comments about this Privacy Policy, please contact us at:</p>
+            <p><strong>Email:</strong> badal.aryal@gmail.com</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Soulmate. All rights reserved.</p>
+        <a href="index.html">Back to Home</a>
+    </footer>
+</body>
+</html>
