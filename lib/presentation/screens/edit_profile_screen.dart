@@ -52,6 +52,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _generatedAvatarUrl;
   bool _isLoading = false;
 
+  // Prefetch: next portrait URL is pre-downloaded so it loads instantly on tap
+  String? _prefetchedPortraitUrl;
+
   // Background Upload State
   bool _isUploadingImage = false;
   String? _uploadedImageUrl;
@@ -115,7 +118,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _currentUser!.prompts[1]['answer'] ?? '';
       }
 
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+        // Prefetch the first portrait so it's instant on first tap
+        _prefetchNextPortrait();
+      }
     }
   }
 
@@ -132,10 +139,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _generateAIPortrait() {
-    if (_currentUser == null) return;
+  /// Pre-downloads the next portrait into Flutter's image cache.
+  void _prefetchNextPortrait() {
+    if (_currentUser == null || !mounted) return;
 
-    // Create a temporary user with current controller values to ensure prompt is up-to-date
     final tempUser = _currentUser!.copyWith(
       age: int.tryParse(_ageController.text) ?? _currentUser!.age,
       firstName: _firstNameController.text,
@@ -143,23 +150,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       bio: _bioController.text,
     );
 
+    final nextUrl = ImageGenerationService.generateHighQualityPortrait(tempUser);
+    _prefetchedPortraitUrl = nextUrl;
+
+    // Silently download into Flutter's image cache
+    precacheImage(NetworkImage(nextUrl), context).catchError((_) {
+      // Ignore prefetch errors — image will just load normally on tap
+    });
+  }
+
+  void _generateAIPortrait() {
+    if (_currentUser == null) return;
+
+    // Use the prefetched URL if available (instant), otherwise generate fresh
+    String url;
+    if (_prefetchedPortraitUrl != null) {
+      url = _prefetchedPortraitUrl!;
+      _prefetchedPortraitUrl = null;
+    } else {
+      final tempUser = _currentUser!.copyWith(
+        age: int.tryParse(_ageController.text) ?? _currentUser!.age,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        bio: _bioController.text,
+      );
+      url = ImageGenerationService.generateHighQualityPortrait(tempUser);
+    }
+
     setState(() {
-      _isLoading = true;
-      _isUploadingImage = true; // Reuse spinner for generation
+      _generatedAvatarUrl = url;
+      _imageFile = null;
+      _uploadedImageUrl = null;
     });
 
-    // Simulate a short "thinking" delay for UX
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (!mounted) return;
-      final url = ImageGenerationService.generateHighQualityPortrait(tempUser);
-      setState(() {
-        _generatedAvatarUrl = url;
-        _imageFile = null;
-        _uploadedImageUrl = null;
-        _isUploadingImage = false; // Stop spinner
-        _isLoading = false;
-      });
-    });
+    // Immediately prefetch the NEXT portrait for the next tap
+    _prefetchNextPortrait();
   }
 
   int _calculateCompletion() {

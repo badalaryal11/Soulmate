@@ -51,11 +51,13 @@ class ImageGenerationService {
     return 'men';
   }
 
-  /// High-quality portrait — picks a different image for variety.
+  /// High-quality portrait — generates a NEW, unique image on every call.
+  /// Uses a timestamp-based seed so each press yields a different portrait.
   static String generateHighQualityPortrait(User user) {
     try {
-      final String hash = (user.id.hashCode.abs() + 7).toString();
-      return '$_pravatarBase?u=$hash';
+      final int timestamp = DateTime.now().millisecondsSinceEpoch;
+      final String uniqueSeed = '${user.id.hashCode.abs()}_$timestamp';
+      return '$_pravatarBase?u=$uniqueSeed';
     } catch (e) {
       debugPrint('Error generating HQ image URL: $e');
       return generateProfileImageUrl(user);
