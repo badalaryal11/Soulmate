@@ -131,7 +131,7 @@ class UserAvatar extends StatelessWidget {
                     child: _hasImage
                         ? (overrideImage != null
                               ? Image(
-                                  image: overrideImage!,
+                                  image: ResizeImage(overrideImage!, width: (innerW * 2).toInt()),
                                   width: innerW,
                                   height: innerH,
                                   fit: BoxFit.cover,

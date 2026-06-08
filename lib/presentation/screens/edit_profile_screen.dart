@@ -568,14 +568,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     UserAvatar(
                       radius: 80,
-                      imageUrl: _currentUser!.imageUrl,
+                      imageUrl: _generatedAvatarUrl ?? _currentUser!.imageUrl,
                       firstName: _firstNameController.text,
                       lastName: _lastNameController.text,
                       overrideImage: _imageFile != null
                           ? FileImage(_imageFile!)
-                          : (_generatedAvatarUrl != null
-                                ? NetworkImage(_generatedAvatarUrl!)
-                                : null),
+                          : null,
                       heroTag: 'user-avatar-main',
                       useRoundShape: true,
                       isVerified:

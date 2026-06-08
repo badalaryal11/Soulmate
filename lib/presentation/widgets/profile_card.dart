@@ -11,15 +11,6 @@ class ProfileCard extends StatelessWidget {
 
   const ProfileCard({super.key, required this.user});
 
-  String _resolveImageUrl() {
-    if (user.imageUrl.isNotEmpty &&
-        !user.imageUrl.startsWith('assets/') &&
-        !user.imageUrl.startsWith('file://')) {
-      return user.imageUrl;
-    }
-    return ImageGenerationService.generateProfileImageUrl(user);
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -75,28 +66,34 @@ class ProfileCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (user.imageUrl.startsWith('assets/')) {
+    final String targetUrl = user.imageUrl.isEmpty 
+        ? ImageGenerationService.generateProfileImageUrl(user) 
+        : user.imageUrl;
+
+    if (targetUrl.startsWith('assets/')) {
       return Image.asset(
-        user.imageUrl,
+        targetUrl,
         fit: BoxFit.cover,
+        cacheWidth: 600, // Optimize memory and decoding time
         errorBuilder: (_, __, ___) =>
             const Center(child: Icon(Icons.error)),
       );
     }
 
-    if (user.imageUrl.startsWith('file://')) {
+    if (targetUrl.startsWith('file://')) {
       return Image.file(
-        File(user.imageUrl.substring(7)),
+        File(targetUrl.substring(7)),
         fit: BoxFit.cover,
+        cacheWidth: 600, // Optimize memory and decoding time
         errorBuilder: (_, __, ___) =>
             const Center(child: Icon(Icons.error)),
       );
     }
 
-    final imageUrl = _resolveImageUrl();
     return CachedNetworkImage(
-      imageUrl: imageUrl,
+      imageUrl: targetUrl,
       fit: BoxFit.cover,
+      memCacheWidth: 600, // Optimize memory and decoding time
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
       // Lightweight placeholder — just a colored box, no spinner
