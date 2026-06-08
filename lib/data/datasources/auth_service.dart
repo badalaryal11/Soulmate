@@ -184,15 +184,6 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(
         email: email,
-        actionCodeSettings: ActionCodeSettings(
-          url:
-              'https://soulmate.page.link/reset-password', // Placeholder, creates link
-          handleCodeInApp: true,
-          iOSBundleId: 'com.badalaryal.soulmate',
-          androidPackageName: 'com.badalaryal.soulmate',
-          androidInstallApp: true,
-          androidMinimumVersion: "1",
-        ),
       );
     } catch (e) {
       debugPrint("Error sending password reset email: $e");
