@@ -2,6 +2,21 @@
 
 ---
 
+## v1.8.0 — Google Sign-In Fixes & UI Polish (June 8, 2026)
+
+### 🔑 Authentication
+* **Google Sign-In Resolution** — Fixed an issue causing production logins to fail (Error 12500) by enabling the People API on the backend.
+* **Improved Error Messaging** — Added clearer, human-readable error messages for authentication failures instead of generic raw exceptions.
+
+### 🎨 Visuals & UI
+* **Glassmorphic Login Screen** — Redesigned the authentication screen with a modern, glassmorphic layout for a premium feel.
+* **Profile Card Performance** — Optimized image rendering and gradient overlays to keep swiping butter-smooth.
+
+### ⚙️ Under-the-Hood
+* **Modernized Android Build** — Migrated Gradle build configuration from Groovy to Kotlin DSL (`build.gradle.kts`) for better maintainability and modern standard adherence.
+
+---
+
 ## v1.7.0 — Immersive Display, Authentication & Startup Polish (June 4, 2026)
 
 ### 🎨 Visuals & Styling

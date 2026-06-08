@@ -1,5 +1,20 @@
 # Changelog
 
+## [16.0.0] - 2026-06-08
+
+### 🎨 Visuals & UI
+* **Glassmorphic Login**: Redesigned the authentication screen with a modern, premium glassmorphic layout.
+* **Profile Rendering**: Optimized profile card image rendering and gradient overlays for smoother swiping.
+
+### 🔑 Authentication
+* **Sign-In Reliability**: Resolved a production bug (Error 12500) by enabling the required People API for Google Sign-In.
+* **Error Handling**: Implemented specific error code parsing for clearer, user-friendly authentication failure messages.
+
+### ⚙️ Under-the-Hood
+* **Kotlin DSL Migration**: Migrated Android build scripts (`build.gradle`) from Groovy to Kotlin DSL for improved build maintainability.
+
+***
+
 ## [15.0.0] - 2026-06-04
 
 ### 🎨 Visuals & Styling
