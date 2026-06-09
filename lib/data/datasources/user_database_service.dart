@@ -28,25 +28,34 @@ class UserDatabaseService {
       final tempDir = await getTemporaryDirectory();
       final targetPath = p.join(
         tempDir.path,
-        '${userId}_compressed_profile.jpg',
+        '${userId}_compressed_profile.webp',
       );
 
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         targetPath,
-        quality: 70, // 70% quality drops size by ~80% with minimal visual loss
-        minWidth: 800,
-        minHeight: 800,
+        quality: 60, // 60% quality WebP is excellent and very small
+        minWidth: 500,
+        minHeight: 500,
+        format: CompressFormat.webp,
       );
 
       final fileToUpload = compressedXFile != null
           ? File(compressedXFile.path)
           : imageFile;
 
-      final ref = _storage.ref().child('user_images').child('$userId.jpg');
+      // Clean up legacy .jpg file if it exists so we don't have duplicates
+      try {
+        await _storage.ref().child('user_images').child('$userId.jpg').delete();
+        debugPrint("Deleted legacy .jpg profile image.");
+      } catch (e) {
+        // Ignore if it doesn't exist
+      }
+
+      final ref = _storage.ref().child('user_images').child('$userId.webp');
 
       final metadata = SettableMetadata(
-        contentType: 'image/jpeg',
+        contentType: 'image/webp',
         customMetadata: {'picked-file-path': imageFile.path},
       );
 

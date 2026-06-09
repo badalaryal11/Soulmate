@@ -3,8 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'dart:io';
 
 import '../../domain/entities/user.dart';
@@ -223,24 +221,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       // Handle picked image from device
       if (_imageFile != null) {
-        final appDir = await getApplicationDocumentsDirectory();
-        final fileName =
-            '${widget.firebaseUser.uid}_avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
-        final localFile = File('${appDir.path}/$fileName');
-
-        final compressed = await FlutterImageCompress.compressAndGetFile(
-          _imageFile!.absolute.path,
-          localFile.path,
-          quality: 75,
-          format: CompressFormat.webp,
+        imageUrl = await _userRepository.uploadProfileImage(
+          widget.firebaseUser.uid,
+          _imageFile,
         );
-
-        if (compressed != null) {
-          imageUrl = 'file://${compressed.path}';
-        } else {
-          await _imageFile!.copy(localFile.path);
-          imageUrl = 'file://${localFile.path}';
-        }
       } else if (_selectedAvatarUrl != null) {
         imageUrl = _selectedAvatarUrl!;
       }

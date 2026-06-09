@@ -11,9 +11,7 @@ import '../../core/utils/image_generation_service.dart';
 import '../providers/current_user_provider.dart';
 import 'interest_selection_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import '../widgets/user_avatar.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -355,7 +353,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _imageFile = File(image.path);
         _generatedAvatarUrl = null;
         _uploadedImageUrl = null;
-        // The background upload starts immediately in _saveProfile or similar flows if needed
+        _isUploadingImage = true;
+
+        _pendingUploadFuture = ServiceLocator.userRepository
+            .uploadProfileImage(_currentUser!.id, _imageFile)
+            .then((url) {
+          if (mounted) {
+            setState(() {
+              _uploadedImageUrl = url;
+              _isUploadingImage = false;
+              _pendingUploadFuture = null;
+            });
+          }
+          return url;
+        }).catchError((e) {
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+              _pendingUploadFuture = null;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Image upload failed: $e')),
+            );
+          }
+          throw e;
+        });
       });
     }
   }
@@ -429,25 +451,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             throw Exception("Image upload failed");
           }
         } else {
-          // Device upload - save locally instead of Firebase Storage
-          final appDir = await getApplicationDocumentsDirectory();
-          final fileName =
-              '${_currentUser!.id}_avatar_${DateTime.now().millisecondsSinceEpoch}.webp';
-          final localFile = File('${appDir.path}/$fileName');
-
-          final compressed = await FlutterImageCompress.compressAndGetFile(
-            _imageFile!.absolute.path,
-            localFile.path,
-            quality: 75,
-            format: CompressFormat.webp,
+          // Fallback if background upload wasn't started for some reason
+          final rawUrl = await ServiceLocator.userRepository.uploadProfileImage(
+            _currentUser!.id,
+            _imageFile,
           );
-
-          if (compressed != null) {
-            localDisplayImageUrl = 'file://${compressed.path}';
-          } else {
-            await _imageFile!.copy(localFile.path);
-            localDisplayImageUrl = 'file://${localFile.path}';
-          }
+          localDisplayImageUrl = '$rawUrl&v=${DateTime.now().millisecondsSinceEpoch}';
         }
       } else if (_generatedAvatarUrl != null) {
         localDisplayImageUrl = _generatedAvatarUrl!;
