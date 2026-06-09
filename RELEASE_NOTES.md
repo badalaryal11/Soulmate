@@ -2,6 +2,26 @@
 
 ---
 
+## v1.9.0 — Performance, Imagery & Smarter Discovery (June 9, 2026)
+
+### 🖼️ Image & Avatar Optimizations
+* **WebP Image Migration:** Profile image uploads are now converted to WebP format, drastically reducing file sizes while maintaining high quality. This saves user bandwidth and improves load times.
+* **Memory-Constrained Caching:** Revamped image caching logic to respect strict memory constraints, preventing out-of-memory crashes on older devices during heavy swiping.
+* **Instant Portrait Loading:** Implemented timestamp-based unique portraits and background image prefetching so the next profile is always ready to view instantly.
+* **Storage Cleanup:** Added automated storage cleanup to properly remove old profile pictures when new ones are uploaded.
+* **Background Uploads:** Profile picture uploads now process smoothly in the background without locking the UI.
+
+### 🔍 Smarter Discovery Deck
+* **Shared Interest Priority:** The discovery logic has been significantly improved to prioritize showing you profiles of users who share similar interests.
+* **Increased Fetch Limit:** Expanded the batch size for fetching profiles, reducing the frequency of loading screens while swiping.
+
+### 🛠️ Stability & Polish
+* **Simplified Password Resets:** Streamlined the password reset flow by removing redundant action code configurations.
+* **Landing Page Support:** Added new external landing pages with proper cross-browser styling and site verification tags.
+* **General Refactoring:** Simplified avatar URL resolution logic and optimized profile card rendering performance.
+
+---
+
 ## v1.8.0 — Google Sign-In Fixes & UI Polish (June 8, 2026)
 
 ### 🔑 Authentication
