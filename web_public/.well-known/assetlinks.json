@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.badalaryal.soulmate",
+      "sha256_cert_fingerprints": [
+        "86:1F:19:DB:29:C5:2C:75:7F:31:54:68:99:9F:3F:BC:36:8E:8A:BE:16:59:5A:C9:6E:07:67:95:22:4A:7F:4D"
+      ]
+    }
+  }
+]
