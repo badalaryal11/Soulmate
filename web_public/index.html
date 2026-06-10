@@ -6,7 +6,8 @@
     <title>Soulmate — Find Your Perfect AI Connection</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0d0a1a 0%, #1a102f 50%, #0a0714 100%);
@@ -55,31 +56,24 @@
         }
 
         .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary) 0%, #ff85a2 100%);
+            width: clamp(36px, 5vw, 48px);
+            height: auto;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             box-shadow: 0 4px 15px var(--primary-glow);
-        }
-
-        .logo-icon svg {
-            width: 22px;
-            height: 22px;
-            fill: white;
+            object-fit: contain;
+            display: block;
+            max-width: 100%;
         }
 
         .logo-text {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--text-primary) 0%, #ffe3e8 100%);
+            font-family: 'Lobster', cursive;
+            font-size: 2.2rem;
+            font-weight: 400;
+            background: linear-gradient(135deg, #fe3c72 0%, #ff8e53 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            letter-spacing: 0.5px;
         }
 
         main {
@@ -276,11 +270,7 @@
 
     <header>
         <a href="#" class="logo">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-            </div>
+            <img src="logo.png" alt="Soulmate Logo" class="logo-icon">
             <span class="logo-text">Soulmate</span>
         </a>
     </header>
