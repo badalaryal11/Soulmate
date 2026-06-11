@@ -3,6 +3,8 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
 import '../providers/discovery_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/image_generation_service.dart';
+import '../../core/utils/image_utils.dart';
 import 'profile_card.dart';
 
 class HomeTab extends StatelessWidget {
@@ -55,6 +57,23 @@ class HomeTab extends StatelessWidget {
 
         final colorScheme = Theme.of(context).colorScheme;
         final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        // Eagerly pre-cache the first 3 images so swiping feels instantaneous
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          final limit = provider.filteredUsers.length < 3 ? provider.filteredUsers.length : 3;
+          for (int i = 0; i < limit; i++) {
+            final user = provider.filteredUsers[i];
+            // ProfileCard will use cacheWidth/memCacheWidth 600, so we match it here
+            final imageProvider = ImageUtils.getImageProvider(
+              user.imageUrl.isNotEmpty ? user.imageUrl : ImageGenerationService.generateProfileImageUrl(user),
+              maxWidth: 600,
+            );
+            if (imageProvider != null) {
+              precacheImage(imageProvider, context).catchError((_) {}); // Ignore errors silently
+            }
+          }
+        });
 
         return DecoratedBox(
           decoration: BoxDecoration(
