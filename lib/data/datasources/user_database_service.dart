@@ -34,9 +34,9 @@ class UserDatabaseService {
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         targetPath,
-        quality: 60, // 60% quality WebP is excellent and very small
-        minWidth: 500,
-        minHeight: 500,
+        quality: 40, // Reduced quality from 60 to 40 for much faster uploads
+        minWidth: 400,
+        minHeight: 400,
         format: CompressFormat.webp,
       );
 

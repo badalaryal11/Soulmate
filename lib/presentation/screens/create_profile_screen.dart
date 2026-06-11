@@ -41,6 +41,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   String _selectedGender = 'Male';
   int _age = 18;
   bool _isLoading = false;
+  
+  // Background Upload State
+  bool _isUploadingImage = false;
+  String? _uploadedImageUrl;
+  Future<String?>? _pendingUploadFuture;
 
   @override
   void initState() {
@@ -84,6 +89,37 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       setState(() {
         _imageFile = File(image.path);
         _selectedAvatarUrl = null;
+        _uploadedImageUrl = null;
+        _isUploadingImage = true;
+
+        _pendingUploadFuture = _userRepository
+            .uploadProfileImage(
+              widget.firebaseUser.uid, 
+              _imageFile,
+              userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+              email: widget.firebaseUser.email,
+            )
+            .then((url) {
+          if (mounted) {
+            setState(() {
+              _uploadedImageUrl = url;
+              _isUploadingImage = false;
+              _pendingUploadFuture = null;
+            });
+          }
+          return url;
+        }).catchError((e) {
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+              _pendingUploadFuture = null;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Image upload failed: $e')),
+            );
+          }
+          throw e;
+        });
       });
     }
   }
@@ -172,6 +208,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           setState(() {
                             _selectedAvatarUrl = url;
                             _imageFile = null;
+                            _uploadedImageUrl = null;
+                            _isUploadingImage = false;
                           });
                           Navigator.pop(context);
                         },
@@ -221,12 +259,23 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       // Handle picked image from device
       if (_imageFile != null) {
-        imageUrl = await _userRepository.uploadProfileImage(
-          widget.firebaseUser.uid,
-          _imageFile,
-          userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
-          email: widget.firebaseUser.email,
-        );
+        if (_uploadedImageUrl != null) {
+          imageUrl = _uploadedImageUrl!;
+        } else if (_pendingUploadFuture != null) {
+          final url = await _pendingUploadFuture;
+          if (url != null) {
+            imageUrl = url;
+          } else {
+            throw Exception("Image upload failed");
+          }
+        } else {
+          imageUrl = await _userRepository.uploadProfileImage(
+            widget.firebaseUser.uid,
+            _imageFile,
+            userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+            email: widget.firebaseUser.email,
+          );
+        }
       } else if (_selectedAvatarUrl != null) {
         imageUrl = _selectedAvatarUrl!;
       }
@@ -319,6 +368,22 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                             ? FileImage(_imageFile!)
                             : null,
                       ),
+                      if (_isUploadingImage)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.2),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFFFE3C72),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       Positioned(
                         bottom: 0,
                         right: 0,
