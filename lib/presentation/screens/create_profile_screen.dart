@@ -224,6 +224,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         imageUrl = await _userRepository.uploadProfileImage(
           widget.firebaseUser.uid,
           _imageFile,
+          userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+          email: widget.firebaseUser.email,
         );
       } else if (_selectedAvatarUrl != null) {
         imageUrl = _selectedAvatarUrl!;

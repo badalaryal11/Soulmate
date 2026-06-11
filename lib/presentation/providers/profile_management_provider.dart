@@ -115,7 +115,7 @@ class ProfileManagementProvider extends ChangeNotifier {
     await _saveFeedbackUseCase(userId, message);
   }
 
-  Future<String> uploadProfileImage(String userId, dynamic imageFile) async {
-    return await _uploadProfileImageUseCase(userId, imageFile);
+  Future<String> uploadProfileImage(String userId, dynamic imageFile, {String? userName, String? email}) async {
+    return await _uploadProfileImageUseCase(userId, imageFile, userName: userName, email: email);
   }
 }

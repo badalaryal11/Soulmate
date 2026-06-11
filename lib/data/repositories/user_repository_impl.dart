@@ -89,9 +89,9 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<String> uploadProfileImage(String userId, dynamic imageFile) async {
+  Future<String> uploadProfileImage(String userId, dynamic imageFile, {String? userName, String? email}) async {
     try {
-      return await _databaseService.uploadProfileImage(userId, imageFile);
+      return await _databaseService.uploadProfileImage(userId, imageFile, userName: userName, email: email);
     } catch (e) {
       throw ServerFailure(e.toString());
     }

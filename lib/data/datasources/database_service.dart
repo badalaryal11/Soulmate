@@ -46,8 +46,8 @@ class DatabaseService {
 
   // --- User operations (delegate to UserDatabaseService) ---
 
-  Future<String> uploadProfileImage(String userId, File imageFile) =>
-      _userService.uploadProfileImage(userId, imageFile);
+  Future<String> uploadProfileImage(String userId, File imageFile, {String? userName, String? email}) =>
+      _userService.uploadProfileImage(userId, imageFile, userName: userName, email: email);
 
   Future<void> saveUser(domain.User user) => _userService.saveUser(user);
 

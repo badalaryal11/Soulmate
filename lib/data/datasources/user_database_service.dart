@@ -19,7 +19,7 @@ class UserDatabaseService {
       _storage = storage ?? FirebaseStorage.instance;
 
   /// Upload a profile image and return the download URL.
-  Future<String> uploadProfileImage(String userId, File imageFile) async {
+  Future<String> uploadProfileImage(String userId, File imageFile, {String? userName, String? email}) async {
     try {
       debugPrint("Starting image upload for user: $userId");
 
@@ -54,9 +54,13 @@ class UserDatabaseService {
 
       final ref = _storage.ref().child('user_images').child('$userId.webp');
 
+      final customMetadata = {'picked-file-path': imageFile.path};
+      if (userName != null) customMetadata['userName'] = userName;
+      if (email != null) customMetadata['email'] = email;
+
       final metadata = SettableMetadata(
         contentType: 'image/webp',
-        customMetadata: {'picked-file-path': imageFile.path},
+        customMetadata: customMetadata,
       );
 
       final uploadTask = ref.putFile(fileToUpload, metadata);

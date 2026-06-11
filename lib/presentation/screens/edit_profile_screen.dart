@@ -356,7 +356,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isUploadingImage = true;
 
         _pendingUploadFuture = ServiceLocator.userRepository
-            .uploadProfileImage(_currentUser!.id, _imageFile)
+            .uploadProfileImage(
+              _currentUser!.id, 
+              _imageFile,
+              userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+              email: _currentUser!.email,
+            )
             .then((url) {
           if (mounted) {
             setState(() {
@@ -455,6 +460,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           final rawUrl = await ServiceLocator.userRepository.uploadProfileImage(
             _currentUser!.id,
             _imageFile,
+            userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+            email: _currentUser!.email,
           );
           localDisplayImageUrl = '$rawUrl&v=${DateTime.now().millisecondsSinceEpoch}';
         }
