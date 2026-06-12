@@ -2,6 +2,18 @@
 
 ---
 
+## v1.9.2 — Privacy Policy Styling & Android SDK Update (June 12, 2026)
+
+### 📄 Branding & Styling
+* **Privacy Policy Branding:** Redesigned the external privacy policy webpage with the official custom logo, favicon, and cursive `Lobster` font styling to match the Soulmate brand.
+
+### 🤖 Android SDK & Immersive UI
+* **Android SDK Upgrade:** Bumped the compile and target SDK versions to API 36.
+* **Edge-to-Edge Display:** Enabled native edge-to-edge layouts (via `enableEdgeToEdge()`) in `MainActivity` for a modern, bezel-less visual experience.
+* **MainActivity Refactoring:** Updated `MainActivity` to extend `FlutterFragmentActivity` to provide enhanced support compatibility.
+
+---
+
 ## v1.9.1 — Multilingual AI Chat (June 12, 2026)
 
 ### 💬 Multilingual AI Chat
