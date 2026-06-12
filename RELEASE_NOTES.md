@@ -2,6 +2,13 @@
 
 ---
 
+## v1.9.1 — Multilingual AI Chat (June 12, 2026)
+
+### 💬 Multilingual AI Chat
+* **Language-Aware Conversations:** Configured the AI matching partner to automatically detect and respond in the same language or dialect that the user is currently using, ensuring full multilingual support (Spanish, French, Nepali, Hindi, Japanese, etc.) without losing persona consistency.
+
+---
+
 ## v1.9.0 — Performance, Imagery & Smarter Discovery (June 9, 2026)
 
 ### 🖼️ Image & Avatar Optimizations

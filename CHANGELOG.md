@@ -1,5 +1,12 @@
 # Changelog
 
+## [17.0.0] - 2026-06-12
+
+### 💬 Multilingual AI Chat
+* **Language-Aware Conversations:** Configured the AI matching partner to automatically detect and respond in the same language or dialect that the user is currently using, ensuring full multilingual support (Spanish, French, Nepali, Hindi, Japanese, etc.) without losing persona consistency.
+
+***
+
 ## [16.0.0] - 2026-06-08
 
 ### 🎨 Visuals & UI
