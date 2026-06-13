@@ -1,5 +1,13 @@
 # Changelog
 
+## [18.0.0] - 2026-06-13
+
+### 🔑 Authentication
+* **Google Sign-In Fix:** Resolved a `PlatformException` on Android caused by a hardcoded `serverClientId` conflicting with auto-detected configuration from `google-services.json`.
+* **OAuth Scopes:** Added explicit `email` and `profile` scopes to the Google Sign-In configuration for reliable user data retrieval.
+
+***
+
 ## [17.0.1] - 2026-06-12
 
 ### 📄 Branding & Styling

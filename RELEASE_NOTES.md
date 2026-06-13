@@ -2,6 +2,17 @@
 
 ---
 
+## v1.9.3 — Google Sign-In Fix (June 13, 2026)
+
+### 🔑 Authentication
+* **Google Sign-In Resolved** — Fixed a `PlatformException` that prevented Google Sign-In from completing on Android. The root cause was a hardcoded `serverClientId` in the `GoogleSignIn` constructor that conflicted with the auto-detected web client ID from `google-services.json`.
+* **Explicit OAuth Scopes** — Added explicit `email` and `profile` scopes to the Google Sign-In configuration for reliable user information retrieval across all build types.
+
+### ⚙️ Under-the-Hood
+* **Production-Safe Configuration** — Verified ProGuard keep rules, release keystore SHA-1 registration, and signing config to ensure the fix works identically in both debug and release builds.
+
+---
+
 ## v1.9.2 — Privacy Policy Styling & Android SDK Update (June 12, 2026)
 
 ### 📄 Branding & Styling
