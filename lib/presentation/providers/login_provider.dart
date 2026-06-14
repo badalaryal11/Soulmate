@@ -56,7 +56,7 @@ class LoginProvider extends ChangeNotifier {
       if (credential != null && credential.user != null) {
         return await _handleSuccessfulAuth(credential.user!);
       } else {
-        _setError('Sign in cancelled or configuration missing.');
+        // Sign-in was cancelled by the user.
         return null;
       }
     } catch (e) {
