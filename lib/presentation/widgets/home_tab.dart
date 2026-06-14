@@ -42,14 +42,10 @@ class HomeTab extends StatelessWidget {
         }
 
         if (provider.filteredUsers.isEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            provider.loadUsers(gender: provider.selectedGender);
-          });
-
           return _StatusPanel(
-            icon: const CircularProgressIndicator(),
-            title: 'Refreshing your deck',
-            subtitle: 'Hold on while we load more people nearby.',
+            icon: const Icon(Icons.group_off_rounded, size: 46, color: Colors.grey),
+            title: 'You caught up!',
+            subtitle: 'Check back later for more people nearby.',
             actionLabel: 'Refresh',
             onAction: () => provider.loadUsers(clearList: true),
           );
