@@ -71,12 +71,12 @@ void main() async {
     }
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    await FirebaseAppCheck.instance.activate(
-      providerAndroid: kDebugMode 
-          ? const AndroidDebugProvider() 
-          : const AndroidPlayIntegrityProvider(),
-      providerApple: const AppleDeviceCheckProvider(),
-    );
+    // await FirebaseAppCheck.instance.activate(
+    //   providerAndroid: kDebugMode 
+    //       ? const AndroidDebugProvider() 
+    //       : const AndroidPlayIntegrityProvider(),
+    //   providerApple: const AppleDeviceCheckProvider(),
+    // );
 
     // Configure Firestore cache to prevent unbounded local storage growth
     FirebaseFirestore.instance.settings = const Settings(
