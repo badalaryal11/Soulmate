@@ -144,13 +144,26 @@ class MockUserRepository extends _i1.Mock implements _i3.UserRepository {
           as _i5.Future<void>);
 
   @override
-  _i5.Future<String> uploadProfileImage(String? userId, dynamic imageFile) =>
+  _i5.Future<String> uploadProfileImage(
+    String? userId,
+    dynamic imageFile, {
+    String? userName,
+    String? email,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#uploadProfileImage, [userId, imageFile]),
+            Invocation.method(
+              #uploadProfileImage,
+              [userId, imageFile],
+              {#userName: userName, #email: email},
+            ),
             returnValue: _i5.Future<String>.value(
               _i7.dummyValue<String>(
                 this,
-                Invocation.method(#uploadProfileImage, [userId, imageFile]),
+                Invocation.method(
+                  #uploadProfileImage,
+                  [userId, imageFile],
+                  {#userName: userName, #email: email},
+                ),
               ),
             ),
           )
@@ -761,13 +774,26 @@ class MockUploadProfileImageUseCase extends _i1.Mock
           as _i3.UserRepository);
 
   @override
-  _i5.Future<String> call(String? userId, dynamic imageFile) =>
+  _i5.Future<String> call(
+    String? userId,
+    dynamic imageFile, {
+    String? userName,
+    String? email,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#call, [userId, imageFile]),
+            Invocation.method(
+              #call,
+              [userId, imageFile],
+              {#userName: userName, #email: email},
+            ),
             returnValue: _i5.Future<String>.value(
               _i7.dummyValue<String>(
                 this,
-                Invocation.method(#call, [userId, imageFile]),
+                Invocation.method(
+                  #call,
+                  [userId, imageFile],
+                  {#userName: userName, #email: email},
+                ),
               ),
             ),
           )

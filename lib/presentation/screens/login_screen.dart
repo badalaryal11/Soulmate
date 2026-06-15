@@ -663,6 +663,7 @@ class _SocialButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -676,7 +677,11 @@ class _SocialButtons extends StatelessWidget {
         ),
         const SizedBox(width: 20),
         _SocialIconButton(
-          icon: FontAwesomeIcons.apple,
+          iconWidget: FaIcon(
+            FontAwesomeIcons.apple,
+            color: isDark ? Colors.white : Colors.black,
+            size: 26,
+          ),
           onTap: isLoading ? () {} : onAppleTap,
         ),
       ],

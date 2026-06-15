@@ -559,13 +559,7 @@ class MockGoogleSignIn extends _i1.Mock implements _i5.GoogleSignIn {
     _i1.throwOnMissingStub(this);
   }
 
-  @override
-  _i8.SignInOption get signInOption =>
-      (super.noSuchMethod(
-            Invocation.getter(#signInOption),
-            returnValue: _i8.SignInOption.standard,
-          )
-          as _i8.SignInOption);
+
 
   @override
   List<String> get scopes =>
@@ -1004,17 +998,15 @@ class MockGoogleSignInAccount extends _i1.Mock
           as String);
 
   @override
-  _i6.Future<_i5.GoogleSignInAuthentication> get authentication =>
+  _i5.GoogleSignInAuthentication get authentication =>
       (super.noSuchMethod(
             Invocation.getter(#authentication),
-            returnValue: _i6.Future<_i5.GoogleSignInAuthentication>.value(
-              _FakeGoogleSignInAuthentication_9(
-                this,
-                Invocation.getter(#authentication),
-              ),
+            returnValue: _FakeGoogleSignInAuthentication_9(
+              this,
+              Invocation.getter(#authentication),
             ),
           )
-          as _i6.Future<_i5.GoogleSignInAuthentication>);
+          as _i5.GoogleSignInAuthentication);
 
   @override
   _i6.Future<Map<String, String>> get authHeaders =>

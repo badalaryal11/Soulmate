@@ -17,9 +17,7 @@ class AuthService {
       _googleSignIn =
           googleSignIn ??
           _mockGoogleSignIn ??
-          GoogleSignIn(
-            scopes: ['email', 'profile'],
-          );
+          GoogleSignIn.instance;
 
   @visibleForTesting
   static void setMockInstances({
@@ -45,17 +43,15 @@ class AuthService {
         return await _auth.signInWithPopup(authProvider);
       } else {
         // Mobile handling
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        final googleUser = await _googleSignIn.authenticate();
 
-        if (googleUser == null) {
-          return null; // The user canceled the sign-in
-        }
+        // Authorize scopes to retrieve the access token
+        final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
 
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
+          accessToken: clientAuth.accessToken,
           idToken: googleAuth.idToken,
         );
 

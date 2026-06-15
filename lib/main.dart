@@ -24,6 +24,7 @@ import 'presentation/providers/discovery_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -67,6 +68,7 @@ void main() async {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     }
+    await GoogleSignIn.instance.initialize();
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // await FirebaseAppCheck.instance.activate(
