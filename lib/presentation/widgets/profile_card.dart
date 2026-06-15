@@ -75,7 +75,7 @@ class ProfileCard extends StatelessWidget {
         targetUrl,
         fit: BoxFit.cover,
         cacheWidth: 600, // Optimize memory and decoding time
-        errorBuilder: (_, __, ___) =>
+        errorBuilder: (_, _, _) =>
             const Center(child: Icon(Icons.error)),
       );
     }
@@ -85,7 +85,7 @@ class ProfileCard extends StatelessWidget {
         File(targetUrl.substring(7)),
         fit: BoxFit.cover,
         cacheWidth: 600, // Optimize memory and decoding time
-        errorBuilder: (_, __, ___) =>
+        errorBuilder: (_, _, _) =>
             const Center(child: Icon(Icons.error)),
       );
     }
@@ -97,9 +97,9 @@ class ProfileCard extends StatelessWidget {
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
       // Lightweight placeholder — just a colored box, no spinner
-      placeholder: (_, __) => const ColoredBox(color: Color(0xFFEEEEEE)),
+      placeholder: (_, _) => const ColoredBox(color: Color(0xFFEEEEEE)),
       // Lightweight error — no nested CachedNetworkImage
-      errorWidget: (_, __, ___) => const ColoredBox(
+      errorWidget: (_, _, _) => const ColoredBox(
         color: Color(0xFFE0E0E0),
         child: Center(
           child: Icon(Icons.person, color: Colors.grey, size: 48),
