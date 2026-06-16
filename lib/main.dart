@@ -68,7 +68,9 @@ void main() async {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     }
-    await GoogleSignIn.instance.initialize();
+    await GoogleSignIn.instance.initialize(
+      serverClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+    );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // await FirebaseAppCheck.instance.activate(

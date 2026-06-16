@@ -45,13 +45,9 @@ class AuthService {
         // Mobile handling
         final googleUser = await _googleSignIn.authenticate();
 
-        // Authorize scopes to retrieve the access token
-        final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
-
         final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: clientAuth.accessToken,
           idToken: googleAuth.idToken,
         );
 
