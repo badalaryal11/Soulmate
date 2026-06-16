@@ -66,16 +66,19 @@ void main() async {
 
   try {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     }
     await GoogleSignIn.instance.initialize(
-      serverClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+      serverClientId:
+          '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // await FirebaseAppCheck.instance.activate(
-    //   providerAndroid: kDebugMode 
-    //       ? const AndroidDebugProvider() 
+    //   providerAndroid: kDebugMode
+    //       ? const AndroidDebugProvider()
     //       : const AndroidPlayIntegrityProvider(),
     //   providerApple: const AppleDeviceCheckProvider(),
     // );
@@ -110,8 +113,8 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initDeepLinks();
     _initNotificationNavigation();
-    
-    // Initialize notifications after the app is mounted to prevent 
+
+    // Initialize notifications after the app is mounted to prevent
     // blocking the splash screen with permission dialogs.
     Future.microtask(() {
       ServiceLocator.notificationRepository.initialize();
@@ -274,8 +277,7 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
       final suffix = '_$currentUid';
       if (chatId.startsWith(prefix) && chatId.length > prefix.length) {
         otherUserId = chatId.substring(prefix.length);
-      } else if (chatId.endsWith(suffix) &&
-          chatId.length > suffix.length) {
+      } else if (chatId.endsWith(suffix) && chatId.length > suffix.length) {
         otherUserId = chatId.substring(0, chatId.length - suffix.length);
       }
     }
