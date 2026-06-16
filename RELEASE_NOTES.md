@@ -2,6 +2,14 @@
 
 ---
 
+## v1.9.4 — Google Sign-In & Stability Fixes (June 16, 2026)
+
+### 🔑 Authentication
+* **Google Sign-In Resolved** — Fixed a critical issue that caused Google Sign-In to fail on newer Android devices (`Error 16: Account reauth failed`). We've updated our authentication flow to fully support the modern Android Credential Manager by explicitly providing the backend server client ID during initialization.
+* **Streamlined Login Flow** — Cleaned up the authentication codebase to properly handle synchronous token retrieval and cancellation states in the latest Google Sign-In SDK.
+
+---
+
 ## v1.9.3 — Google Sign-In Fix (June 13, 2026)
 
 ### 🔑 Authentication
