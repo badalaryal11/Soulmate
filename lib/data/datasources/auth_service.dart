@@ -53,32 +53,33 @@ class AuthService {
 
         return await _auth.signInWithCredential(credential);
       }
+    } on GoogleSignInException catch (e, stackTrace) {
+      debugPrint("GoogleSignInException signing in: ${e.code.name} - ${e.description}");
+      debugPrint("Stack trace: $stackTrace");
+      
+      switch (e.code) {
+        case GoogleSignInExceptionCode.canceled:
+        case GoogleSignInExceptionCode.interrupted:
+          return null; // User cancelled or was interrupted
+        case GoogleSignInExceptionCode.uiUnavailable:
+          throw PlatformException(
+            code: e.code.name,
+            message: 'Google Sign-In UI is unavailable.',
+          );
+        default:
+          throw PlatformException(
+            code: e.code.name,
+            message: 'Google Sign-In failed: ${e.description}',
+          );
+      }
     } on PlatformException catch (e, stackTrace) {
       debugPrint("PlatformException signing in with Google: ${e.code} - ${e.message}");
       debugPrint("Stack trace: $stackTrace");
-      // Provide a more specific error message based on error code
-      final errorCode = e.message?.contains('12500') == true ? '12500' : e.code;
-      switch (errorCode) {
-        case '12500':
-          throw PlatformException(
-            code: e.code,
-            message: 'Google Sign-In failed. Please try again later.',
-          );
-        case '12501':
-          return null; // User cancelled
-        case '12502':
-          throw PlatformException(
-            code: e.code,
-            message: 'Sign-in already in progress. Please wait.',
-          );
-        case '10':
-          throw PlatformException(
-            code: e.code,
-            message: 'Google Sign-In configuration error. Please contact support.',
-          );
-        default:
-          rethrow;
-      }
+      // Fallback for any other platform exceptions
+      throw PlatformException(
+        code: e.code,
+        message: 'Google Sign-In failed. Please try again later.',
+      );
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
