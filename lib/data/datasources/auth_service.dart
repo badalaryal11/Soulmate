@@ -85,13 +85,11 @@ class AuthService {
       } else {
         // iOS / other platforms fallback to google_sign_in package
         final googleUser = await _googleSignIn.authenticate();
-        if (googleUser == null) return null;
 
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final googleAuth = googleUser.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
-          accessToken: googleAuth.accessToken,
         );
 
         return await _auth.signInWithCredential(credential);
