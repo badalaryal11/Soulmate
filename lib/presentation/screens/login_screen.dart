@@ -87,28 +87,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _OneTapLoginButton(
-                                  isLoading: loginProvider.isLoading,
-                                  onPressed: _handleOneTapLogin,
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    const Expanded(child: Divider()),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                      child: Text(
-                                        'Or continue with email',
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    const Expanded(child: Divider()),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
                                 _EmailInputField(
                                   controller: _emailController,
                                   validator: (value) {
@@ -205,10 +183,17 @@ class _LoginScreenState extends State<LoginScreen> {
     final loginProvider = context.read<LoginProvider>();
 
     if (isNewUser == null) {
-      // Login failed or cancelled — show provider error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loginProvider.errorMessage ?? 'Login failed')),
-      );
+      // Login failed or cancelled
+      if (loginProvider.errorMessage != null) {
+        // Clean up "Exception: " prefix if present
+        String displayMessage = loginProvider.errorMessage!;
+        if (displayMessage.startsWith('Exception: ')) {
+          displayMessage = displayMessage.substring(11);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(displayMessage)),
+        );
+      }
       return;
     }
 
@@ -229,12 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleLogin() async {
     final loginProvider = context.read<LoginProvider>();
     final isNewUser = await loginProvider.signInWithGoogle();
-    _navigateAfterAuth(isNewUser);
-  }
-
-  Future<void> _handleOneTapLogin() async {
-    final loginProvider = context.read<LoginProvider>();
-    final isNewUser = await loginProvider.signInWithCredentialManager();
     _navigateAfterAuth(isNewUser);
   }
 
@@ -648,73 +627,6 @@ class _RegisterLink extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _OneTapLoginButton extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  const _OneTapLoginButton({required this.isLoading, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final buttonRadius = BorderRadius.circular(16);
-
-    return Container(
-      width: double.infinity,
-      height: 52,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C313C) : const Color(0xFFF0F2F5),
-        borderRadius: buttonRadius,
-        border: Border.all(
-          color: isDark ? const Color(0xFF454B57) : const Color(0xFFDDE1E6),
-          width: 1.2,
-        ),
-      ),
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: isDark ? Colors.white : Colors.black87,
-          shadowColor: Colors.transparent,
-          disabledBackgroundColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: buttonRadius,
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.fingerprint, // Or a passkey/saved credentials icon
-                    color: isDark ? Colors.white70 : Colors.black54,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'One-Tap Sign In',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-      ),
     );
   }
 }

@@ -29,6 +29,7 @@ class AuthService {
       if (_credentialManager.isSupportedPlatform) {
         await _credentialManager.init(
           preferImmediatelyAvailableCredentials: true,
+          googleClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
         );
         _isCredentialManagerInitialized = true;
       }
@@ -59,41 +60,45 @@ class AuthService {
         // Web handling
         GoogleAuthProvider authProvider = GoogleAuthProvider();
         return await _auth.signInWithPopup(authProvider);
-      } else {
-        // Mobile handling
-        final googleUser = await _googleSignIn.authenticate();
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        // Android handling using Credential Manager
+        if (!_isCredentialManagerInitialized) {
+          throw PlatformException(
+            code: 'CREDENTIAL_MANAGER_NOT_INITIALIZED',
+            message: 'Credential Manager is not initialized.',
+          );
+        }
 
-        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+        final credential = await _credentialManager.getCredentials(
+          fetchOptions: FetchOptionsAndroid(googleCredential: true),
+        );
+
+        if (credential.runtimeType.toString() == 'GoogleIdTokenCredential') {
+          final idToken = (credential as dynamic).idToken as String;
+          final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
+            idToken: idToken,
+          );
+          return await _auth.signInWithCredential(firebaseCredential);
+        } else {
+          return null;
+        }
+      } else {
+        // iOS / other platforms fallback to google_sign_in package
+        final googleUser = await _googleSignIn.authenticate();
+        if (googleUser == null) return null;
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
+          accessToken: googleAuth.accessToken,
         );
 
         return await _auth.signInWithCredential(credential);
       }
-    } on GoogleSignInException catch (e, stackTrace) {
-      debugPrint("GoogleSignInException signing in: ${e.code.name} - ${e.description}");
-      debugPrint("Stack trace: $stackTrace");
-      
-      switch (e.code) {
-        case GoogleSignInExceptionCode.canceled:
-        case GoogleSignInExceptionCode.interrupted:
-          return null; // User cancelled or was interrupted
-        case GoogleSignInExceptionCode.uiUnavailable:
-          throw PlatformException(
-            code: e.code.name,
-            message: 'Google Sign-In UI is unavailable.',
-          );
-        default:
-          throw PlatformException(
-            code: e.code.name,
-            message: 'Google Sign-In failed: ${e.description}',
-          );
-      }
     } on PlatformException catch (e, stackTrace) {
       debugPrint("PlatformException signing in with Google: ${e.code} - ${e.message}");
       debugPrint("Stack trace: $stackTrace");
-      // Fallback for any other platform exceptions
       throw PlatformException(
         code: e.code,
         message: 'Google Sign-In failed. Please try again later.',
@@ -101,6 +106,9 @@ class AuthService {
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
+      if (e.runtimeType.toString() == 'CredentialException') {
+        return null; // User cancelled
+      }
       rethrow;
     }
   }
@@ -203,6 +211,11 @@ class AuthService {
       return null;
     } catch (e) {
       debugPrint("Error signing in with Credential Manager: $e");
+      if (e.runtimeType.toString() == 'CredentialException') {
+        // This usually means the user cancelled the dialog or no credentials exist
+        debugPrint("CredentialException details: ${(e as dynamic).message}");
+        return null;
+      }
       rethrow;
     }
   }
