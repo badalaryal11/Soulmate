@@ -4,6 +4,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:credential_manager/credential_manager.dart' hide User;
 
 class AuthService {
   static FirebaseAuth? _mockAuth;
@@ -11,13 +12,30 @@ class AuthService {
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
+  final CredentialManager _credentialManager = CredentialManager();
+  bool _isCredentialManagerInitialized = false;
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
     : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
       _googleSignIn =
           googleSignIn ??
           _mockGoogleSignIn ??
-          GoogleSignIn.instance;
+          GoogleSignIn.instance {
+    _initCredentialManager();
+  }
+
+  Future<void> _initCredentialManager() async {
+    try {
+      if (_credentialManager.isSupportedPlatform) {
+        await _credentialManager.init(
+          preferImmediatelyAvailableCredentials: true,
+        );
+        _isCredentialManagerInitialized = true;
+      }
+    } catch (e) {
+      debugPrint("Failed to initialize CredentialManager: $e");
+    }
+  }
 
   @visibleForTesting
   static void setMockInstances({
@@ -148,6 +166,47 @@ class AuthService {
     }
   }
 
+  // Sign in using unified Credential Manager UI (One-Tap / Passwords / Google)
+  Future<UserCredential?> signInWithCredentialManager() async {
+    if (!_isCredentialManagerInitialized) {
+      // Fallback if not supported
+      throw PlatformException(
+        code: 'CREDENTIAL_MANAGER_NOT_INITIALIZED',
+        message: 'Credential Manager is not supported or initialized on this device.',
+      );
+    }
+
+    try {
+      final credential = await _credentialManager.getCredentials();
+
+      // We'll check the type by its string representation or known fields if type checking fails
+      // Assuming credential_manager exports PasswordCredential and GoogleIdTokenCredential types.
+      // If it returns a map or specific types:
+      if (credential.runtimeType.toString() == 'PasswordCredential') {
+        final email = (credential as dynamic).username as String;
+        final password = (credential as dynamic).password as String;
+        return await signInWithEmailAndPassword(email, password);
+      } else if (credential.runtimeType.toString() == 'GoogleIdTokenCredential') {
+        final idToken = (credential as dynamic).idToken as String;
+        final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
+          idToken: idToken,
+        );
+        return await _auth.signInWithCredential(firebaseCredential);
+      } else {
+        // Type not matched specifically by runtime string, let's try 'is' if exported, or dump it
+        debugPrint("Unknown credential type: ${credential.runtimeType}");
+      }
+      
+      return null;
+    } on PlatformException catch (e) {
+      debugPrint("Credential Manager Sign-In Error: ${e.message}");
+      return null;
+    } catch (e) {
+      debugPrint("Error signing in with Credential Manager: $e");
+      rethrow;
+    }
+  }
+
   // Register with Email and Password
   Future<UserCredential?> registerWithEmailAndPassword(
     String email,
@@ -162,6 +221,20 @@ class AuthService {
       // Automatically send verification email on registration
       if (credential.user != null && !credential.user!.emailVerified) {
         await credential.user!.sendEmailVerification();
+      }
+
+      // Save credential via Credential Manager
+      if (_isCredentialManagerInitialized) {
+        try {
+          await _credentialManager.savePasswordCredentials(
+            PasswordCredential(
+              username: email,
+              password: password,
+            ),
+          );
+        } catch (e) {
+          debugPrint("Failed to save password credential: $e");
+        }
       }
 
       return credential;

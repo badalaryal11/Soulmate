@@ -67,6 +67,28 @@ class LoginProvider extends ChangeNotifier {
     }
   }
 
+  /// Returns true if the user is a new user (needs to create profile),
+  /// false if the user is an existing user (can proceed to home/gender selection),
+  /// and null if the login failed or was cancelled.
+  Future<bool?> signInWithCredentialManager() async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      final credential = await _authRepository.signInWithCredentialManager();
+      if (credential != null && credential.user != null) {
+        return await _handleSuccessfulAuth(credential.user!);
+      } else {
+        // Sign-in was cancelled by the user or no credentials found.
+        return null;
+      }
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   /// Returns true if the user is a new user, false otherwise.
   Future<bool?> signInWithApple() async {
     _setLoading(true);

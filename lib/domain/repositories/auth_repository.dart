@@ -11,6 +11,9 @@ abstract class AuthRepository {
   /// Stream of authentication state changes.
   Stream<User?> get authStateChanges;
 
+  /// Sign in using unified Credential Manager UI (One-Tap / Passwords / Google).
+  Future<UserCredential?> signInWithCredentialManager();
+
   /// Sign in with Google. Returns null if cancelled.
   Future<UserCredential?> signInWithGoogle();
 

@@ -16,6 +16,15 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<User?> get authStateChanges => _authService.authStateChanges;
 
   @override
+  Future<UserCredential?> signInWithCredentialManager() async {
+    try {
+      return await _authService.signInWithCredentialManager();
+    } catch (e) {
+      throw AuthFailure(e.toString());
+    }
+  }
+
+  @override
   Future<UserCredential?> signInWithGoogle() async {
     try {
       return await _authService.signInWithGoogle();
