@@ -64,13 +64,12 @@ class AuthService {
         // Android / iOS fallback to standard google_sign_in package
         // This is necessary because getCredentials() fails if the user has no saved credentials.
         // google_sign_in handles showing the account picker UI natively.
-        final googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) return null; // User cancelled
+        final googleUser = await _googleSignIn.authenticate();
 
-        final googleAuth = await googleUser.authentication;
+
+        final googleAuth = googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
-          accessToken: googleAuth.accessToken,
         );
 
         return await _auth.signInWithCredential(credential);
@@ -86,6 +85,9 @@ class AuthService {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
       // Check type properly to survive AOT minification
+      if (e is GoogleSignInException && e.code == GoogleSignInExceptionCode.canceled) {
+        return null; // User cancelled
+      }
       if (e is CredentialException || e.toString().contains('CredentialException')) {
         return null; // User cancelled
       }
