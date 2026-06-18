@@ -56,7 +56,8 @@ class LoginProvider extends ChangeNotifier {
       if (credential != null && credential.user != null) {
         return await _handleSuccessfulAuth(credential.user!);
       } else {
-        // Sign-in was cancelled by the user.
+        // Sign-in was cancelled or returned no tokens.
+        debugPrint('Google Sign-In returned null credential.');
         return null;
       }
     } catch (e) {

@@ -25,13 +25,9 @@ class AuthService {
   }
 
   Future<void> _initAuth() async {
-    try {
-      await GoogleSignIn.instance.initialize(
-        serverClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
-      );
-    } catch (e) {
-      debugPrint("Failed to initialize GoogleSignIn: $e");
-    }
+    // GoogleSignIn.instance.initialize() is already called in main.dart.
+    // Calling it a second time on google_sign_in v7 can cause undefined
+    // behavior and silently break the authenticate() flow.
     await _initCredentialManager();
   }
 
@@ -78,6 +74,14 @@ class AuthService {
         final googleUser = await _googleSignIn.authenticate();
 
         final googleAuth = googleUser.authentication;
+
+        debugPrint("Google auth idToken present: ${googleAuth.idToken != null}");
+
+        if (googleAuth.idToken == null) {
+          debugPrint("Google Sign-In returned no idToken — aborting.");
+          return null;
+        }
+
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );

@@ -194,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(content: Text(displayMessage)),
         );
       }
+      // If no error message, sign-in was cancelled by user — no snackbar needed.
       return;
     }
 
