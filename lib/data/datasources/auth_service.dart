@@ -60,36 +60,17 @@ class AuthService {
         // Web handling
         GoogleAuthProvider authProvider = GoogleAuthProvider();
         return await _auth.signInWithPopup(authProvider);
-      } else if (defaultTargetPlatform == TargetPlatform.android) {
-        // Android handling using Credential Manager
-        if (!_isCredentialManagerInitialized) {
-          throw PlatformException(
-            code: 'CREDENTIAL_MANAGER_NOT_INITIALIZED',
-            message: 'Credential Manager is not initialized.',
-          );
-        }
-
-        final credential = await _credentialManager.getCredentials(
-          fetchOptions: FetchOptionsAndroid(googleCredential: true),
-        );
-
-        if (credential is GoogleIdTokenCredential) {
-          final idToken = (credential as dynamic).idToken as String;
-          final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
-            idToken: idToken,
-          );
-          return await _auth.signInWithCredential(firebaseCredential);
-        } else {
-          return null;
-        }
       } else {
-        // iOS / other platforms fallback to google_sign_in package
-        final googleUser = await _googleSignIn.authenticate();
+        // Android / iOS fallback to standard google_sign_in package
+        // This is necessary because getCredentials() fails if the user has no saved credentials.
+        // google_sign_in handles showing the account picker UI natively.
+        final googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) return null; // User cancelled
 
-        final googleAuth = googleUser.authentication;
-
+        final googleAuth = await googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
+          accessToken: googleAuth.accessToken,
         );
 
         return await _auth.signInWithCredential(credential);
@@ -104,7 +85,8 @@ class AuthService {
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
-      if (e.runtimeType.toString() == 'CredentialException') {
+      // Check type properly to survive AOT minification
+      if (e is CredentialException || e.toString().contains('CredentialException')) {
         return null; // User cancelled
       }
       rethrow;
@@ -206,7 +188,8 @@ class AuthService {
       return null;
     } catch (e) {
       debugPrint("Error signing in with Credential Manager: $e");
-      if (e.runtimeType.toString() == 'CredentialException') {
+      // Check type properly to survive AOT minification
+      if (e is CredentialException || e.toString().contains('CredentialException')) {
         // This usually means the user cancelled the dialog or no credentials exist
         debugPrint("CredentialException details: ${(e as dynamic).message}");
         return null;
