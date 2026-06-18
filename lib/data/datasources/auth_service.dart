@@ -20,7 +20,9 @@ class AuthService {
       _googleSignIn =
           googleSignIn ??
           _mockGoogleSignIn ??
-          GoogleSignIn.instance {
+          GoogleSignIn(
+            serverClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+          ) {
     _initCredentialManager();
   }
 
@@ -62,13 +64,15 @@ class AuthService {
         return await _auth.signInWithPopup(authProvider);
       } else {
         // Android / iOS fallback to standard google_sign_in package
-        // This is necessary because getCredentials() fails if the user has no saved credentials.
-        // google_sign_in handles showing the account picker UI natively.
-        final googleUser = await _googleSignIn.authenticate();
+        final googleUser = await _googleSignIn.signIn();
+        
+        if (googleUser == null) {
+          return null; // User cancelled the sign-in
+        }
 
-
-        final googleAuth = googleUser.authentication;
+        final googleAuth = await googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
 
