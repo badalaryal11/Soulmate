@@ -73,7 +73,7 @@ class AuthService {
           fetchOptions: FetchOptionsAndroid(googleCredential: true),
         );
 
-        if (credential.runtimeType.toString() == 'GoogleIdTokenCredential') {
+        if (credential is GoogleIdTokenCredential) {
           final idToken = (credential as dynamic).idToken as String;
           final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
             idToken: idToken,
@@ -185,21 +185,18 @@ class AuthService {
     try {
       final credential = await _credentialManager.getCredentials();
 
-      // We'll check the type by its string representation or known fields if type checking fails
-      // Assuming credential_manager exports PasswordCredential and GoogleIdTokenCredential types.
-      // If it returns a map or specific types:
-      if (credential.runtimeType.toString() == 'PasswordCredential') {
+      // Check credential type properly without relying on string representation which fails in AOT
+      if (credential is PasswordCredential) {
         final email = (credential as dynamic).username as String;
         final password = (credential as dynamic).password as String;
         return await signInWithEmailAndPassword(email, password);
-      } else if (credential.runtimeType.toString() == 'GoogleIdTokenCredential') {
+      } else if (credential is GoogleIdTokenCredential) {
         final idToken = (credential as dynamic).idToken as String;
         final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
           idToken: idToken,
         );
         return await _auth.signInWithCredential(firebaseCredential);
       } else {
-        // Type not matched specifically by runtime string, let's try 'is' if exported, or dump it
         debugPrint("Unknown credential type: ${credential.runtimeType}");
       }
       
