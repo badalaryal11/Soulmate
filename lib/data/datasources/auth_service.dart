@@ -77,23 +77,13 @@ class AuthService {
 
         debugPrint("Google auth idToken present: ${googleAuth.idToken != null}");
 
-
         if (googleAuth.idToken == null) {
-          // This almost always means the app's SHA-1 signing certificate is not
-          // registered in the Firebase Console. In production, Google Play
-          // re-signs the app bundle so the Play App Signing SHA-1 must also be
-          // added to Firebase → Project settings → Android app → SHA fingerprints.
-          debugPrint("Google Sign-In returned no idToken — this typically means "
-              "the SHA-1 fingerprint of the signing key is not registered in Firebase.");
-          throw PlatformException(
-            code: 'GOOGLE_SIGN_IN_NO_ID_TOKEN',
-            message: 'Google Sign-In failed. Please try again later.',
-          );
+          debugPrint("Google Sign-In returned no idToken — aborting.");
+          return null;
         }
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
-
         );
 
         return await _auth.signInWithCredential(credential);

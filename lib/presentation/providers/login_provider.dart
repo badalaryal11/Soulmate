@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:soulmate/domain/repositories/auth_repository.dart';
 import 'package:soulmate/domain/repositories/user_repository.dart';
@@ -61,9 +60,6 @@ class LoginProvider extends ChangeNotifier {
         debugPrint('Google Sign-In returned null credential.');
         return null;
       }
-    } on PlatformException catch (e) {
-      _setError(e.message ?? 'Google Sign-In failed. Please try again.');
-      return null;
     } catch (e) {
       _setError(e.toString());
       return null;
