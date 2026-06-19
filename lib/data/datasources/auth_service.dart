@@ -306,6 +306,82 @@ class AuthService {
     }
   }
 
+  // Re-authenticate with password
+  Future<void> reauthenticateWithPassword(String password) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null || user.email == null) {
+        throw FirebaseAuthException(
+          code: 'no-current-user',
+          message: 'No user is currently signed in.',
+        );
+      }
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+    } catch (e) {
+      debugPrint("Error re-authenticating with password: $e");
+      rethrow;
+    }
+  }
+
+  // Re-authenticate with Google
+  Future<void> reauthenticateWithGoogle() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-current-user',
+          message: 'No user is currently signed in.',
+        );
+      }
+      final googleUser = await _googleSignIn.signIn();
+      final googleAuth = await googleUser?.authentication;
+      if (googleAuth?.idToken == null) {
+        throw FirebaseAuthException(
+          code: 'reauthentication-failed',
+          message: 'Google re-authentication failed or was cancelled.',
+        );
+      }
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth!.idToken,
+      );
+      await user.reauthenticateWithCredential(credential);
+    } catch (e) {
+      debugPrint("Error re-authenticating with Google: $e");
+      rethrow;
+    }
+  }
+
+  // Re-authenticate with Apple
+  Future<void> reauthenticateWithApple() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-current-user',
+          message: 'No user is currently signed in.',
+        );
+      }
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final credential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+      await user.reauthenticateWithCredential(credential);
+    } catch (e) {
+      debugPrint("Error re-authenticating with Apple: $e");
+      rethrow;
+    }
+  }
+
   // Sign out
   Future<void> signOut() async {
     // Securely wipe all local cached data (AES encrypted chats)

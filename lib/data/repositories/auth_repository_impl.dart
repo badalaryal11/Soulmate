@@ -113,6 +113,33 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _authService.deleteAccount();
     } catch (e) {
+      rethrow; // Propagate raw exception (like FirebaseAuthException) for requires-recent-login handling
+    }
+  }
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) async {
+    try {
+      await _authService.reauthenticateWithPassword(password);
+    } catch (e) {
+      throw AuthFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> reauthenticateWithGoogle() async {
+    try {
+      await _authService.reauthenticateWithGoogle();
+    } catch (e) {
+      throw AuthFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> reauthenticateWithApple() async {
+    try {
+      await _authService.reauthenticateWithApple();
+    } catch (e) {
       throw AuthFailure(e.toString());
     }
   }

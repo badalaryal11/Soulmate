@@ -50,6 +50,15 @@ abstract class AuthRepository {
   /// Delete the current user's account.
   Future<void> deleteAccount();
 
+  /// Re-authenticate the user with password.
+  Future<void> reauthenticateWithPassword(String password);
+
+  /// Re-authenticate the user with Google.
+  Future<void> reauthenticateWithGoogle();
+
+  /// Re-authenticate the user with Apple.
+  Future<void> reauthenticateWithApple();
+
   /// Sign out and clear local secure storage.
   Future<void> signOut();
 }

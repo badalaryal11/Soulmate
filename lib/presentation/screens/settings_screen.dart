@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:soulmate/core/constants/app_constants.dart';
@@ -406,9 +407,21 @@ class SettingsScreen extends StatelessWidget {
               } catch (e) {
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error deleting account: $e')),
-                  );
+                  
+                  bool isRecentLoginError = false;
+                  if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
+                    isRecentLoginError = true;
+                  } else if (e.toString().contains('requires-recent-login')) {
+                    isRecentLoginError = true;
+                  }
+
+                  if (isRecentLoginError) {
+                    _showReauthenticationDialog(context, authRepository);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error deleting account: $e')),
+                    );
+                  }
                 }
               }
             },
@@ -418,6 +431,146 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showReauthenticationDialog(
+    BuildContext context,
+    AuthRepository authRepository,
+  ) {
+    final user = authRepository.currentUser;
+    if (user == null) return;
+
+    final providers = user.providerData.map((info) => info.providerId).toList();
+
+    if (providers.contains('google.com')) {
+      _handleGoogleReauth(context, authRepository);
+    } else if (providers.contains('apple.com')) {
+      _handleAppleReauth(context, authRepository);
+    } else {
+      _showPasswordReauthDialog(context, authRepository);
+    }
+  }
+
+  void _handleGoogleReauth(BuildContext context, AuthRepository authRepository) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await authRepository.reauthenticateWithGoogle();
+      if (context.mounted) Navigator.pop(context);
+      
+      await authRepository.deleteAccount();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Re-authentication failed: $e')),
+        );
+      }
+    }
+  }
+
+  void _handleAppleReauth(BuildContext context, AuthRepository authRepository) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await authRepository.reauthenticateWithApple();
+      if (context.mounted) Navigator.pop(context);
+      
+      await authRepository.deleteAccount();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Re-authentication failed: $e')),
+        );
+      }
+    }
+  }
+
+  void _showPasswordReauthDialog(BuildContext context, AuthRepository authRepository) {
+    final passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verify Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('For security reasons, please re-enter your password to delete your account.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final password = passwordController.text.trim();
+              if (password.isEmpty) return;
+
+              try {
+                await authRepository.reauthenticateWithPassword(password);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator()),
+                  );
+                  
+                  await authRepository.deleteAccount();
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Re-authentication failed: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    ).then((_) => passwordController.dispose());
   }
 
   void _showAboutDialog(BuildContext context) {
