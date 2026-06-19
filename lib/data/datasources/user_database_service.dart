@@ -151,13 +151,14 @@ class UserDatabaseService {
       DocumentSnapshot doc = await _firestore
           .collection(_usersCollection)
           .doc(uid)
-          .get(const GetOptions(source: Source.server));
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 8));
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }
       return null;
     } catch (e) {
-      debugPrint("Error getting user: $e");
+      debugPrint("Error getting user (possibly timeout): $e");
       return null;
     }
   }

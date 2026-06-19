@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:soulmate/domain/repositories/auth_repository.dart';
@@ -121,13 +122,16 @@ class LoginProvider extends ChangeNotifier {
       final credential = await _authRepository.signInWithEmailAndPassword(
         email,
         password,
-      );
+      ).timeout(const Duration(seconds: 15));
       if (credential != null && credential.user != null) {
         return await _handleSuccessfulAuth(credential.user!);
       } else {
         _setError('Login failed. Please check your credentials.');
         return null;
       }
+    } on TimeoutException catch (_) {
+      _setError('Login timed out. Please check your internet connection and try again.');
+      return null;
     } on firebase_auth.FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
