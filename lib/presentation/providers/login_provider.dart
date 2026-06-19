@@ -128,8 +128,34 @@ class LoginProvider extends ChangeNotifier {
         _setError('Login failed. Please check your credentials.');
         return null;
       }
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'wrong-password':
+        case 'invalid-credential':
+        case 'user-not-found':
+          message = 'Incorrect email or password. Please try again.';
+          break;
+        case 'invalid-email':
+          message = 'The email address is invalid.';
+          break;
+        case 'user-disabled':
+          message = 'This user account has been disabled.';
+          break;
+        case 'too-many-requests':
+          message = 'Too many unsuccessful login attempts. Please try again later.';
+          break;
+        default:
+          message = e.message ?? 'An error occurred. Please try again.';
+      }
+      _setError(message);
+      return null;
     } catch (e) {
-      _setError(e.toString());
+      if (e.toString().contains('email-not-verified') || e.toString().contains('Please verify your email address')) {
+        _setError('Please verify your email address before signing in.');
+      } else {
+        _setError(e.toString());
+      }
       return null;
     } finally {
       _setLoading(false);
