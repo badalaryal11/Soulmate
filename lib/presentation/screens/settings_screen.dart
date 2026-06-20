@@ -10,6 +10,8 @@ import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
+import 'package:soulmate/presentation/providers/current_user_provider.dart';
+import 'package:soulmate/presentation/providers/discovery_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -19,6 +21,9 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final auth = ServiceLocator.authRepository;
+    final currentUserProvider = Provider.of<CurrentUserProvider>(context);
+    final profileProvider = Provider.of<ProfileManagementProvider>(context, listen: false);
+    final discoveryProvider = Provider.of<DiscoveryProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -47,18 +52,8 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.email_outlined),
-            title: Text('Update Email', style: GoogleFonts.poppins()),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showUpdateEmailDialog(context, auth),
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock_outline),
-            title: Text('Change Password', style: GoogleFonts.poppins()),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showChangePasswordDialog(context, auth),
-          ),
+
+
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
             title: Text(
@@ -133,6 +128,112 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
 
+          // Discovery Preferences Section
+          _buildSectionHeader(context, 'Discovery Preferences'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Age Range',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${discoveryProvider.minAge.round()} - ${discoveryProvider.maxAge.round()}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFFE3C72),
+                      ),
+                    ),
+                  ],
+                ),
+                RangeSlider(
+                  values: RangeValues(discoveryProvider.minAge, discoveryProvider.maxAge),
+                  min: 18,
+                  max: 100,
+                  divisions: 82,
+                  activeColor: const Color(0xFFFE3C72),
+                  inactiveColor: Colors.grey.withValues(alpha: 0.3),
+                  onChanged: (values) {
+                    discoveryProvider.updateAgeRange(values.start, values.end);
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Show Me',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'Male',
+                        label: Text('Men'),
+                      ),
+                      ButtonSegment(
+                        value: 'Female',
+                        label: Text('Women'),
+                      ),
+                      ButtonSegment(
+                        value: 'Everyone',
+                        label: Text('Everyone'),
+                      ),
+                    ],
+                    selected: {currentUserProvider.currentUser?.genderPreference ?? 'Everyone'},
+                    onSelectionChanged: (Set<String> newSelection) async {
+                      final selected = newSelection.first;
+                      final currentUser = currentUserProvider.currentUser;
+                      if (currentUser != null) {
+                        // Optimistic update locally
+                        currentUserProvider.updateLocalUser(
+                          currentUser.copyWith(genderPreference: selected)
+                        );
+                        // Persist to backend
+                        await profileProvider.updateUserField(
+                          currentUser.id, 
+                          {'genderPreference': selected}
+                        );
+                        // Reload the deck with the new preference
+                        discoveryProvider.loadUsers(gender: selected, clearList: true);
+                      }
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return const Color(0xFFFE3C72).withValues(alpha: 0.1);
+                          }
+                          return Colors.transparent;
+                        },
+                      ),
+                      iconColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                          return states.contains(WidgetState.selected) 
+                            ? const Color(0xFFFE3C72) 
+                            : Colors.grey;
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+
           // Preferences Section
           _buildSectionHeader(context, 'Preferences'),
           Padding(
@@ -185,7 +286,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const Divider(),
-          _buildSectionHeader(context, 'About'),
+          _buildSectionHeader(context, 'Support & Legal'),
           ListTile(
             leading: const Icon(
               Icons.rocket_launch_outlined,
@@ -204,8 +305,39 @@ class SettingsScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.feedback_outlined),
-            title: Text('Contact Us', style: GoogleFonts.poppins()),
+            title: Text('Contact Support', style: GoogleFonts.poppins()),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => _showFeedbackDialog(context, auth),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text('Privacy Policy', style: GoogleFonts.poppins()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showLegalDialog(
+              context, 
+              'Privacy Policy', 
+              'Your privacy is our priority. We only collect the data necessary to provide you with the best possible matches and experience. We never sell your personal data to third parties.\n\nFor a full list of our data practices, please visit our website.',
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.gavel_outlined),
+            title: Text('Terms of Service', style: GoogleFonts.poppins()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showLegalDialog(
+              context, 
+              'Terms of Service', 
+              'By using Soulmate, you agree to treat all members with respect. Any form of harassment, hate speech, or inappropriate behavior will result in an immediate ban.\n\nBe kind, be authentic, and have fun!',
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.people_outline),
+            title: Text('Community Guidelines', style: GoogleFonts.poppins()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showLegalDialog(
+              context, 
+              'Community Guidelines', 
+              '1. Be Yourself. No fake profiles or catfishing.\n2. Be Respectful. Harassment is zero tolerance.\n3. Keep it Safe. Do not share financial info.\n4. Communicate Clearly. Use the AI to help break the ice!\n\nHelp us keep Soulmate a safe place for everyone.',
+            ),
           ),
           const Divider(),
 
@@ -269,109 +401,6 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _showUpdateEmailDialog(
-    BuildContext context,
-    AuthRepository authRepository,
-  ) {
-    final emailController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Email'),
-        content: TextField(
-          controller: emailController,
-          decoration: const InputDecoration(labelText: 'New Email'),
-          keyboardType: TextInputType.emailAddress,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final newEmail = emailController.text.trim();
-              if (newEmail.isEmpty) return;
-
-              try {
-                // 1. Update Auth (sends verification)
-                await authRepository.updateEmail(newEmail);
-
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Verification email sent to $newEmail. Please verify to complete the update.',
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error updating email: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    ).then((_) => emailController.dispose());
-  }
-
-  void _showChangePasswordDialog(
-    BuildContext context,
-    AuthRepository authRepository,
-  ) {
-    final passwordController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Change Password'),
-        content: TextField(
-          controller: passwordController,
-          decoration: const InputDecoration(labelText: 'New Password'),
-          obscureText: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final newPassword = passwordController.text.trim();
-              if (newPassword.isEmpty) return;
-              try {
-                await authRepository.updatePassword(newPassword);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password updated successfully.'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error updating password: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Change'),
-          ),
-        ],
-      ),
-    ).then((_) => passwordController.dispose());
   }
 
   void _showDeleteAccountDialog(
@@ -451,19 +480,35 @@ class SettingsScreen extends StatelessWidget {
                         } catch (e) {
                           if (!context.mounted) return;
                           
-                          // Restore UI
-                          setState(() {
-                            isDeleting = false;
-                          });
-
                           if (e.toString().contains('requires-recent-login')) {
+                            // Close the dialog
+                            Navigator.pop(dialogContext);
+                            
+                            // Sign out the user
+                            await authRepository.signOut();
+                            
+                            if (!context.mounted) return;
+                            
+                            // Show persistent snackbar at root level
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('For security reasons, please sign out, sign in again, and retry deleting your account.'),
+                                content: Text('Session expired. Please log in again to delete your account.'),
                                 duration: Duration(seconds: 5),
+                                backgroundColor: Colors.orange,
                               ),
                             );
+                            
+                            // Navigate to login
+                            Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              (route) => false,
+                            );
                           } else {
+                            // Restore UI for other errors
+                            setState(() {
+                              isDeleting = false;
+                            });
+                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Error deleting account: $e')),
                             );
@@ -583,6 +628,27 @@ class SettingsScreen extends StatelessWidget {
               'Awesome',
               style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLegalDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Text(
+            content,
+            style: GoogleFonts.poppins(fontSize: 14, height: 1.5),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
