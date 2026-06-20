@@ -10,6 +10,8 @@ import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -200,6 +202,13 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showFeedbackDialog(context, auth),
           ),
           ListTile(
+            leading: const Icon(Icons.language_outlined),
+            title: Text('Official Website', style: GoogleFonts.poppins()),
+            subtitle: Text('https://soulmateapp.link', style: GoogleFonts.poppins(fontSize: 12)),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => _launchURL(context, 'https://soulmateapp.link'),
+          ),
+          ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: Text('Privacy Policy', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
@@ -207,8 +216,10 @@ class SettingsScreen extends StatelessWidget {
               context, 
               'Privacy Policy', 
               'Your privacy is our priority. We only collect the data necessary to provide you with the best possible matches and experience. We never sell your personal data to third parties.\n\nFor a full list of our data practices, please visit our website.',
+              url: 'https://soulmateapp.link/privacy.html',
             ),
           ),
+
           ListTile(
             leading: const Icon(Icons.gavel_outlined),
             title: Text('Terms of Service', style: GoogleFonts.poppins()),
@@ -292,6 +303,28 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _launchURL(BuildContext context, String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not launch $urlString')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error launching link: $e')),
+        );
+      }
+    }
+  }
+
 
   void _showDeleteAccountDialog(
     BuildContext context,
@@ -508,6 +541,28 @@ class SettingsScreen extends StatelessWidget {
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.language, size: 16, color: Color(0xFFFE3C72)),
+            label: Text(
+              'Visit Website',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFFFE3C72),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFFE3C72)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _launchURL(context, 'https://soulmateapp.link');
+            },
+          ),
+          const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
@@ -528,15 +583,41 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showLegalDialog(BuildContext context, String title, String content) {
+
+  void _showLegalDialog(BuildContext context, String title, String content, {String? url}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
         content: SingleChildScrollView(
-          child: Text(
-            content,
-            style: GoogleFonts.poppins(fontSize: 14, height: 1.5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                content,
+                style: GoogleFonts.poppins(fontSize: 14, height: 1.5),
+              ),
+              if (url != null) ...[
+                const SizedBox(height: 16),
+                Center(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.open_in_new, size: 16, color: Color(0xFFFE3C72)),
+                    label: Text(
+                      'Read Full Policy Online',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFFFE3C72),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _launchURL(context, url);
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         actions: [
@@ -548,6 +629,7 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _buildFeatureItem(IconData icon, String text) {
     return Padding(
