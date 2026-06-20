@@ -67,7 +67,9 @@ class DummyJsonApiService {
   }) async {
     try {
       Uri uri;
-      final skip = (DateTime.now().millisecondsSinceEpoch % 150);
+      final isGendered = gender != null && gender.toLowerCase() != 'everyone';
+      final maxSkip = isGendered ? (50 - count) : (100 - count);
+      final skip = maxSkip > 0 ? (DateTime.now().millisecondsSinceEpoch % maxSkip) : 0;
       if (gender != null && gender.toLowerCase() != 'everyone') {
         uri = Uri.parse('$_baseUrl/filter?key=gender&value=${gender.toLowerCase()}&limit=$count&skip=$skip');
       } else {

@@ -168,6 +168,15 @@ class MockUserRepository extends _i1.Mock implements _i3.UserRepository {
             ),
           )
           as _i5.Future<String>);
+
+  @override
+  _i5.Future<void> deleteUser(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteUser, [uid]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [AuthRepository].

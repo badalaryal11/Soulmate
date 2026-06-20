@@ -9,6 +9,7 @@ class ReqresApiService {
   static final http.Client _client = http.Client();
   static final Random _random = Random();
   static final List<User> _userCache = [];
+  static String? _lastRequestedGender;
   static bool _isFetching = false;
 
   static const List<String> _bios = [
@@ -31,16 +32,22 @@ class ReqresApiService {
   ];
 
   static Future<List<User>> fetchUsers({int count = 6, String? gender}) async {
+    // Clear cache if the user switched their gender preference
+    if (_lastRequestedGender != gender) {
+      _userCache.clear();
+      _lastRequestedGender = gender;
+    }
+
     if (_userCache.length >= count) {
       final users = _userCache.sublist(0, count);
       _userCache.removeRange(0, count);
-      _refillCacheInBackground();
+      _refillCacheInBackground(gender: gender);
       return users;
     }
 
     _isFetching = true;
     try {
-      final apiUsers = await _fetchFromApi();
+      final apiUsers = await _fetchFromApi(gender: gender);
       if (apiUsers.isNotEmpty) {
         if (apiUsers.length > count) {
           final toReturn = apiUsers.sublist(0, count);
@@ -56,12 +63,12 @@ class ReqresApiService {
     return [];
   }
 
-  static Future<void> _refillCacheInBackground() async {
+  static Future<void> _refillCacheInBackground({String? gender}) async {
     if (_isFetching) return;
     _isFetching = true;
     try {
-      final newUsers = await _fetchFromApi();
-      if (newUsers.isNotEmpty) {
+      final newUsers = await _fetchFromApi(gender: gender);
+      if (_lastRequestedGender == gender && newUsers.isNotEmpty) {
         _userCache.addAll(newUsers);
       }
     } finally {
@@ -69,11 +76,10 @@ class ReqresApiService {
     }
   }
 
-  static Future<List<User>> _fetchFromApi() async {
+  static Future<List<User>> _fetchFromApi({String? gender}) async {
     try {
-      // ReqRes has pages 1 and 2
-      final page = _random.nextInt(2) + 1;
-      final uri = Uri.parse('$_baseUrl?page=$page&per_page=6');
+      // Fetch all 12 users so we can filter and cache them reliably
+      final uri = Uri.parse('$_baseUrl?per_page=12');
       final response = await _client.get(uri).timeout(const Duration(seconds: 2));
 
       if (response.statusCode != 200) {
@@ -84,7 +90,7 @@ class ReqresApiService {
       final usersJson = data['data'] as List<dynamic>?;
       if (usersJson == null) return [];
 
-      return usersJson.map<User>((json) {
+      final allUsers = usersJson.map<User>((json) {
         final id = 'reqres_${json['id']}';
         final firstName = json['first_name'] as String;
         final lastName = json['last_name'] as String;
@@ -99,6 +105,13 @@ class ReqresApiService {
         }
 
         final email = json['email'] as String;
+        final idNum = json['id'] as int;
+
+        // ReqRes static users mapping:
+        // Males: George(1), Charles(5), Michael(7), Tobias(9), Byron(10), George(11)
+        // Females: Janet(2), Emma(3), Eve(4), Tracey(6), Lindsay(8), Rachel(12)
+        final isMale = [1, 5, 7, 9, 10, 11].contains(idNum);
+        final genderStr = isMale ? 'male' : 'female';
 
         return User(
           id: id,
@@ -108,12 +121,23 @@ class ReqresApiService {
           age: age,
           city: 'Remote',
           country: 'Reqres',
-          gender: _random.nextBool() ? 'female' : 'male',
+          gender: genderStr,
           bio: bio,
           imageUrl: avatar,
           interests: userInterests.toList(),
         );
       }).toList();
+
+      // Shuffle so they don't always appear in numerical ID order
+      allUsers.shuffle();
+
+      // Filter by gender if requested
+      if (gender != null && gender.toLowerCase() != 'everyone') {
+        final targetGender = gender.toLowerCase();
+        return allUsers.where((u) => u.gender == targetGender).toList();
+      }
+
+      return allUsers;
     } catch (e) {
       debugPrint('Reqres API fetch error: $e');
       return [];

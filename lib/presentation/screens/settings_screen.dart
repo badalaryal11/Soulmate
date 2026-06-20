@@ -356,6 +356,10 @@ class SettingsScreen extends StatelessWidget {
                         });
 
                         try {
+                          final uid = authRepository.currentUser?.uid;
+                          if (uid != null) {
+                            await ServiceLocator.userRepository.deleteUser(uid);
+                          }
                           await authRepository.deleteAccount();
 
                           if (!context.mounted) return;

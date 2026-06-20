@@ -56,6 +56,8 @@ class DatabaseService {
 
   Future<domain.User?> getUser(String uid) => _userService.getUser(uid);
 
+  Future<void> deleteUser(String uid) => _userService.deleteUser(uid);
+
   Future<List<domain.User>> getUsers({
     String? gender,
     String? currentUserId,

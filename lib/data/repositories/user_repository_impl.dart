@@ -93,4 +93,13 @@ class UserRepositoryImpl implements UserRepository {
       throw ServerFailure(e.toString());
     }
   }
+
+  @override
+  Future<void> deleteUser(String uid) async {
+    try {
+      await _databaseService.deleteUser(uid);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
 }

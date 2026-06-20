@@ -255,6 +255,26 @@ class UserDatabaseService {
     }
   }
 
+  /// Delete user Firestore document and their profile image from Storage.
+  Future<void> deleteUser(String uid) async {
+    try {
+      debugPrint("Deleting user data in Firestore for: $uid");
+      await _firestore.collection(_usersCollection).doc(uid).delete();
+      
+      debugPrint("Deleting user profile image in Storage for: $uid");
+      try {
+        await _storage.ref().child('user_images').child('$uid.webp').delete();
+        debugPrint("Successfully deleted profile image for user: $uid");
+      } catch (e) {
+        // Ignore file-not-found or other storage errors during account deletion
+        debugPrint("Storage image deletion failed (likely didn't exist): $e");
+      }
+    } catch (e) {
+      debugPrint("Error deleting user document and media: $e");
+      rethrow;
+    }
+  }
+
   /// Batch-delete all user documents (admin/debug only).
   Future<void> deleteAllUsers() async {
     final users = await _firestore.collection(_usersCollection).get();

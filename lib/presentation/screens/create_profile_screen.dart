@@ -302,57 +302,64 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       if (!mounted) return;
 
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            backgroundColor: isDark ? const Color(0xFF1E222B) : Colors.white,
-            title: Row(
-              children: [
-                const Icon(
-                  Icons.mark_email_read_outlined,
-                  color: Color(0xFFFE3C72),
-                  size: 28,
+      // Only show the "Verify Your Account" email verification warning dialog 
+      // if they registered with email/password and are not yet verified.
+      final isPasswordProvider = widget.firebaseUser.providerData.any(
+        (p) => p.providerId == 'password',
+      );
+      if (isPasswordProvider && !widget.firebaseUser.emailVerified) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              backgroundColor: isDark ? const Color(0xFF1E222B) : Colors.white,
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.mark_email_read_outlined,
+                    color: Color(0xFFFE3C72),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Verify Your Account',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'Please verify your account by going to your email inbox. If you do not see it there, please check your spam folder.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  height: 1.5,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    'Verify Your Account',
+                    'Got it',
                     style: GoogleFonts.poppins(
+                      color: const Color(0xFFFE3C72),
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
                     ),
                   ),
                 ),
               ],
-            ),
-            content: Text(
-              'Please verify your account by going to your email inbox. If you do not see it there, please check your spam folder.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Got it',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFFFE3C72),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
+            );
+          },
+        );
+      }
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
