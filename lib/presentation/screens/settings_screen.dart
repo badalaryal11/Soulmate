@@ -10,8 +10,6 @@ import 'package:soulmate/presentation/providers/notification_provider.dart';
 import 'package:soulmate/presentation/providers/profile_management_provider.dart';
 import 'package:soulmate/presentation/screens/login_screen.dart';
 import 'package:soulmate/presentation/screens/edit_profile_screen.dart';
-import 'package:soulmate/presentation/providers/current_user_provider.dart';
-import 'package:soulmate/presentation/providers/discovery_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -21,9 +19,6 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final auth = ServiceLocator.authRepository;
-    final currentUserProvider = Provider.of<CurrentUserProvider>(context);
-    final profileProvider = Provider.of<ProfileManagementProvider>(context, listen: false);
-    final discoveryProvider = Provider.of<DiscoveryProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -128,111 +123,6 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
 
-          // Discovery Preferences Section
-          _buildSectionHeader(context, 'Discovery Preferences'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Age Range',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '${discoveryProvider.minAge.round()} - ${discoveryProvider.maxAge.round()}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFFE3C72),
-                      ),
-                    ),
-                  ],
-                ),
-                RangeSlider(
-                  values: RangeValues(discoveryProvider.minAge, discoveryProvider.maxAge),
-                  min: 18,
-                  max: 100,
-                  divisions: 82,
-                  activeColor: const Color(0xFFFE3C72),
-                  inactiveColor: Colors.grey.withValues(alpha: 0.3),
-                  onChanged: (values) {
-                    discoveryProvider.updateAgeRange(values.start, values.end);
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Show Me',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 'Male',
-                        label: Text('Men'),
-                      ),
-                      ButtonSegment(
-                        value: 'Female',
-                        label: Text('Women'),
-                      ),
-                      ButtonSegment(
-                        value: 'Everyone',
-                        label: Text('Everyone'),
-                      ),
-                    ],
-                    selected: {currentUserProvider.currentUser?.genderPreference ?? 'Everyone'},
-                    onSelectionChanged: (Set<String> newSelection) async {
-                      final selected = newSelection.first;
-                      final currentUser = currentUserProvider.currentUser;
-                      if (currentUser != null) {
-                        // Optimistic update locally
-                        currentUserProvider.updateLocalUser(
-                          currentUser.copyWith(genderPreference: selected)
-                        );
-                        // Persist to backend
-                        await profileProvider.updateUserField(
-                          currentUser.id, 
-                          {'genderPreference': selected}
-                        );
-                        // Reload the deck with the new preference
-                        discoveryProvider.loadUsers(gender: selected, clearList: true);
-                      }
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return const Color(0xFFFE3C72).withValues(alpha: 0.1);
-                          }
-                          return Colors.transparent;
-                        },
-                      ),
-                      iconColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
-                          return states.contains(WidgetState.selected) 
-                            ? const Color(0xFFFE3C72) 
-                            : Colors.grey;
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
 
           // Preferences Section
           _buildSectionHeader(context, 'Preferences'),
