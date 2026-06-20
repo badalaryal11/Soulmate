@@ -141,7 +141,9 @@ class UserDatabaseService {
           .doc(uid)
           .get(const GetOptions(source: Source.cache));
       if (doc.exists && doc.data() != null) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        final data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+        data['id'] = doc.id;
+        return UserModel.fromMap(data);
       }
     } catch (_) {
       // Cache miss — fall through to server
@@ -154,7 +156,9 @@ class UserDatabaseService {
           .get(const GetOptions(source: Source.server))
           .timeout(const Duration(seconds: 8));
       if (doc.exists && doc.data() != null) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        final data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+        data['id'] = doc.id;
+        return UserModel.fromMap(data);
       }
       return null;
     } catch (e) {
@@ -238,7 +242,11 @@ class UserDatabaseService {
       }
 
       return snapshot.docs
-          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) {
+            final data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+            data['id'] = doc.id;
+            return UserModel.fromMap(data);
+          })
           .where((user) => user.id != currentUserId)
           .toList();
     } catch (e) {

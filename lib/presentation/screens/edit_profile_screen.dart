@@ -654,7 +654,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Expanded(
                     flex: 3,
                     child: DropdownButtonFormField<String>(
-                      initialValue: _selectedGender,
+                      initialValue: ['Male', 'Female', 'Non-binary'].contains(_selectedGender) ? _selectedGender : null,
                       decoration: InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(
@@ -772,7 +772,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           DropdownButtonFormField<String>(
             dropdownColor: isDarkMode ? Colors.grey[800] : Colors.grey[50],
             isExpanded: true,
-            initialValue: selectedValue,
+            initialValue: _promptOptions.contains(selectedValue) ? selectedValue : null,
             hint: Text(
               'Select Prompt $index',
               style: TextStyle(

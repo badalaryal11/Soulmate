@@ -54,14 +54,11 @@ class UserRepositoryImpl implements UserRepository {
 
       final allUsers = List<domain.User>.from(firestoreUsers);
 
-      // If Firestore doesn't have enough users, fetch the remainder from API
-      if (allUsers.length < limit) {
-        final needed = limit - allUsers.length;
-        final apiUsers = await _apiService.fetchUsers(results: needed, gender: gender);
-        allUsers.addAll(apiUsers);
-      }
+      // Always fetch from API to ensure a healthy mix of Firebase and synthetic profiles
+      final apiUsers = await _apiService.fetchUsers(results: limit, gender: gender);
+      allUsers.addAll(apiUsers);
 
-      // Shuffle results
+      // Shuffle results to mix Firebase users with API users
       allUsers.shuffle();
 
       return allUsers;

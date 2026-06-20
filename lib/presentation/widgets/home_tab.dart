@@ -54,10 +54,10 @@ class HomeTab extends StatelessWidget {
         final colorScheme = Theme.of(context).colorScheme;
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        // Eagerly pre-cache the first 3 images so swiping feels instantaneous
+        // Eagerly pre-cache the first 5 images so swiping feels instantaneous
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!context.mounted) return;
-          final limit = provider.filteredUsers.length < 3 ? provider.filteredUsers.length : 3;
+          final limit = provider.filteredUsers.length < 5 ? provider.filteredUsers.length : 5;
           for (int i = 0; i < limit; i++) {
             final user = provider.filteredUsers[i];
             // ProfileCard will use cacheWidth/memCacheWidth 600, so we match it here
@@ -119,6 +119,26 @@ class HomeTab extends StatelessWidget {
                       if (swipedUser != null) {
                         provider.userSwiped(swipedUser, direction);
                       }
+                      
+                      // Keep a sliding window of 4 pre-cached images ahead
+                      if (currentIndex != null) {
+                        for (int i = 1; i <= 4; i++) {
+                          final futureIndex = currentIndex + i;
+                          if (futureIndex < provider.filteredUsers.length) {
+                            final futureUser = provider.filteredUsers[futureIndex];
+                            final imageProvider = ImageUtils.getImageProvider(
+                              futureUser.imageUrl.isNotEmpty 
+                                  ? futureUser.imageUrl 
+                                  : ImageGenerationService.generateProfileImageUrl(futureUser),
+                              maxWidth: 600,
+                            );
+                            if (imageProvider != null) {
+                              precacheImage(imageProvider, context).catchError((_) {});
+                            }
+                          }
+                        }
+                      }
+
                       return true;
                     },
                   ),

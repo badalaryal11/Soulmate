@@ -276,6 +276,33 @@ class MockAuthRepository extends _i1.Mock implements _i8.AuthRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<void> reauthenticateWithPassword(String? password) =>
+      (super.noSuchMethod(
+            Invocation.method(#reauthenticateWithPassword, [password]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> reauthenticateWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#reauthenticateWithGoogle, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> reauthenticateWithApple() =>
+      (super.noSuchMethod(
+            Invocation.method(#reauthenticateWithApple, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<void> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),

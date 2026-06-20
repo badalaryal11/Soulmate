@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -10,17 +12,34 @@ class AuthService {
   static FirebaseAuth? _mockAuth;
   static GoogleSignIn? _mockGoogleSignIn;
 
+  static const String _appleProviderId = 'apple.com';
+  static const String _errorNoCurrentUserCode = 'no-current-user';
+  static const String _errorNoCurrentUMsg = 'No user is currently signed in.';
+  static const String _errorReauthFailedCode = 'reauthentication-failed';
+  static const String _errorReauthFailedMsg = 'Google re-authentication failed or was cancelled.';
+  static const String _errorEmailNotVerifiedCode = 'email-not-verified';
+  static const String _errorEmailNotVerifiedMsg = 'Please verify your email address before signing in.';
+  static const String _errorCredManagerNotInitCode = 'CREDENTIAL_MANAGER_NOT_INITIALIZED';
+  static const String _errorCredManagerNotInitMsg = 'Credential Manager is not supported or initialized on this device.';
+
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
+  final FlutterSecureStorage _secureStorage;
   final CredentialManager _credentialManager = CredentialManager();
   bool _isCredentialManagerInitialized = false;
+  final Completer<void> _initCompleter = Completer<void>();
 
-  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
+  AuthService({
+    FirebaseAuth? auth, 
+    GoogleSignIn? googleSignIn,
+    FlutterSecureStorage? secureStorage,
+  })
     : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
       _googleSignIn =
           googleSignIn ??
           _mockGoogleSignIn ??
-          GoogleSignIn.instance {
+          GoogleSignIn.instance,
+      _secureStorage = secureStorage ?? const FlutterSecureStorage() {
     _initAuth();
   }
 
@@ -29,6 +48,9 @@ class AuthService {
     // Calling it a second time on google_sign_in v7 can cause undefined
     // behavior and silently break the authenticate() flow.
     await _initCredentialManager();
+    if (!_initCompleter.isCompleted) {
+      _initCompleter.complete();
+    }
   }
 
   Future<void> _initCredentialManager() async {
@@ -36,7 +58,7 @@ class AuthService {
       if (_credentialManager.isSupportedPlatform) {
         await _credentialManager.init(
           preferImmediatelyAvailableCredentials: true,
-          googleClientId: '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+          googleClientId: dotenv.env['GOOGLE_CLIENT_ID'] ?? '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
         );
         _isCredentialManagerInitialized = true;
       }
@@ -119,7 +141,7 @@ class AuthService {
         ],
       );
 
-      final oauthCredential = OAuthProvider('apple.com').credential(
+      final oauthCredential = OAuthProvider(_appleProviderId).credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
       );
@@ -158,8 +180,8 @@ class AuthService {
         // Sign them back out immediately
         await _auth.signOut();
         throw FirebaseAuthException(
-          code: 'email-not-verified',
-          message: 'Please verify your email address before signing in.',
+          code: _errorEmailNotVerifiedCode,
+          message: _errorEmailNotVerifiedMsg,
         );
       }
 
@@ -172,11 +194,13 @@ class AuthService {
 
   // Sign in using unified Credential Manager UI (One-Tap / Passwords / Google)
   Future<UserCredential?> signInWithCredentialManager() async {
+    await _initCompleter.future;
+
     if (!_isCredentialManagerInitialized) {
       // Fallback if not supported
       throw PlatformException(
-        code: 'CREDENTIAL_MANAGER_NOT_INITIALIZED',
-        message: 'Credential Manager is not supported or initialized on this device.',
+        code: _errorCredManagerNotInitCode,
+        message: _errorCredManagerNotInitMsg,
       );
     }
 
@@ -201,7 +225,7 @@ class AuthService {
       return null;
     } on PlatformException catch (e) {
       debugPrint("Credential Manager Sign-In Error: ${e.message}");
-      return null;
+      rethrow;
     } catch (e) {
       debugPrint("Error signing in with Credential Manager: $e");
       // Check type properly to survive AOT minification
@@ -229,6 +253,8 @@ class AuthService {
       if (credential.user != null && !credential.user!.emailVerified) {
         await credential.user!.sendEmailVerification();
       }
+
+      await _initCompleter.future;
 
       // Save credential via Credential Manager
       if (_isCredentialManagerInitialized) {
@@ -312,8 +338,8 @@ class AuthService {
       final user = _auth.currentUser;
       if (user == null || user.email == null) {
         throw FirebaseAuthException(
-          code: 'no-current-user',
-          message: 'No user is currently signed in.',
+          code: _errorNoCurrentUserCode,
+          message: _errorNoCurrentUMsg,
         );
       }
       final credential = EmailAuthProvider.credential(
@@ -333,20 +359,20 @@ class AuthService {
       final user = _auth.currentUser;
       if (user == null) {
         throw FirebaseAuthException(
-          code: 'no-current-user',
-          message: 'No user is currently signed in.',
+          code: _errorNoCurrentUserCode,
+          message: _errorNoCurrentUMsg,
         );
       }
-      final googleUser = await _googleSignIn.signIn();
-      final googleAuth = await googleUser?.authentication;
-      if (googleAuth?.idToken == null) {
+      final googleUser = await _googleSignIn.authenticate();
+      final googleAuth = googleUser.authentication;
+      if (googleAuth.idToken == null) {
         throw FirebaseAuthException(
-          code: 'reauthentication-failed',
-          message: 'Google re-authentication failed or was cancelled.',
+          code: _errorReauthFailedCode,
+          message: _errorReauthFailedMsg,
         );
       }
       final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth!.idToken,
+        idToken: googleAuth.idToken,
       );
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
@@ -361,8 +387,8 @@ class AuthService {
       final user = _auth.currentUser;
       if (user == null) {
         throw FirebaseAuthException(
-          code: 'no-current-user',
-          message: 'No user is currently signed in.',
+          code: _errorNoCurrentUserCode,
+          message: _errorNoCurrentUMsg,
         );
       }
       final appleCredential = await SignInWithApple.getAppleIDCredential(
@@ -371,7 +397,7 @@ class AuthService {
           AppleIDAuthorizationScopes.fullName,
         ],
       );
-      final credential = OAuthProvider('apple.com').credential(
+      final credential = OAuthProvider(_appleProviderId).credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
       );
@@ -385,8 +411,7 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     // Securely wipe all local cached data (AES encrypted chats)
-    const secureStorage = FlutterSecureStorage();
-    await secureStorage.deleteAll();
+    await _secureStorage.deleteAll();
 
     await _googleSignIn.signOut();
     await _auth.signOut();
