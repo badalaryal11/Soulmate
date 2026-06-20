@@ -380,89 +380,102 @@ class SettingsScreen extends StatelessWidget {
   ) {
     final emailController = TextEditingController();
     final currentUserEmail = authRepository.currentUser?.email ?? '';
+    bool isDeleting = false;
     
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Are you sure you want to delete your account? This action cannot be undone.\n\n'
-              'Please enter your email to confirm:',
+      barrierDismissible: false, // Prevent dismissing while deleting
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Delete Account'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Are you sure you want to delete your account? This action cannot be undone.\n\n'
+                  'Please enter your email to confirm:',
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  enabled: !isDeleting,
+                  decoration: InputDecoration(
+                    hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'Your Email',
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'Your Email',
-                border: const OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final enteredEmail = emailController.text.trim();
-              if (enteredEmail != currentUserEmail) {
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  const SnackBar(content: Text('Email does not match. Confirmation failed.')),
-                );
-                return;
-              }
-
-              // Close confirmation dialog
-              Navigator.pop(dialogContext);
-
-              // Show loading dialog using the screen's context
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (loadingContext) => const Center(child: CircularProgressIndicator()),
-              );
-
-              try {
-                await authRepository.deleteAccount();
-                if (context.mounted) {
-                  Navigator.pop(context); // Close loading indicator
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
+            actions: isDeleting
+                ? [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    )
+                  ]
+                : [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Cancel'),
                     ),
-                    (route) => false,
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context); // Close loading indicator
-                  
-                  if (e.toString().contains('requires-recent-login')) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('For security reasons, please sign out, sign in again, and retry deleting your account.'),
-                        duration: Duration(seconds: 5),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error deleting account: $e')),
-                    );
-                  }
-                }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
+                    TextButton(
+                      onPressed: () async {
+                        final enteredEmail = emailController.text.trim();
+                        if (enteredEmail != currentUserEmail) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            const SnackBar(content: Text('Email does not match. Confirmation failed.')),
+                          );
+                          return;
+                        }
+
+                        // Set deleting state to show spinner inside dialog
+                        setState(() {
+                          isDeleting = true;
+                        });
+
+                        try {
+                          await authRepository.deleteAccount();
+
+                          if (!context.mounted) return;
+                          
+                          // Once deleted, clear all routes and navigate to Login
+                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => const _AccountDeletedLoginScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          
+                          // Restore UI
+                          setState(() {
+                            isDeleting = false;
+                          });
+
+                          if (e.toString().contains('requires-recent-login')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('For security reasons, please sign out, sign in again, and retry deleting your account.'),
+                                duration: Duration(seconds: 5),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error deleting account: $e')),
+                            );
+                          }
+                        }
+                      },
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+          );
+        }
       ),
     ).then((_) => emailController.dispose());
   }
@@ -729,4 +742,52 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Wrapper that shows the "Account Deleted" success dialog on top of
+/// LoginScreen. Using a separate StatefulWidget ensures the dialog is
+/// shown in a clean navigation context, free of the old provider tree.
+class _AccountDeletedLoginScreen extends StatefulWidget {
+  const _AccountDeletedLoginScreen();
+
+  @override
+  State<_AccountDeletedLoginScreen> createState() =>
+      _AccountDeletedLoginScreenState();
+}
+
+class _AccountDeletedLoginScreenState
+    extends State<_AccountDeletedLoginScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (successContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Account Deleted'),
+          content: const Text('Your account is successfully deleted.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(successContext),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Color(0xFFFE3C72),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const LoginScreen();
 }
