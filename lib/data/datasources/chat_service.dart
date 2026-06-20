@@ -90,12 +90,12 @@ class ChatService {
       }
     }
 
-    // Try Gemini First (Very generous free tier, 15 RPM)
+    // Try Gemma First via Google AI
     if (_geminiApiToken.isNotEmpty) {
-      debugPrint("[Gemini] Attempting model: gemini-2.5-flash");
+      debugPrint("[Gemma] Attempting model: gemma-2-9b-it");
       try {
         _geminiModel ??= GenerativeModel(
-          model: 'gemini-2.5-flash',
+          model: 'gemma-2-9b-it',
           apiKey: _geminiApiToken,
         );
         final model = _geminiModel!;
@@ -158,12 +158,12 @@ class ChatService {
           }
         }
       } catch (e) {
-        debugPrint("[Gemini] Chat Service Error: $e");
-        errorLog.writeln("Gemini: Exception($e)");
+        debugPrint("[Gemma] Chat Service Error: $e");
+        errorLog.writeln("Gemma: Exception($e)");
       }
     } else {
-      debugPrint("Skipping Gemini: No API token configured.");
-      errorLog.writeln("Gemini: Skipped (no API token)");
+      debugPrint("Skipping Gemma: No API token configured.");
+      errorLog.writeln("Gemma: Skipped (no API token)");
     }
 
     // Try other providers and models in order if Gemini fails or is not configured
