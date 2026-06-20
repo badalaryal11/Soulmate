@@ -307,14 +307,11 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _launchURL(BuildContext context, String urlString) async {
     final Uri url = Uri.parse(urlString);
     try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch $urlString')),
-          );
-        }
+      final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $urlString')),
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -324,6 +321,7 @@ class SettingsScreen extends StatelessWidget {
       }
     }
   }
+
 
 
   void _showDeleteAccountDialog(
