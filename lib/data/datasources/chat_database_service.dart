@@ -655,6 +655,24 @@ class ChatDatabaseService {
     }
   }
 
+  /// Clear all chat-related SharedPreferences keys.
+  Future<void> clearLocalChatCache() async {
+    return _mutex.synchronized(() async {
+      try {
+        final p = await _prefs;
+        await p.remove('chats_metadata');
+        final keys = p.getKeys();
+        for (final key in keys) {
+          if (key.startsWith('chat_messages_')) {
+            await p.remove(key);
+          }
+        }
+      } catch (e) {
+        debugPrint("Error clearing local chat cache: $e");
+      }
+    });
+  }
+
   // --- Private helpers ---
 
   /// Broadcast from an already-loaded JSON list (avoids re-reading storage

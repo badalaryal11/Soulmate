@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:credential_manager/credential_manager.dart' hide User;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static FirebaseAuth? _mockAuth;
@@ -412,6 +413,20 @@ class AuthService {
   Future<void> signOut() async {
     // Securely wipe all local cached data (AES encrypted chats)
     await _secureStorage.deleteAll();
+
+    // Clear local chat/message cache from SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('chats_metadata');
+      final keys = prefs.getKeys();
+      for (final key in keys) {
+        if (key.startsWith('chat_messages_')) {
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error clearing chat cache during signOut: $e");
+    }
 
     await _googleSignIn.signOut();
     await _auth.signOut();

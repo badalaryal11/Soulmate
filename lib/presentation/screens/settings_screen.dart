@@ -320,16 +320,13 @@ class SettingsScreen extends StatelessWidget {
         );
       }
     }
-  }
-
-
-
-  void _showDeleteAccountDialog(
+  }  void _showDeleteAccountDialog(
     BuildContext context,
     AuthRepository authRepository,
   ) {
     final emailController = TextEditingController();
     final currentUserEmail = authRepository.currentUser?.email ?? '';
+    final expectedConfirmation = currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE';
     bool isDeleting = false;
     
     showDialog(
@@ -343,16 +340,16 @@ class SettingsScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Are you sure you want to delete your account? This action cannot be undone.\n\n'
-                  'Please enter your email to confirm:',
+                  '${currentUserEmail.isNotEmpty ? 'Please enter your email to confirm:' : 'Please type DELETE to confirm:'}',
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: emailController,
                   enabled: !isDeleting,
                   decoration: InputDecoration(
-                    hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'Your Email',
+                    hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE',
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -373,10 +370,39 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () async {
-                        final enteredEmail = emailController.text.trim();
-                        if (enteredEmail != currentUserEmail) {
+                        final enteredText = emailController.text.trim();
+                        if (enteredText != expectedConfirmation) {
                           ScaffoldMessenger.of(dialogContext).showSnackBar(
-                            const SnackBar(content: Text('Email does not match. Confirmation failed.')),
+                            SnackBar(
+                              content: Text(currentUserEmail.isNotEmpty
+                                  ? 'Email does not match. Confirmation failed.'
+                                  : 'Confirmation failed. Please type DELETE.'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // Check if the session is stale (> 5 minutes since sign-in)
+                        final lastSignInTime = authRepository.currentUser?.metadata.lastSignInTime;
+                        final isStale = lastSignInTime == null ||
+                            DateTime.now().difference(lastSignInTime).inMinutes > 5;
+
+                        if (isStale) {
+                          Navigator.pop(dialogContext);
+                          await authRepository.signOut();
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('For security, please log in again to delete your account.'),
+                              duration: Duration(seconds: 5),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+
+                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            (route) => false,
                           );
                           return;
                         }

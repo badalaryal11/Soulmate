@@ -111,6 +111,9 @@ class DatabaseService {
   Future<void> saveFeedback(String userId, String message) =>
       _feedbackService.saveFeedback(userId, message);
 
+  Future<void> clearLocalChatCache() =>
+      _chatService.clearLocalChatCache();
+
   // --- Orchestration ---
 
   /// Wipe all data (debug/admin only). Orchestrates across sub-services.
