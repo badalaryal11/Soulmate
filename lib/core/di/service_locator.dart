@@ -183,4 +183,10 @@ class ServiceLocator {
 
   /// Debug-only: wipe all Firestore data.
   static Future<void> wipeAllData() => _databaseService.wipeAllData();
+
+  /// Release static resources (HTTP clients, cached models).
+  /// Call during app-level teardown, logout, or account deletion.
+  static void dispose() {
+    ChatService.dispose();
+  }
 }

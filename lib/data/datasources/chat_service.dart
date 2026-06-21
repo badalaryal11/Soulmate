@@ -248,4 +248,12 @@ class ChatService {
     // If we exhausted all providers and models
     return "AI Service Unavailable. Errors:\n$errorLog";
   }
+
+  /// Close the shared HTTP client to free connection pool resources.
+  /// After calling this, a new [ChatService] instance must be created
+  /// before making further requests.
+  static void dispose() {
+    _client.close();
+    _geminiModel = null;
+  }
 }

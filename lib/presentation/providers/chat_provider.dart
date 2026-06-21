@@ -273,10 +273,15 @@ class ChatProvider extends ChangeNotifier {
     String text, {
     required bool saveToDb,
   }) async {
+    final chatId = _chatId;
+    final currentUser = _currentUser;
+    final otherUser = _otherUser;
+    final currentUserId = _currentUserId;
+
     if (text.trim().isEmpty ||
-        _chatId == null ||
-        _currentUser == null ||
-        _otherUser == null) {
+        chatId == null ||
+        currentUser == null ||
+        otherUser == null) {
       return;
     }
 
@@ -290,35 +295,35 @@ class ChatProvider extends ChangeNotifier {
     // Create User Message
     final userMessage = ChatMessage(
       id: _uuid.v4(),
-      senderId: _currentUserId,
+      senderId: currentUserId,
       text: userMessageText,
       timestamp: DateTime.now(),
     );
 
     // Save to Database only if requested
     if (saveToDb) {
-      await _sendMessageUseCase(_chatId!, userMessage);
+      await _sendMessageUseCase(chatId, userMessage);
 
       // Schedule Proactive Notification only for user-sent messages
       try {
-        await _notificationRepository.cancelNotification(_chatId.hashCode);
+        await _notificationRepository.cancelNotification(chatId.hashCode);
         await _notificationRepository.scheduleNotification(
-          id: _chatId.hashCode,
-          title: '${_otherUser!.firstName} misses you! 🥺',
+          id: chatId.hashCode,
+          title: '${otherUser.firstName} misses you! 🥺',
           body:
-              'Come back and continue your conversation with ${_otherUser!.firstName}.',
+              'Come back and continue your conversation with ${otherUser.firstName}.',
           delay: const Duration(hours: 6),
         );
-        if (!_otherUser!.id.startsWith('api_') &&
-            !_otherUser!.id.startsWith('local_')) {
+        if (!otherUser.id.startsWith('api_') &&
+            !otherUser.id.startsWith('local_')) {
           final preview = userMessageText.length > 120
               ? '${userMessageText.substring(0, 120)}...'
               : userMessageText;
           await _notificationRepository.sendMessagePush(
-            recipientUserId: _otherUser!.id,
-            senderName: _currentUser!.firstName,
+            recipientUserId: otherUser.id,
+            senderName: currentUser.firstName,
             messagePreview: preview,
-            chatId: _chatId!,
+            chatId: chatId,
             idempotencyKey: userMessage.id,
           );
         }
@@ -336,20 +341,20 @@ class ChatProvider extends ChangeNotifier {
     // 1. Add System Prompt
     apiMessages.add(
       DatingPersona.generateFor(
-        _otherUser!,
-        _currentUser!,
+        otherUser,
+        currentUser,
         relationshipLevel: _relationshipLevel,
       ),
     );
 
     // 2. Fetch recent context
     try {
-      final history = await _getMessageHistoryUseCase(_chatId!, limit: 5);
+      final history = await _getMessageHistoryUseCase(chatId, limit: 5);
       for (var msg in history.reversed) {
         if (msg.id == userMessage.id) continue;
 
         apiMessages.add({
-          'role': msg.senderId == _currentUserId ? 'user' : 'assistant',
+          'role': msg.senderId == currentUserId ? 'user' : 'assistant',
           'content': msg.text,
         });
       }
@@ -370,13 +375,13 @@ class ChatProvider extends ChangeNotifier {
       // Create AI Message
       final aiMessage = ChatMessage(
         id: _uuid.v4(),
-        senderId: _otherUser!.id,
+        senderId: otherUser.id,
         text: responseText,
         timestamp: DateTime.now(),
       );
 
       // Save to Database
-      await _sendMessageUseCase(_chatId!, aiMessage);
+      await _sendMessageUseCase(chatId, aiMessage);
     } catch (e) {
       debugPrint("Error getting AI response: $e");
 
@@ -384,6 +389,14 @@ class ChatProvider extends ChangeNotifier {
       _safeNotifyListeners();
 
       if (e.toString().contains("RATE_LIMIT")) {
+        // Show user-facing feedback instead of failing silently
+        final rateLimitMessage = ChatMessage(
+          id: _uuid.v4(),
+          senderId: otherUser.id,
+          text: "Whoa, slow down! 😅 Give me a sec to catch up before you send another message.",
+          timestamp: DateTime.now(),
+        );
+        await _sendMessageUseCase(chatId, rateLimitMessage);
         _isSending = false;
         return;
       }
@@ -391,11 +404,11 @@ class ChatProvider extends ChangeNotifier {
       // Inject an AI-sent error message payload into the db instead of failing silently
       final aiMessage = ChatMessage(
         id: _uuid.v4(),
-        senderId: _otherUser!.id,
+        senderId: otherUser.id,
         text: "I'm having a hard time connecting right now. Let's chat later!",
         timestamp: DateTime.now(),
       );
-      await _sendMessageUseCase(_chatId!, aiMessage);
+      await _sendMessageUseCase(chatId, aiMessage);
     } finally {
       _isSending = false;
     }
