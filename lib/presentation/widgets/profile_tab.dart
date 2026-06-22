@@ -62,7 +62,7 @@ class ProfileTab extends StatelessWidget {
                 const SizedBox(height: 24),
                 // Name and Age
                 Text(
-                  '${user.firstName} ${user.lastName}, ${user.age}',
+                  '${user.firstName}${user.lastName.isNotEmpty ? ' ${user.lastName}' : ''}, ${user.age}',
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

@@ -13,7 +13,9 @@ import '../providers/theme_provider.dart';
 import '../widgets/user_avatar.dart';
 // Removed: import 'gender_selection_screen.dart';
 
+import '../../core/utils/image_generation_service.dart';
 import 'user_gender_selection_screen.dart';
+import 'email_verification_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   final firebase_auth.User firebaseUser;
@@ -29,7 +31,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
@@ -56,9 +57,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     final nameParts = (widget.firebaseUser.displayName ?? '').split(' ');
     if (nameParts.isNotEmpty) {
       _firstNameController.text = nameParts.first;
-      if (nameParts.length > 1) {
-        _lastNameController.text = nameParts.sublist(1).join(' ');
-      }
     }
 
     // Use Google profile photo as default avatar if available
@@ -71,11 +69,38 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   @override
   void dispose() {
     _firstNameController.dispose();
-    _lastNameController.dispose();
     _bioController.dispose();
     _cityController.dispose();
     _countryController.dispose();
     super.dispose();
+  }
+
+  void _generateAIPortrait() {
+    final tempUser = User(
+      id: widget.firebaseUser.uid,
+      email: widget.firebaseUser.email ?? '',
+      firstName: _firstNameController.text.trim(),
+      lastName: '',
+      bio: _bioController.text.trim(),
+      gender: _selectedGender,
+      age: _age,
+      city: _cityController.text.trim(),
+      country: _countryController.text.trim(),
+      interests: [],
+      imageUrl: '',
+      lastLoginDate: DateTime.now().toIso8601String(),
+      badges: [],
+      favoriteUserIds: [],
+      pinnedUserIds: [],
+    );
+    final url = ImageGenerationService.generateHighQualityPortrait(tempUser);
+
+    setState(() {
+      _selectedAvatarUrl = url;
+      _imageFile = null;
+      _uploadedImageUrl = null;
+      _isUploadingImage = false;
+    });
   }
 
   Future<void> _pickImage() async {
@@ -96,7 +121,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             .uploadProfileImage(
               widget.firebaseUser.uid, 
               _imageFile,
-              userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+              userName: _firstNameController.text.trim(),
               email: widget.firebaseUser.email,
             )
             .then((url) {
@@ -148,6 +173,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 onTap: () {
                   Navigator.pop(context);
                   _showAvatarSelectionSheet();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome),
+                title: const Text('Generate AI Portrait'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _generateAIPortrait();
                 },
               ),
             ],
@@ -272,7 +305,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           imageUrl = await _userRepository.uploadProfileImage(
             widget.firebaseUser.uid,
             _imageFile,
-            userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+            userName: _firstNameController.text.trim(),
             email: widget.firebaseUser.email,
           );
         }
@@ -284,7 +317,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         id: widget.firebaseUser.uid,
         email: widget.firebaseUser.email ?? '',
         firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        lastName: '',
         bio: _bioController.text.trim(),
         gender: _selectedGender,
         age: _age,
@@ -302,71 +335,24 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       if (!mounted) return;
 
-      // Only show the "Verify Your Account" email verification warning dialog 
-      // if they registered with email/password and are not yet verified.
+      // Only enforce email verification for password users
       final isPasswordProvider = widget.firebaseUser.providerData.any(
         (p) => p.providerId == 'password',
       );
+
       if (isPasswordProvider && !widget.firebaseUser.emailVerified) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              backgroundColor: isDark ? const Color(0xFF1E222B) : Colors.white,
-              title: Row(
-                children: [
-                  const Icon(
-                    Icons.mark_email_read_outlined,
-                    color: Color(0xFFFE3C72),
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Verify Your Account',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              content: Text(
-                'Please verify your account by going to your email inbox. If you do not see it there, please check your spam folder.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    'Got it',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFFE3C72),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const EmailVerificationScreen(),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const UserGenderSelectionScreen(),
+          ),
         );
       }
-
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const UserGenderSelectionScreen(),
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -422,7 +408,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       UserAvatar(
                         radius: 80,
                         firstName: _firstNameController.text,
-                        lastName: _lastNameController.text,
+                        lastName: '',
                         imageUrl: _selectedAvatarUrl,
                         useRoundShape: true,
                         overrideImage: _imageFile != null
@@ -477,28 +463,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               ),
               const SizedBox(height: 24),
 
-              // First Name
               TextFormField(
                 controller: _firstNameController,
                 validator: (v) =>
                     v != null && v.trim().isEmpty ? 'Required' : null,
                 decoration: InputDecoration(
                   labelText: 'First Name',
-                  labelStyle: GoogleFonts.poppins(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Last Name
-              TextFormField(
-                controller: _lastNameController,
-                validator: (v) =>
-                    v != null && v.trim().isEmpty ? 'Required' : null,
-                decoration: InputDecoration(
-                  labelText: 'Last Name',
                   labelStyle: GoogleFonts.poppins(),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

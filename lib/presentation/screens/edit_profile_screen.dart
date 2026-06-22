@@ -23,7 +23,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _firstNameController;
-  late TextEditingController _lastNameController;
   late TextEditingController _bioController;
   late TextEditingController _ageController;
   late TextEditingController _cityController;
@@ -82,7 +81,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _firstNameController = TextEditingController(
         text: _currentUser?.firstName,
       );
-      _lastNameController = TextEditingController(text: _currentUser?.lastName);
       _bioController = TextEditingController(text: _currentUser?.bio);
       _ageController = TextEditingController(
         text: _currentUser?.age.toString(),
@@ -127,7 +125,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void dispose() {
     _firstNameController.dispose();
-    _lastNameController.dispose();
     _bioController.dispose();
     _ageController.dispose();
     _cityController.dispose();
@@ -144,7 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final tempUser = _currentUser!.copyWith(
       age: int.tryParse(_ageController.text) ?? _currentUser!.age,
       firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
+      lastName: '',
       bio: _bioController.text,
     );
 
@@ -169,7 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final tempUser = _currentUser!.copyWith(
         age: int.tryParse(_ageController.text) ?? _currentUser!.age,
         firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
+        lastName: '',
         bio: _bioController.text,
       );
       url = ImageGenerationService.generateHighQualityPortrait(tempUser);
@@ -359,7 +356,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .uploadProfileImage(
               _currentUser!.id, 
               _imageFile,
-              userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+              userName: _firstNameController.text.trim(),
               email: _currentUser!.email,
             )
             .then((url) {
@@ -460,7 +457,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           final rawUrl = await ServiceLocator.userRepository.uploadProfileImage(
             _currentUser!.id,
             _imageFile,
-            userName: '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
+            userName: _firstNameController.text.trim(),
             email: _currentUser!.email,
           );
           localDisplayImageUrl = '$rawUrl&v=${DateTime.now().millisecondsSinceEpoch}';
@@ -490,7 +487,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         id: _currentUser!.id,
         email: _currentUser!.email,
         firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        lastName: '',
         age: int.tryParse(_ageController.text.trim()) ?? 0,
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
@@ -586,7 +583,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       radius: 80,
                       imageUrl: _generatedAvatarUrl ?? _currentUser!.imageUrl,
                       firstName: _firstNameController.text,
-                      lastName: _lastNameController.text,
+                      lastName: '',
                       overrideImage: _imageFile != null
                           ? FileImage(_imageFile!)
                           : null,
@@ -635,8 +632,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Fields
               _buildTextField('First Name', _firstNameController),
-              const SizedBox(height: 16),
-              _buildTextField('Last Name', _lastNameController),
               const SizedBox(height: 16),
               _buildTextField('Bio', _bioController, maxLines: 3),
               const SizedBox(height: 16),

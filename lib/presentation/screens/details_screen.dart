@@ -49,7 +49,7 @@ class DetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${user.firstName} ${user.lastName}, ${user.age}',
+                      '${user.firstName}${user.lastName.isNotEmpty ? ' ${user.lastName}' : ''}, ${user.age}',
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
