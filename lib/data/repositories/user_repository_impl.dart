@@ -41,7 +41,7 @@ class UserRepositoryImpl implements UserRepository {
     String? gender,
     String? currentUserId,
     int limit = 10,
-    bool refresh = false,
+    String? lastUserId,
   }) async {
     try {
       // Fetch from Firestore
@@ -49,7 +49,7 @@ class UserRepositoryImpl implements UserRepository {
         gender: gender,
         currentUserId: currentUserId,
         limit: limit,
-        refresh: refresh,
+        lastUserId: lastUserId,
       );
 
       final allUsers = List<domain.User>.from(firestoreUsers);
@@ -58,9 +58,8 @@ class UserRepositoryImpl implements UserRepository {
       final apiUsers = await _apiService.fetchUsers(results: limit, gender: gender);
       allUsers.addAll(apiUsers);
 
-      // Shuffle results to mix Firebase users with API users
-      allUsers.shuffle();
-
+      // We do not shuffle here so the caller can identify which users came from Firestore
+      // (they will be at the beginning of the list).
       return allUsers;
     } catch (e) {
       throw ServerFailure(e.toString());

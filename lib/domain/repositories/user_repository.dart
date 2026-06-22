@@ -7,7 +7,7 @@ abstract class UserRepository {
     String? gender,
     String? currentUserId,
     int limit = 10,
-    bool refresh = false,
+    String? lastUserId,
   });
   Future<void> updateUserField(String uid, Map<String, dynamic> data);
   Future<void> saveFeedback(String userId, String message);

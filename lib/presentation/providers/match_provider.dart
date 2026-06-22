@@ -43,7 +43,6 @@ class MatchProvider extends ChangeNotifier {
   final List<User> _matches = [];
   List<User> get matches => _matches;
   bool _isLoadingMatches = false;
-  int _consecutiveEmptyFetches = 0;
   final Set<String> _optimisticMatchIds = <String>{};
 
   static const String _cachedMatchesKey = 'cached_matches_list';
@@ -237,24 +236,8 @@ class MatchProvider extends ChangeNotifier {
           return timeB.compareTo(timeA);
         });
 
-      // Avoid wiping local state on a transient empty fetch.
-      if (chatDocs.isEmpty && _optimisticMatchIds.isEmpty) {
-        _consecutiveEmptyFetches++;
-      } else {
-        _consecutiveEmptyFetches = 0;
-      }
-
-      if (_consecutiveEmptyFetches >= 2 && _optimisticMatchIds.isEmpty) {
-        _matches.clear();
-        notifyListeners();
-        unawaited(_saveMatchesToCache([]));
-        debugPrint("MatchProvider: confirmed 0 matches. Cache cleared.");
-        return;
-      }
-
-      _matches
-        ..clear()
-        ..addAll(mergedMatches);
+      _matches.clear();
+      _matches.addAll(mergedMatches);
       notifyListeners();
       unawaited(_saveMatchesToCache(_matches));
     } catch (e) {

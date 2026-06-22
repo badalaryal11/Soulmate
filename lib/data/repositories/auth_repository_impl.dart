@@ -112,8 +112,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> deleteAccount() async {
     try {
       await _authService.deleteAccount();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw AuthFailure('requires-recent-login');
+      }
+      throw AuthFailure(e.toString());
     } catch (e) {
-      rethrow; // Propagate raw exception (like FirebaseAuthException) for requires-recent-login handling
+      throw AuthFailure(e.toString());
     }
   }
 

@@ -62,12 +62,12 @@ class DatabaseService {
     String? gender,
     String? currentUserId,
     int limit = 10,
-    bool refresh = false,
+    String? lastUserId,
   }) => _userService.getUsers(
     gender: gender,
     currentUserId: currentUserId,
     limit: limit,
-    refresh: refresh,
+    lastUserId: lastUserId,
   );
 
   // --- Chat operations (delegate to ChatDatabaseService) ---

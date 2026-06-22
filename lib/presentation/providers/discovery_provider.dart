@@ -54,6 +54,7 @@ class DiscoveryProvider extends ChangeNotifier {
   final Set<String> _matchedUserIds = {};
   DiscoveryStatus _status = DiscoveryStatus.initial;
   String? _errorMessage;
+  String? _lastFirestoreUserId;
   bool _isLoadingUsers = false;
   final Random _random = Random();
   int _rightSwipesSinceLastMatch = 0;
@@ -129,6 +130,7 @@ class DiscoveryProvider extends ChangeNotifier {
       _seenUserIds.clear();
       _swipedUserIds.clear();
       _matchedUserIds.clear();
+      _lastFirestoreUserId = null;
       _rightSwipesSinceLastMatch = 0;
       _nextSimulatedMatchSwipeTarget = _pickNextSimulatedMatchSwipeTarget();
       _filterRevision++;
@@ -151,8 +153,13 @@ class DiscoveryProvider extends ChangeNotifier {
         gender: _selectedGender,
         currentUserId: currentUser?.id,
         limit: 20,
-        refresh: clearList,
+        lastUserId: clearList ? null : _lastFirestoreUserId,
       );
+
+      final firestoreUsers = allNewUsers.where((u) => !u.id.startsWith('api_') && !u.id.startsWith('local_')).toList();
+      if (firestoreUsers.isNotEmpty) {
+        _lastFirestoreUserId = firestoreUsers.last.id;
+      }
 
       final List<User> uniqueUsers = [];
       for (var user in allNewUsers) {

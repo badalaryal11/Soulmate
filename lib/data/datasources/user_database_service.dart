@@ -167,79 +167,42 @@ class UserDatabaseService {
     }
   }
 
-  DocumentSnapshot? _lastUserDoc;
-  String? _lastGenderFilter;
-  Future<List<domain.User>>? _inFlightUsersRequest;
-  String? _inFlightUsersRequestKey;
-
   /// Get multiple users with optional gender filtering.
   Future<List<domain.User>> getUsers({
     String? gender,
     String? currentUserId,
     int limit = 10,
-    bool refresh = false,
+    String? lastUserId,
   }) async {
-    final requestKey = '$gender|$currentUserId|$limit|$refresh';
-
-    // Reuse identical in-flight requests; otherwise wait for the current
-    // request to finish before issuing a new one to keep pagination state safe.
-    while (_inFlightUsersRequest != null) {
-      if (_inFlightUsersRequestKey == requestKey) {
-        return _inFlightUsersRequest!;
-      }
-      try {
-        await _inFlightUsersRequest;
-      } catch (_) {
-        // Ignore previous failure and proceed with this request.
-      }
-    }
-
-    final requestFuture = _fetchUsers(
+    return _fetchUsers(
       gender: gender,
       currentUserId: currentUserId,
       limit: limit,
-      refresh: refresh,
+      lastUserId: lastUserId,
     );
-    _inFlightUsersRequest = requestFuture;
-    _inFlightUsersRequestKey = requestKey;
-
-    try {
-      return await requestFuture;
-    } finally {
-      if (identical(_inFlightUsersRequest, requestFuture)) {
-        _inFlightUsersRequest = null;
-        _inFlightUsersRequestKey = null;
-      }
-    }
   }
 
   Future<List<domain.User>> _fetchUsers({
     required String? gender,
     required String? currentUserId,
     required int limit,
-    required bool refresh,
+    required String? lastUserId,
   }) async {
     try {
-      if (refresh || gender != _lastGenderFilter) {
-        _lastUserDoc = null;
-        _lastGenderFilter = gender;
-      }
-
       Query query = _firestore.collection(_usersCollection);
 
       if (gender != null && gender != 'everyone') {
         query = query.where('gender', isEqualTo: gender);
       }
 
-      if (_lastUserDoc != null) {
-        query = query.startAfterDocument(_lastUserDoc!);
+      if (lastUserId != null) {
+        DocumentSnapshot doc = await _firestore.collection(_usersCollection).doc(lastUserId).get();
+        if (doc.exists) {
+          query = query.startAfterDocument(doc);
+        }
       }
 
       QuerySnapshot snapshot = await query.limit(limit).get();
-
-      if (snapshot.docs.isNotEmpty) {
-        _lastUserDoc = snapshot.docs.last;
-      }
 
       return snapshot.docs
           .map((doc) {
