@@ -10,8 +10,7 @@ import 'package:credential_manager/credential_manager.dart' hide User;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static FirebaseAuth? _mockAuth;
-  static GoogleSignIn? _mockGoogleSignIn;
+
 
   static const String _appleProviderId = 'apple.com';
   static const String _errorNoCurrentUserCode = 'no-current-user';
@@ -38,9 +37,8 @@ class AuthService {
     FirebaseAuth? auth,
     GoogleSignIn? googleSignIn,
     FlutterSecureStorage? secureStorage,
-  }) : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
-       _googleSignIn =
-           googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn.instance,
+  }) : _auth = auth ?? FirebaseAuth.instance,
+       _googleSignIn = googleSignIn ?? GoogleSignIn.instance,
        _secureStorage = secureStorage ?? const FlutterSecureStorage() {
     _initAuth();
   }
@@ -58,11 +56,13 @@ class AuthService {
   Future<void> _initCredentialManager() async {
     try {
       if (_credentialManager.isSupportedPlatform) {
+        final clientId = dotenv.env['GOOGLE_CLIENT_ID'];
+        if (clientId == null || clientId.isEmpty) {
+          debugPrint("WARNING: GOOGLE_CLIENT_ID is missing from .env file. Credential Manager might fail.");
+        }
         await _credentialManager.init(
           preferImmediatelyAvailableCredentials: true,
-          googleClientId:
-              dotenv.env['GOOGLE_CLIENT_ID'] ??
-              '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+          googleClientId: clientId ?? '',
         );
         _isCredentialManagerInitialized = true;
       }
@@ -71,14 +71,7 @@ class AuthService {
     }
   }
 
-  @visibleForTesting
-  static void setMockInstances({
-    FirebaseAuth? auth,
-    GoogleSignIn? googleSignIn,
-  }) {
-    _mockAuth = auth;
-    _mockGoogleSignIn = googleSignIn;
-  }
+
 
   // Stream of auth changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -123,18 +116,26 @@ class AuthService {
       debugPrint("Stack trace: $stackTrace");
       // Error code 10 / 16 = SHA fingerprint mismatch (common in Play Store builds)
       if (e.code == '10' || e.code == '16' || e.code == 'DEVELOPER_ERROR') {
-        throw PlatformException(
-          code: e.code,
-          message:
-              'Google Sign-In configuration error. '
-              'This is likely a SHA-1 fingerprint mismatch between the app signing key '
-              'and the Firebase project. Please add the Google Play App Signing SHA-1 '
-              'to your Firebase project settings.',
+        Error.throwWithStackTrace(
+          PlatformException(
+            code: e.code,
+            message:
+                'Google Sign-In configuration error. '
+                'This is likely a SHA-1 fingerprint mismatch between the app signing key '
+                'and the Firebase project. Please add the Google Play App Signing SHA-1 '
+                'to your Firebase project settings.',
+            details: e.details,
+          ),
+          stackTrace,
         );
       }
-      throw PlatformException(
-        code: e.code,
-        message: 'Google Sign-In failed. Please try again later.',
+      Error.throwWithStackTrace(
+        PlatformException(
+          code: e.code,
+          message: 'Google Sign-In failed. Please try again later.',
+          details: e.details,
+        ),
+        stackTrace,
       );
     } on FirebaseAuthException catch (e) {
       debugPrint(
@@ -180,6 +181,8 @@ class AuthService {
           '${appleCredential.givenName} ${appleCredential.familyName ?? ''}'
               .trim(),
         );
+      } else if (userCredential.user?.displayName == null || userCredential.user!.displayName!.isEmpty) {
+        debugPrint("Apple Sign-In: No given name provided and existing display name is empty. Profile might need an update.");
       }
 
       return userCredential;
@@ -432,7 +435,16 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     // Securely wipe all local cached data (AES encrypted chats)
-    await _secureStorage.deleteAll();
+    try {
+      final allKeys = await _secureStorage.readAll();
+      for (final key in allKeys.keys) {
+        if (key.startsWith('chat_')) {
+          await _secureStorage.delete(key: key);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error clearing secure storage during signOut: $e");
+    }
 
     // Clear local chat/message cache from SharedPreferences
     try {
