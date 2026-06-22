@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/di/service_locator.dart';
 import 'create_profile_screen.dart';
+import 'email_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -57,13 +58,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
 
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateProfileScreen(firebaseUser: credential.user!),
-            ),
-          );
+
+          if (!credential.user!.emailVerified) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EmailVerificationScreen(),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    CreateProfileScreen(firebaseUser: credential.user!),
+              ),
+            );
+          }
         } else {
           debugPrint("Registration failed: credential or user is null");
           if (!mounted) return;

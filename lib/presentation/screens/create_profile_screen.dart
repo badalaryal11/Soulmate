@@ -15,7 +15,6 @@ import '../widgets/user_avatar.dart';
 
 import '../../core/utils/image_generation_service.dart';
 import 'user_gender_selection_screen.dart';
-import 'email_verification_screen.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   final firebase_auth.User firebaseUser;
@@ -335,24 +334,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       if (!mounted) return;
 
-      // Only enforce email verification for password users
-      final isPasswordProvider = widget.firebaseUser.providerData.any(
-        (p) => p.providerId == 'password',
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const UserGenderSelectionScreen(),
+        ),
       );
-
-      if (isPasswordProvider && !widget.firebaseUser.emailVerified) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const EmailVerificationScreen(),
-          ),
-        );
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const UserGenderSelectionScreen(),
-          ),
-        );
-      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

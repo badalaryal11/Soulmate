@@ -185,8 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   int _calculateCompletion() {
     if (_currentUser == null) return 0;
     int score = 0;
-    if (_currentUser!.firstName.isNotEmpty) score += 10;
-    if (_currentUser!.lastName.isNotEmpty) score += 10;
+    if (_currentUser!.firstName.isNotEmpty) score += 20;
     if (_currentUser!.age > 0) score += 10;
     if (_currentUser!.gender.isNotEmpty) score += 10;
     if (_currentUser!.imageUrl.isNotEmpty) score += 20;

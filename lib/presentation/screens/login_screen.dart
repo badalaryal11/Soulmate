@@ -7,6 +7,7 @@ import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
 
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
+import 'package:soulmate/presentation/screens/email_verification_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -199,12 +200,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (isNewUser) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) =>
-              CreateProfileScreen(firebaseUser: loginProvider.firebaseUser!),
-        ),
+      final user = loginProvider.firebaseUser!;
+      final isPasswordProvider = user.providerData.any(
+        (p) => p.providerId == 'password',
       );
+
+      if (isPasswordProvider && !user.emailVerified) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const EmailVerificationScreen(),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => CreateProfileScreen(firebaseUser: user),
+          ),
+        );
+      }
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'user_gender_selection_screen.dart';
+import 'create_profile_screen.dart';
 import 'login_screen.dart';
 import '../../core/di/service_locator.dart';
 
@@ -56,11 +56,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   void _navigateToNextScreen() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const UserGenderSelectionScreen(),
-      ),
-    );
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CreateProfileScreen(firebaseUser: user),
+        ),
+      );
+    }
   }
 
   Future<void> _resendVerificationEmail() async {
