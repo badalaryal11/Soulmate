@@ -170,7 +170,7 @@ async function sendToUserTokens({
         code === "messaging/registration-token-not-registered" ||
         code === "messaging/invalid-registration-token"
       ) {
-        invalidTokens.push(tokens[idx]);
+        invalidTokens.push(tokens.at(idx));
       }
     }
   });

@@ -17,11 +17,15 @@ class AuthService {
   static const String _errorNoCurrentUserCode = 'no-current-user';
   static const String _errorNoCurrentUMsg = 'No user is currently signed in.';
   static const String _errorReauthFailedCode = 'reauthentication-failed';
-  static const String _errorReauthFailedMsg = 'Google re-authentication failed or was cancelled.';
+  static const String _errorReauthFailedMsg =
+      'Google re-authentication failed or was cancelled.';
   static const String _errorEmailNotVerifiedCode = 'email-not-verified';
-  static const String _errorEmailNotVerifiedMsg = 'Please verify your email address before signing in.';
-  static const String _errorCredManagerNotInitCode = 'CREDENTIAL_MANAGER_NOT_INITIALIZED';
-  static const String _errorCredManagerNotInitMsg = 'Credential Manager is not supported or initialized on this device.';
+  static const String _errorEmailNotVerifiedMsg =
+      'Please verify your email address before signing in.';
+  static const String _errorCredManagerNotInitCode =
+      'CREDENTIAL_MANAGER_NOT_INITIALIZED';
+  static const String _errorCredManagerNotInitMsg =
+      'Credential Manager is not supported or initialized on this device.';
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
@@ -31,16 +35,13 @@ class AuthService {
   final Completer<void> _initCompleter = Completer<void>();
 
   AuthService({
-    FirebaseAuth? auth, 
+    FirebaseAuth? auth,
     GoogleSignIn? googleSignIn,
     FlutterSecureStorage? secureStorage,
-  })
-    : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
-      _googleSignIn =
-          googleSignIn ??
-          _mockGoogleSignIn ??
-          GoogleSignIn.instance,
-      _secureStorage = secureStorage ?? const FlutterSecureStorage() {
+  }) : _auth = auth ?? _mockAuth ?? FirebaseAuth.instance,
+       _googleSignIn =
+           googleSignIn ?? _mockGoogleSignIn ?? GoogleSignIn.instance,
+       _secureStorage = secureStorage ?? const FlutterSecureStorage() {
     _initAuth();
   }
 
@@ -59,7 +60,9 @@ class AuthService {
       if (_credentialManager.isSupportedPlatform) {
         await _credentialManager.init(
           preferImmediatelyAvailableCredentials: true,
-          googleClientId: dotenv.env['GOOGLE_CLIENT_ID'] ?? '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
+          googleClientId:
+              dotenv.env['GOOGLE_CLIENT_ID'] ??
+              '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
         );
         _isCredentialManagerInitialized = true;
       }
@@ -98,7 +101,9 @@ class AuthService {
 
         final googleAuth = googleUser.authentication;
 
-        debugPrint("Google auth idToken present: ${googleAuth.idToken != null}");
+        debugPrint(
+          "Google auth idToken present: ${googleAuth.idToken != null}",
+        );
 
         if (googleAuth.idToken == null) {
           debugPrint("Google Sign-In returned no idToken — aborting.");
@@ -112,13 +117,16 @@ class AuthService {
         return await _auth.signInWithCredential(credential);
       }
     } on PlatformException catch (e, stackTrace) {
-      debugPrint("PlatformException signing in with Google: ${e.code} - ${e.message}");
+      debugPrint(
+        "PlatformException signing in with Google: ${e.code} - ${e.message}",
+      );
       debugPrint("Stack trace: $stackTrace");
       // Error code 10 / 16 = SHA fingerprint mismatch (common in Play Store builds)
       if (e.code == '10' || e.code == '16' || e.code == 'DEVELOPER_ERROR') {
         throw PlatformException(
           code: e.code,
-          message: 'Google Sign-In configuration error. '
+          message:
+              'Google Sign-In configuration error. '
               'This is likely a SHA-1 fingerprint mismatch between the app signing key '
               'and the Firebase project. Please add the Google Play App Signing SHA-1 '
               'to your Firebase project settings.',
@@ -129,16 +137,20 @@ class AuthService {
         message: 'Google Sign-In failed. Please try again later.',
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint("FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}");
+      debugPrint(
+        "FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}",
+      );
       rethrow;
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
       // Check type properly to survive AOT minification
-      if (e is GoogleSignInException && e.code == GoogleSignInExceptionCode.canceled) {
+      if (e is GoogleSignInException &&
+          e.code == GoogleSignInExceptionCode.canceled) {
         return null; // User cancelled
       }
-      if (e is CredentialException || e.toString().contains('CredentialException')) {
+      if (e is CredentialException ||
+          e.toString().contains('CredentialException')) {
         return null; // User cancelled
       }
       rethrow;
@@ -228,14 +240,13 @@ class AuthService {
         return await signInWithEmailAndPassword(email, password);
       } else if (credential is GoogleIdTokenCredential) {
         final idToken = (credential as dynamic).idToken as String;
-        final OAuthCredential firebaseCredential = GoogleAuthProvider.credential(
-          idToken: idToken,
-        );
+        final OAuthCredential firebaseCredential =
+            GoogleAuthProvider.credential(idToken: idToken);
         return await _auth.signInWithCredential(firebaseCredential);
       } else {
         debugPrint("Unknown credential type: ${credential.runtimeType}");
       }
-      
+
       return null;
     } on PlatformException catch (e) {
       debugPrint("Credential Manager Sign-In Error: ${e.message}");
@@ -243,7 +254,8 @@ class AuthService {
     } catch (e) {
       debugPrint("Error signing in with Credential Manager: $e");
       // Check type properly to survive AOT minification
-      if (e is CredentialException || e.toString().contains('CredentialException')) {
+      if (e is CredentialException ||
+          e.toString().contains('CredentialException')) {
         // This usually means the user cancelled the dialog or no credentials exist
         debugPrint("CredentialException details: ${(e as dynamic).message}");
         return null;
@@ -274,10 +286,7 @@ class AuthService {
       if (_isCredentialManagerInitialized) {
         try {
           await _credentialManager.savePasswordCredentials(
-            PasswordCredential(
-              username: email,
-              password: password,
-            ),
+            PasswordCredential(username: email, password: password),
           );
         } catch (e) {
           debugPrint("Failed to save password credential: $e");
@@ -294,9 +303,7 @@ class AuthService {
   // Send Password Reset Email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(
-        email: email,
-      );
+      await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
       debugPrint("Error sending password reset email: $e");
       rethrow;
