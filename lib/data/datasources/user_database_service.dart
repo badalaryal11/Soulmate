@@ -31,6 +31,7 @@ class UserDatabaseService {
         '${userId}_compressed_profile.webp',
       );
 
+      debugPrint("Calling FlutterImageCompress.compressAndGetFile...");
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         targetPath,
@@ -38,7 +39,11 @@ class UserDatabaseService {
         minWidth: 400,
         minHeight: 400,
         format: CompressFormat.webp,
-      );
+      ).timeout(const Duration(seconds: 15), onTimeout: () {
+        debugPrint("FlutterImageCompress timed out!");
+        throw Exception("Image compression timed out");
+      });
+      debugPrint("FlutterImageCompress completed. Result: $compressedXFile");
 
       final fileToUpload = compressedXFile != null
           ? File(compressedXFile.path)
@@ -46,9 +51,12 @@ class UserDatabaseService {
 
       // Clean up legacy .jpg file if it exists so we don't have duplicates
       try {
-        await _storage.ref().child('user_images').child('$userId.jpg').delete();
+        debugPrint("Attempting to delete legacy .jpg profile image...");
+        await _storage.ref().child('user_images').child('$userId.jpg').delete()
+          .timeout(const Duration(seconds: 5));
         debugPrint("Deleted legacy .jpg profile image.");
       } catch (e) {
+        debugPrint("Legacy .jpg delete failed or not found: $e");
         // Ignore if it doesn't exist
       }
 
@@ -63,8 +71,20 @@ class UserDatabaseService {
         customMetadata: customMetadata,
       );
 
+      debugPrint("Starting putFile...");
       final uploadTask = ref.putFile(fileToUpload, metadata);
-      final snapshot = await uploadTask;
+      
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        debugPrint('Upload progress: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
+      }, onError: (e) {
+        debugPrint('Upload task error event: $e');
+      });
+
+      debugPrint("Awaiting uploadTask...");
+      final snapshot = await uploadTask.timeout(const Duration(seconds: 30), onTimeout: () {
+        debugPrint("UploadTask timed out!");
+        throw Exception("Upload to Firebase Storage timed out");
+      });
 
       debugPrint("Upload finished. State: ${snapshot.state}");
       debugPrint(
@@ -72,7 +92,11 @@ class UserDatabaseService {
       );
 
       if (snapshot.state == TaskState.success) {
-        final url = await ref.getDownloadURL();
+        debugPrint("Getting download URL...");
+        final url = await ref.getDownloadURL().timeout(const Duration(seconds: 10), onTimeout: () {
+           debugPrint("getDownloadURL timed out!");
+           throw Exception("Getting download URL timed out");
+        });
         debugPrint("Download URL retrieved: $url");
         return url;
       } else {
