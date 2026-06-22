@@ -114,10 +114,23 @@ class AuthService {
     } on PlatformException catch (e, stackTrace) {
       debugPrint("PlatformException signing in with Google: ${e.code} - ${e.message}");
       debugPrint("Stack trace: $stackTrace");
+      // Error code 10 / 16 = SHA fingerprint mismatch (common in Play Store builds)
+      if (e.code == '10' || e.code == '16' || e.code == 'DEVELOPER_ERROR') {
+        throw PlatformException(
+          code: e.code,
+          message: 'Google Sign-In configuration error. '
+              'This is likely a SHA-1 fingerprint mismatch between the app signing key '
+              'and the Firebase project. Please add the Google Play App Signing SHA-1 '
+              'to your Firebase project settings.',
+        );
+      }
       throw PlatformException(
         code: e.code,
         message: 'Google Sign-In failed. Please try again later.',
       );
+    } on FirebaseAuthException catch (e) {
+      debugPrint("FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}");
+      rethrow;
     } catch (e, stackTrace) {
       debugPrint("Error signing in with Google: $e");
       debugPrint("Stack trace: $stackTrace");
