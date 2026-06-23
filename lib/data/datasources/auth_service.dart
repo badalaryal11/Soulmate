@@ -44,6 +44,15 @@ class AuthService {
   }
 
   Future<void> _initAuth() async {
+    try {
+      final clientId = dotenv.env['GOOGLE_CLIENT_ID'];
+      if (clientId != null && clientId.isNotEmpty) {
+        await _googleSignIn.initialize(serverClientId: clientId);
+      }
+    } catch (e) {
+      debugPrint("GoogleSignIn.initialize error: $e");
+    }
+
     // Credential Manager initialization happens here.
     await _initCredentialManager();
     if (!_initCompleter.isCompleted) {
