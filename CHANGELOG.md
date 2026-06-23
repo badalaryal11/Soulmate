@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.0.1] - 2026-06-23
+
+### 🔑 Authentication
+* **Google Sign-In**: Fixed initialization configuration to use the environment-provided `serverClientId` correctly, resolving ID token retrieval on Android.
+* **Apple Sign-In**: Added a display name fallback and robust handling for reauthentication cancellations for both Apple and Google providers.
+* **Sign-Out Reliability**: Updated the sign-out mechanism to safely and selectively clear encrypted chat keys from Secure Storage and SharedPreferences.
+* **Auth Flow Efficiency**: Refactored the authentication flow to elegantly handle new users without unnecessary Firestore lookups.
+
+### ❤️ Matching & Chat
+* **Guaranteed Matches**: Replaced probability-based logic with a deterministic system that guarantees a simulated match after a target swipe count is reached.
+
+### ⚙️ UI & Refactoring
+* **Modular Settings**: Extracted account deletion and feedback dialogs into their own dedicated, reusable widgets within the settings screen.
+* **Code Formatting**: Applied consistent formatting and standardized token retrieval methods across all auth services.
+
+***
 ## [18.0.0] - 2026-06-13
 
 ### 🔑 Authentication
