@@ -324,156 +324,11 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     AuthRepository authRepository,
   ) {
-    final emailController = TextEditingController();
-    final currentUserEmail = authRepository.currentUser?.email ?? '';
-    final expectedConfirmation = currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE';
-    bool isDeleting = false;
-    
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing while deleting
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Delete Account'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Are you sure you want to delete your account? This action cannot be undone.\n\n'
-                  '${currentUserEmail.isNotEmpty ? 'Please enter your email to confirm:' : 'Please type DELETE to confirm:'}',
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  enabled: !isDeleting,
-                  decoration: InputDecoration(
-                    hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE',
-                    border: const OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ],
-            ),
-            actions: isDeleting
-                ? [
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    )
-                  ]
-                : [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final enteredText = emailController.text.trim();
-                        if (enteredText != expectedConfirmation) {
-                          ScaffoldMessenger.of(dialogContext).showSnackBar(
-                            SnackBar(
-                              content: Text(currentUserEmail.isNotEmpty
-                                  ? 'Email does not match. Confirmation failed.'
-                                  : 'Confirmation failed. Please type DELETE.'),
-                            ),
-                          );
-                          return;
-                        }
-
-                        // Check if the session is stale (> 5 minutes since sign-in)
-                        final lastSignInTime = authRepository.currentUser?.metadata.lastSignInTime;
-                        final isStale = lastSignInTime == null ||
-                            DateTime.now().difference(lastSignInTime).inMinutes > 5;
-
-                        if (isStale) {
-                          Navigator.pop(dialogContext);
-                          await authRepository.signOut();
-                          if (!context.mounted) return;
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('For security, please log in again to delete your account.'),
-                              duration: Duration(seconds: 5),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-
-                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            (route) => false,
-                          );
-                          return;
-                        }
-
-                        // Set deleting state to show spinner inside dialog
-                        setState(() {
-                          isDeleting = true;
-                        });
-
-                        try {
-                          final uid = authRepository.currentUser?.uid;
-                          if (uid != null) {
-                            await ServiceLocator.userRepository.deleteUser(uid);
-                          }
-                          await authRepository.deleteAccount();
-
-                          if (!context.mounted) return;
-                          
-                          // Once deleted, clear all routes and navigate to Login
-                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => const _AccountDeletedLoginScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          
-                          if (e.toString().contains('requires-recent-login')) {
-                            // Close the dialog
-                            Navigator.pop(dialogContext);
-                            
-                            // Sign out the user
-                            await authRepository.signOut();
-                            
-                            if (!context.mounted) return;
-                            
-                            // Show persistent snackbar at root level
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Session expired. Please log in again to delete your account.'),
-                                duration: Duration(seconds: 5),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                            
-                            // Navigate to login
-                            Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                              (route) => false,
-                            );
-                          } else {
-                            // Restore UI for other errors
-                            setState(() {
-                              isDeleting = false;
-                            });
-                            
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error deleting account: $e')),
-                            );
-                          }
-                        }
-                      },
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Delete'),
-                    ),
-                  ],
-          );
-        }
-      ),
-    ).then((_) => emailController.dispose());
+      barrierDismissible: false,
+      builder: (dialogContext) => _DeleteAccountDialog(authRepository: authRepository),
+    );
   }
 
   void _showAboutDialog(BuildContext context) {
@@ -673,72 +528,10 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     AuthRepository authRepository,
   ) {
-    final feedbackController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Contact Us'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'We value your feedback! Let us know what you think or report any issues.',
-              style: GoogleFonts.poppins(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: feedbackController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'Enter your feedback here...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final message = feedbackController.text.trim();
-              if (message.isNotEmpty) {
-                try {
-                  final userId = authRepository.currentUser?.uid ?? 'anonymous';
-                  if (context.mounted) {
-                    await context
-                        .read<ProfileManagementProvider>()
-                        .saveFeedback(userId, message);
-                  }
-
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Thank you for your feedback!'),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error saving feedback: $e')),
-                    );
-                  }
-                }
-              } else {
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    ).then((_) => feedbackController.dispose());
+      builder: (context) => _FeedbackDialog(authRepository: authRepository),
+    );
   }
 
   void _showWipeDataDialog(
@@ -856,4 +649,253 @@ class _AccountDeletedLoginScreenState
 
   @override
   Widget build(BuildContext context) => const LoginScreen();
+}
+
+class _DeleteAccountDialog extends StatefulWidget {
+  final AuthRepository authRepository;
+  const _DeleteAccountDialog({required this.authRepository});
+
+  @override
+  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
+  late final TextEditingController _emailController;
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUserEmail = widget.authRepository.currentUser?.email ?? '';
+    final expectedConfirmation = currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE';
+
+    return AlertDialog(
+      title: const Text('Delete Account'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Are you sure you want to delete your account? This action cannot be undone.\n\n'
+            '${currentUserEmail.isNotEmpty ? 'Please enter your email to confirm:' : 'Please type DELETE to confirm:'}',
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _emailController,
+            enabled: !_isDeleting,
+            decoration: InputDecoration(
+              hintText: currentUserEmail.isNotEmpty ? currentUserEmail : 'DELETE',
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+        ],
+      ),
+      actions: _isDeleting
+          ? [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              )
+            ]
+          : [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final enteredText = _emailController.text.trim();
+                  if (enteredText != expectedConfirmation) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(currentUserEmail.isNotEmpty
+                            ? 'Email does not match. Confirmation failed.'
+                            : 'Confirmation failed. Please type DELETE.'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final lastSignInTime = widget.authRepository.currentUser?.metadata.lastSignInTime;
+                  final isStale = lastSignInTime == null ||
+                      DateTime.now().difference(lastSignInTime).inMinutes > 5;
+
+                  if (isStale) {
+                    Navigator.pop(context);
+                    await widget.authRepository.signOut();
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('For security, please log in again to delete your account.'),
+                        duration: Duration(seconds: 5),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (route) => false,
+                    );
+                    return;
+                  }
+
+                  setState(() {
+                    _isDeleting = true;
+                  });
+
+                  try {
+                    final uid = widget.authRepository.currentUser?.uid;
+                    if (uid != null) {
+                      await ServiceLocator.userRepository.deleteUser(uid);
+                    }
+                    await widget.authRepository.deleteAccount();
+
+                    if (!context.mounted) return;
+                    
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const _AccountDeletedLoginScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    
+                    if (e.toString().contains('requires-recent-login')) {
+                      Navigator.pop(context);
+                      await widget.authRepository.signOut();
+                      if (!context.mounted) return;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Session expired. Please log in again to delete your account.'),
+                          duration: Duration(seconds: 5),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      
+                      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                      );
+                    } else {
+                      setState(() {
+                        _isDeleting = false;
+                      });
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error deleting account: $e')),
+                      );
+                    }
+                  }
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
+    );
+  }
+}
+
+class _FeedbackDialog extends StatefulWidget {
+  final AuthRepository authRepository;
+  const _FeedbackDialog({required this.authRepository});
+
+  @override
+  State<_FeedbackDialog> createState() => _FeedbackDialogState();
+}
+
+class _FeedbackDialogState extends State<_FeedbackDialog> {
+  late final TextEditingController _feedbackController;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedbackController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _feedbackController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Contact Us'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'We value your feedback! Let us know what you think or report any issues.',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _feedbackController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: 'Enter your feedback here...',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () async {
+            final message = _feedbackController.text.trim();
+            if (message.isNotEmpty) {
+              try {
+                final userId = widget.authRepository.currentUser?.uid ?? 'anonymous';
+                if (context.mounted) {
+                  await context
+                      .read<ProfileManagementProvider>()
+                      .saveFeedback(userId, message);
+                }
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Thank you for your feedback!'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error saving feedback: $e')),
+                  );
+                }
+              }
+            } else {
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('Submit'),
+        ),
+      ],
+    );
+  }
 }
