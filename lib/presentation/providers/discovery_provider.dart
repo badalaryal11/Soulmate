@@ -337,18 +337,15 @@ class DiscoveryProvider extends ChangeNotifier {
     final isMutualLike = swipedUser.favoriteUserIds.contains(currentUser.id);
     bool hasMatch = isMutualLike;
 
-    // Make simulated matches feel more playful by waiting for a random number
-    // of right swipes before allowing a chance-based match.
+    // Ensure simulated matches trigger reliably by waiting for a random number
+    // of right swipes before guaranteeing a match.
     if (!hasMatch) {
       final canAttemptSimulatedMatch =
           _rightSwipesSinceLastMatch >= _nextSimulatedMatchSwipeTarget;
       if (!canAttemptSimulatedMatch) return;
 
-      final isSyntheticProfile =
-          swipedUser.id.startsWith('api_') ||
-          swipedUser.id.startsWith('local_');
-      final simulatedMatchChancePercent = isSyntheticProfile ? 45 : 25; // Slightly boosted
-      hasMatch = _random.nextInt(100) < simulatedMatchChancePercent;
+      // Force a match when the target is reached so it doesn't randomly fail
+      hasMatch = true;
     }
 
     if (!hasMatch) return;
