@@ -182,7 +182,12 @@ class AuthService {
               .trim(),
         );
       } else if (userCredential.user?.displayName == null || userCredential.user!.displayName!.isEmpty) {
-        debugPrint("Apple Sign-In: No given name provided and existing display name is empty. Profile might need an update.");
+        // Fallback to the email prefix if no name was provided and the display name is currently empty.
+        final email = userCredential.user?.email ?? '';
+        if (email.isNotEmpty) {
+          final fallbackName = email.split('@').first;
+          await userCredential.user?.updateDisplayName(fallbackName);
+        }
       }
 
       return userCredential;
@@ -238,6 +243,8 @@ class AuthService {
 
       // Check credential type properly without relying on string representation which fails in AOT
       if (credential is PasswordCredential) {
+        // dynamic cast is used as a workaround because some versions of the
+        // credential_manager package don't statically expose the username getter.
         final email = (credential as dynamic).username as String;
         final password = (credential as dynamic).password as String;
         return await signInWithEmailAndPassword(email, password);
@@ -401,6 +408,14 @@ class AuthService {
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
       debugPrint("Error re-authenticating with Google: $e");
+      if (e is GoogleSignInException &&
+          e.code == GoogleSignInExceptionCode.canceled) {
+        return; // User cancelled
+      }
+      if (e is CredentialException ||
+          e.toString().contains('CredentialException')) {
+        return; // User cancelled
+      }
       rethrow;
     }
   }
@@ -428,6 +443,13 @@ class AuthService {
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
       debugPrint("Error re-authenticating with Apple: $e");
+      if (e is SignInWithAppleAuthorizationException &&
+          e.code == AuthorizationErrorCode.canceled) {
+        return; // User cancelled
+      }
+      if (e.toString().contains('canceled')) {
+        return; // Fallback for cancellation
+      }
       rethrow;
     }
   }
