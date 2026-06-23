@@ -24,7 +24,7 @@ import 'presentation/providers/discovery_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -70,10 +70,6 @@ void main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    await GoogleSignIn.instance.initialize(
-      serverClientId:
-          '182120669929-334pgll1nu6l53kvkfl9ure8fv6ots2r.apps.googleusercontent.com',
-    );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // await FirebaseAppCheck.instance.activate(

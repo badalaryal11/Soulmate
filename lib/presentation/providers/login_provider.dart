@@ -55,7 +55,7 @@ class LoginProvider extends ChangeNotifier {
     try {
       final credential = await _authRepository.signInWithGoogle();
       if (credential != null && credential.user != null) {
-        return await _handleSuccessfulAuth(credential.user!);
+        return await _handleSuccessfulAuth(credential);
       } else {
         // Sign-in was cancelled or returned no tokens.
         debugPrint('Google Sign-In returned null credential.');
@@ -78,7 +78,7 @@ class LoginProvider extends ChangeNotifier {
     try {
       final credential = await _authRepository.signInWithCredentialManager();
       if (credential != null && credential.user != null) {
-        return await _handleSuccessfulAuth(credential.user!);
+        return await _handleSuccessfulAuth(credential);
       } else {
         // Sign-in was cancelled by the user or no credentials found.
         return null;
@@ -98,7 +98,7 @@ class LoginProvider extends ChangeNotifier {
     try {
       final credential = await _authRepository.signInWithApple();
       if (credential != null && credential.user != null) {
-        return await _handleSuccessfulAuth(credential.user!);
+        return await _handleSuccessfulAuth(credential);
       } else {
         _setError('Apple Sign-In was cancelled.');
         return null;
@@ -124,7 +124,7 @@ class LoginProvider extends ChangeNotifier {
         password,
       ).timeout(const Duration(seconds: 15));
       if (credential != null && credential.user != null) {
-        return await _handleSuccessfulAuth(credential.user!);
+        return await _handleSuccessfulAuth(credential);
       } else {
         _setError('Login failed. Please check your credentials.');
         return null;
@@ -180,8 +180,14 @@ class LoginProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> _handleSuccessfulAuth(firebase_auth.User firebaseUser) async {
+  Future<bool> _handleSuccessfulAuth(firebase_auth.UserCredential credential) async {
+    final firebaseUser = credential.user!;
     _firebaseUser = firebaseUser;
+
+    // Fast path: if Firebase Auth tells us this is a brand new user, skip Firestore read!
+    if (credential.additionalUserInfo?.isNewUser == true) {
+      return true; // isNewUser = true
+    }
 
     // Check if user exists in Firestore
     User? existingUser = await _userRepository.getUser(firebaseUser.uid);

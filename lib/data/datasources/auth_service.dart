@@ -44,9 +44,7 @@ class AuthService {
   }
 
   Future<void> _initAuth() async {
-    // GoogleSignIn.instance.initialize() is already called in main.dart.
-    // Calling it a second time on google_sign_in v7 can cause undefined
-    // behavior and silently break the authenticate() flow.
+    // Credential Manager initialization happens here.
     await _initCredentialManager();
     if (!_initCompleter.isCompleted) {
       _initCompleter.complete();
