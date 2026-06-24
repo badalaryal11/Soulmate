@@ -44,6 +44,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await user.reload();
+      if (!mounted) return;
       if (user.emailVerified) {
         _timer?.cancel();
         setState(() {
