@@ -6,7 +6,7 @@ import '../../domain/entities/user.dart';
 import '../../core/network/authenticated_http_client.dart';
 
 class ReqresApiService {
-  static const String _baseUrl = 'https://reqres.in/api/users';
+  static const String _baseUrl = 'https://soulmate-gateway-2bnxy0a1.uc.gateway.dev/reqres/users';
   static final http.Client _client = AuthenticatedHttpClient(http.Client());
   static final Random _random = Random();
   static final List<User> _userCache = [];

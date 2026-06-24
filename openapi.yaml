@@ -1,0 +1,59 @@
+swagger: '2.0'
+info:
+  title: Soulmate API Gateway
+  description: API Gateway proxying to external mock APIs with Firebase Authentication
+  version: 1.0.0
+host: soulmate-api.apigateway.soulmate-app-51739.cloud.goog
+schemes:
+  - https
+produces:
+  - application/json
+
+paths:
+  /reqres/users:
+    get:
+      summary: Proxy to Reqres Users
+      operationId: getReqresUsers
+      x-google-backend:
+        address: https://reqres.in/api/users
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - firebase: []
+      responses:
+        '200':
+          description: A successful response
+
+  /dummyjson/users:
+    get:
+      summary: Proxy to DummyJSON Users
+      operationId: getDummyJsonUsers
+      x-google-backend:
+        address: https://dummyjson.com/users
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - firebase: []
+      responses:
+        '200':
+          description: A successful response
+
+  /randomuser:
+    get:
+      summary: Proxy to RandomUser API
+      operationId: getRandomUser
+      x-google-backend:
+        address: https://randomuser.me/api/
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - firebase: []
+      responses:
+        '200':
+          description: A successful response
+
+securityDefinitions:
+  firebase:
+    authorizationUrl: ""
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "https://securetoken.google.com/soulmate-app-51739"
+    x-google-jwks_uri: "https://www.googleapis.com/service_accounts/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+    x-google-audiences: "soulmate-app-51739"

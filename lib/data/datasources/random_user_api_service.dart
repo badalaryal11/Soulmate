@@ -9,7 +9,7 @@ import '../../core/network/authenticated_http_client.dart';
 /// the Firestore user pool in the discovery deck.
 /// Falls back to locally generated profiles if the API is down.
 class RandomUserApiService {
-  static const String _baseUrl = 'https://randomuser.me/api/';
+  static const String _baseUrl = 'https://soulmate-gateway-2bnxy0a1.uc.gateway.dev/randomuser';
   static final _random = Random();
   static int _fallbackCounter = 0;
 

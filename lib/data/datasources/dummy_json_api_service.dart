@@ -7,7 +7,7 @@ import '../models/user_model.dart';
 import '../../core/network/authenticated_http_client.dart';
 
 class DummyJsonApiService {
-  static const String _baseUrl = 'https://dummyjson.com/users';
+  static const String _baseUrl = 'https://soulmate-gateway-2bnxy0a1.uc.gateway.dev/dummyjson/users';
   static final http.Client _client = AuthenticatedHttpClient(http.Client());
   static final List<User> _userCache = [];
   static String? _lastRequestedGender;
