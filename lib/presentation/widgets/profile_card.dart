@@ -93,9 +93,6 @@ class ProfileCard extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: targetUrl,
       fit: BoxFit.cover,
-      memCacheWidth: 600, // Optimize memory and decoding time
-      maxWidthDiskCache: 600, // Resize before saving to disk cache
-      maxHeightDiskCache: 900,
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
       // Lightweight placeholder — just a colored box, no spinner
