@@ -3,17 +3,16 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/user.dart';
-import '../../core/network/authenticated_http_client.dart';
 
 /// Fetches random user profiles from randomuser.me to supplement
 /// the Firestore user pool in the discovery deck.
 /// Falls back to locally generated profiles if the API is down.
 class RandomUserApiService {
-  static const String _baseUrl = 'https://soulmate-gateway-2bnxy0a1.uc.gateway.dev/randomuser';
+  static const String _baseUrl = 'https://randomuser.me/api/';
   static final _random = Random();
   static int _fallbackCounter = 0;
 
-  static final http.Client _client = AuthenticatedHttpClient(http.Client());
+  static final http.Client _client = http.Client();
   static final List<User> _userCache = [];
   static String? _lastRequestedGender;
   static bool _isFetching = false;

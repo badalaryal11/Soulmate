@@ -1,6 +1,7 @@
 import '../../domain/entities/user.dart' as domain;
 import 'dart:developer' as developer;
 import '../../core/utils/rate_limiter.dart';
+import 'reqres_api_service.dart';
 import 'dummy_json_api_service.dart';
 import 'random_user_api_service.dart';
 
@@ -15,13 +16,19 @@ class ApiService {
       return [];
     }
 
-    developer.log('Delegating fetch to DummyJson and RandomUser');
+    developer.log('Delegating fetch to Reqres, DummyJson, and RandomUser');
     
-    // Split the fetch count into half between DummyJson and RandomUser
-    final dummyJsonCount = (results / 2).ceil();
-    final randomUserCount = results - dummyJsonCount;
+    // Split the fetch count roughly into thirds between the three APIs
+    final reqresCount = (results / 3).ceil();
+    final dummyJsonCount = (results / 3).ceil();
+    final randomUserCount = results - reqresCount - dummyJsonCount;
 
     final fetchResults = await Future.wait([
+      if (reqresCount > 0)
+        ReqresApiService.fetchUsers(count: reqresCount, gender: gender)
+      else
+        Future.value(<domain.User>[]),
+      
       if (dummyJsonCount > 0)
         DummyJsonApiService.fetchDummyUsers(count: dummyJsonCount, gender: gender)
       else
@@ -35,7 +42,8 @@ class ApiService {
 
     final List<domain.User> combinedUsers = [];
     combinedUsers.addAll(fetchResults[0]);
-    if (fetchResults.length > 1) combinedUsers.addAll(fetchResults[1]);
+    combinedUsers.addAll(fetchResults[1]);
+    if (fetchResults.length > 2) combinedUsers.addAll(fetchResults[2]);
     
     combinedUsers.shuffle();
     
