@@ -9,9 +9,11 @@ import '../../core/constants/stickers.dart';
 
 import '../../core/utils/rate_limiter.dart';
 
+import '../../core/network/authenticated_http_client.dart';
+
 class ChatService {
   // Shared HTTP client for connection reuse
-  static final http.Client _client = http.Client();
+  static final http.Client _client = AuthenticatedHttpClient(http.Client());
 
   // Cached instances to avoid re-creation on every call
   static GenerativeModel? _geminiModel;

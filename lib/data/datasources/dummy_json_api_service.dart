@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/user.dart';
 import '../models/user_model.dart';
 
+import '../../core/network/authenticated_http_client.dart';
+
 class DummyJsonApiService {
   static const String _baseUrl = 'https://dummyjson.com/users';
-  static final http.Client _client = http.Client();
+  static final http.Client _client = AuthenticatedHttpClient(http.Client());
   static final List<User> _userCache = [];
   static String? _lastRequestedGender;
   static bool _isFetching = false;

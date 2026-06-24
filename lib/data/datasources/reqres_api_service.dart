@@ -3,10 +3,11 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/user.dart';
+import '../../core/network/authenticated_http_client.dart';
 
 class ReqresApiService {
   static const String _baseUrl = 'https://reqres.in/api/users';
-  static final http.Client _client = http.Client();
+  static final http.Client _client = AuthenticatedHttpClient(http.Client());
   static final Random _random = Random();
   static final List<User> _userCache = [];
   static String? _lastRequestedGender;
