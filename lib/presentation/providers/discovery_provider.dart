@@ -156,7 +156,12 @@ class DiscoveryProvider extends ChangeNotifier {
         lastUserId: clearList ? null : _lastFirestoreUserId,
       );
 
-      final firestoreUsers = allNewUsers.where((u) => !u.id.startsWith('api_') && !u.id.startsWith('local_')).toList();
+      final firestoreUsers = allNewUsers.where((u) => 
+        !u.id.startsWith('api_') && 
+        !u.id.startsWith('local_') &&
+        !u.id.startsWith('reqres_') &&
+        int.tryParse(u.id) == null
+      ).toList();
       if (firestoreUsers.isNotEmpty) {
         _lastFirestoreUserId = firestoreUsers.last.id;
       }

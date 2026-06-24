@@ -215,8 +215,9 @@ class UserDatabaseService {
     try {
       Query query = _firestore.collection(_usersCollection);
 
-      if (gender != null && gender != 'everyone') {
-        query = query.where('gender', isEqualTo: gender);
+      if (gender != null && gender.toLowerCase() != 'everyone') {
+        final capitalizedGender = gender[0].toUpperCase() + gender.substring(1).toLowerCase();
+        query = query.where('gender', isEqualTo: capitalizedGender);
       }
 
       if (lastUserId != null) {
