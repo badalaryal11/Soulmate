@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:soulmate/presentation/providers/login_provider.dart';
@@ -150,14 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     );
                                   },
                                 ),
-                                const SizedBox(height: 28),
-                                const _SocialLoginDivider(),
-                                const SizedBox(height: 20),
-                                _SocialButtons(
-                                  isLoading: loginProvider.isLoading,
-                                  onGoogleTap: _handleGoogleLogin,
-                                  onAppleTap: _handleAppleLogin,
-                                ),
                               ],
                             ),
                           ),
@@ -223,18 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const GenderSelectionScreen()),
       );
     }
-  }
-
-  Future<void> _handleGoogleLogin() async {
-    final loginProvider = context.read<LoginProvider>();
-    final isNewUser = await loginProvider.signInWithGoogle();
-    _navigateAfterAuth(isNewUser);
-  }
-
-  Future<void> _handleAppleLogin() async {
-    final loginProvider = context.read<LoginProvider>();
-    final isNewUser = await loginProvider.signInWithApple();
-    _navigateAfterAuth(isNewUser);
   }
 
   Future<void> _handleLogin() async {
@@ -641,123 +620,6 @@ class _RegisterLink extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SocialLoginDivider extends StatelessWidget {
-  const _SocialLoginDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Or log in with',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        const Expanded(child: Divider()),
-      ],
-    );
-  }
-}
-
-class _SocialButtons extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback onGoogleTap;
-  final VoidCallback onAppleTap;
-
-  const _SocialButtons({
-    required this.isLoading,
-    required this.onGoogleTap,
-    required this.onAppleTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _SocialIconButton(
-          iconWidget: Image.asset(
-            'assets/images/google_logo.png',
-            height: 24,
-            width: 24,
-          ),
-          onTap: isLoading ? () {} : onGoogleTap,
-        ),
-        const SizedBox(width: 20),
-        _SocialIconButton(
-          iconWidget: FaIcon(
-            FontAwesomeIcons.apple,
-            color: isDark ? Colors.white : Colors.black,
-            size: 26,
-          ),
-          onTap: isLoading ? () {} : onAppleTap,
-        ),
-      ],
-    );
-  }
-}
-
-class _SocialIconButton extends StatelessWidget {
-  final IconData? icon;
-  final Widget? iconWidget;
-  final VoidCallback onTap;
-
-  const _SocialIconButton({
-    this.icon,
-    this.iconWidget,
-    required this.onTap,
-  }) : assert(
-         icon != null || iconWidget != null,
-         'Either icon or iconWidget must be provided',
-       );
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Material(
-      color: isDark ? const Color(0xFF1E222B) : Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      elevation: isDark ? 0 : 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 90,
-          height: 54,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF353A44).withValues(alpha: 0.8)
-                  : const Color(0xFFE7DCE0),
-              width: 1.2,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.center,
-          child: iconWidget ??
-              Icon(
-                icon,
-                color: isDark ? Colors.white : Colors.black,
-                size: 26,
-              ),
-        ),
-      ),
     );
   }
 }
