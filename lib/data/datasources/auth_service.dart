@@ -101,9 +101,11 @@ class AuthService {
 
         final googleAuth = googleUser.authentication;
 
-        if (kDebugMode) debugPrint(
+        if (kDebugMode) {
+          debugPrint(
           "Google auth idToken present: ${googleAuth.idToken != null}",
         );
+        }
 
         if (googleAuth.idToken == null) {
           if (kDebugMode) debugPrint("Google Sign-In returned no idToken — aborting.");
@@ -117,9 +119,11 @@ class AuthService {
         return await _auth.signInWithCredential(credential);
       }
     } on PlatformException catch (e, stackTrace) {
-      if (kDebugMode) debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         "PlatformException signing in with Google: ${e.code} - ${e.message}",
       );
+      }
       if (kDebugMode) debugPrint("Stack trace: $stackTrace");
       // Error code 10 / 16 = SHA fingerprint mismatch (common in Play Store builds)
       if (e.code == '10' || e.code == '16' || e.code == 'DEVELOPER_ERROR') {
@@ -145,9 +149,11 @@ class AuthService {
         stackTrace,
       );
     } on FirebaseAuthException catch (e) {
-      if (kDebugMode) debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         "FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}",
       );
+      }
       rethrow;
     } catch (e, stackTrace) {
       if (kDebugMode) debugPrint("Error signing in with Google: $e");

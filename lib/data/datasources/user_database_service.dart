@@ -87,9 +87,11 @@ class UserDatabaseService {
       });
 
       if (kDebugMode) debugPrint("Upload finished. State: ${snapshot.state}");
-      if (kDebugMode) debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         "Bytes transferred: ${snapshot.bytesTransferred} / ${snapshot.totalBytes}",
       );
+      }
 
       if (snapshot.state == TaskState.success) {
         if (kDebugMode) debugPrint("Getting download URL...");

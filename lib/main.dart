@@ -295,11 +295,6 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     });
   }
 
-  // Generate a key from CurrentUserProvider to force recreation on user change
-  Key _getUserKey(CurrentUserProvider provider) {
-    return ValueKey(provider.currentUser?.id ?? 'logged_out');
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(

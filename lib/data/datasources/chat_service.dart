@@ -201,9 +201,11 @@ class ChatService {
               )
               .timeout(const Duration(seconds: 30));
 
-          if (kDebugMode) debugPrint(
+          if (kDebugMode) {
+            debugPrint(
             "[$providerName] Response Status ($modelId): ${response.statusCode}",
           );
+          }
 
           if (response.statusCode == 200) {
             final Map<String, dynamic> result = jsonDecode(response.body);
@@ -235,9 +237,11 @@ class ChatService {
           }
 
           errorLog.writeln("$providerName/$modelId: $errorMsg");
-          if (kDebugMode) debugPrint(
+          if (kDebugMode) {
+            debugPrint(
             "[$providerName] Model $modelId failed: $errorMsg. Trying next...",
           );
+          }
         } catch (e) {
           if (kDebugMode) debugPrint('[$providerName] Chat Service Error ($modelId): $e');
           errorLog.writeln("$providerName/$modelId: Exception($e)");

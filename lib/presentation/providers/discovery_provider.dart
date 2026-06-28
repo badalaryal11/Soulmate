@@ -48,6 +48,7 @@ class DiscoveryProvider extends ChangeNotifier {
   }
 
   final List<User> _users = [];
+  List<User> _filteredUsers = [];
   final Set<String> _usedImageUrls = {};
   final Set<String> _seenUserIds = {};
   final Set<String> _swipedUserIds = {};
@@ -62,6 +63,7 @@ class DiscoveryProvider extends ChangeNotifier {
       _pickNextSimulatedMatchSwipeTarget();
 
   List<User> get users => _users;
+  List<User> get filteredUsers => _filteredUsers;
   DiscoveryStatus get status => _status;
   String? get errorMessage => _errorMessage;
 
