@@ -41,7 +41,7 @@ class HomeTab extends StatelessWidget {
           );
         }
 
-        if (provider.filteredUsers.isEmpty) {
+        if (provider.filteredUsers.isEmpty || provider.allCardsSwiped) {
           return _StatusPanel(
             icon: const Icon(Icons.group_off_rounded, size: 46, color: Colors.grey),
             title: 'You caught up!',

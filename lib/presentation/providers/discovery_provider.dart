@@ -78,6 +78,7 @@ class DiscoveryProvider extends ChangeNotifier {
 
   List<User> _filteredUsers = [];
   List<User> get filteredUsers => _filteredUsers;
+  bool get allCardsSwiped => _filteredUsers.isNotEmpty && _filteredUsers.every((u) => _swipedUserIds.contains(u.id));
 
   Function(User)? onMatchFound;
   Function(User)? onMatchUndone;
