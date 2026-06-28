@@ -8,6 +8,7 @@ import 'package:soulmate/presentation/screens/register_screen.dart';
 
 import 'package:soulmate/presentation/screens/create_profile_screen.dart';
 import 'package:soulmate/presentation/screens/email_verification_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
