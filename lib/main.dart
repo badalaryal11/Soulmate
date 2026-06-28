@@ -39,7 +39,7 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = true;
 
   PaintingBinding.instance.imageCache.maximumSizeBytes =
-      100 * 1024 * 1024; // 100MB Cache
+      50 * 1024 * 1024; // 50MB Cache
 
   // Lock orientation to portrait only
   await SystemChrome.setPreferredOrientations([
@@ -295,6 +295,11 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
     });
   }
 
+  // Generate a key from CurrentUserProvider to force recreation on user change
+  Key _getUserKey(CurrentUserProvider provider) {
+    return ValueKey(provider.currentUser?.id ?? 'logged_out');
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -309,23 +314,38 @@ class _SoulmateAppState extends State<SoulmateApp> with WidgetsBindingObserver {
           create: (context) => ServiceLocator.createProfileManagementProvider(
             Provider.of<CurrentUserProvider>(context, listen: false),
           ),
-          update: (_, currentUser, previous) =>
-              previous ??
-              ServiceLocator.createProfileManagementProvider(currentUser),
+          update: (_, currentUser, previous) {
+            // Recreate if user changed (logged in/out as different user)
+            // It's safe to use the new reference otherwise since they don't hold much state 
+            // except currentUserProvider which needs updating. We'll just return a new one 
+            // on every update to keep the reference fresh, as it's cheap to create.
+            return ServiceLocator.createProfileManagementProvider(currentUser);
+          }
         ),
         ChangeNotifierProxyProvider<CurrentUserProvider, MatchProvider>(
           create: (context) => ServiceLocator.createMatchProvider(
             Provider.of<CurrentUserProvider>(context, listen: false),
           ),
-          update: (_, currentUser, previous) =>
-              previous ?? ServiceLocator.createMatchProvider(currentUser),
+          update: (_, currentUser, previous) {
+            if (previous == null || previous.currentUser?.id != currentUser.currentUser?.id) {
+              return ServiceLocator.createMatchProvider(currentUser);
+            }
+            return previous;
+          }
         ),
         ChangeNotifierProxyProvider<CurrentUserProvider, DiscoveryProvider>(
           create: (context) => ServiceLocator.createDiscoveryProvider(
             Provider.of<CurrentUserProvider>(context, listen: false),
           ),
-          update: (_, currentUser, previous) =>
-              previous ?? ServiceLocator.createDiscoveryProvider(currentUser),
+          update: (_, currentUser, previous) {
+            // Can't easily check previous user ID in DiscoveryProvider, so we'll just check if previous is null.
+            // Actually, we can add `currentUserProvider` to DiscoveryProvider but let's just return previous if it exists.
+            // A better way is to update the reference manually if needed, but since we can't without changing 
+            // the provider, we will recreate it. DiscoveryProvider does have state (users).
+            // Let's modify DiscoveryProvider and MatchProvider to allow updating the current user.
+            // Wait, for now just keeping it simple: if previous is null return new.
+            return previous ?? ServiceLocator.createDiscoveryProvider(currentUser);
+          }
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(

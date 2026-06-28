@@ -92,7 +92,7 @@ class ChatService {
 
     // Try Gemma First via Google AI
     if (_geminiApiToken.isNotEmpty) {
-      debugPrint("[Gemma] Attempting model: gemma-2-9b-it");
+      if (kDebugMode) debugPrint("[Gemma] Attempting model: gemma-2-9b-it");
       try {
         _geminiModel ??= GenerativeModel(
           model: 'gemma-2-9b-it',
@@ -158,11 +158,11 @@ class ChatService {
           }
         }
       } catch (e) {
-        debugPrint("[Gemma] Chat Service Error: $e");
+        if (kDebugMode) debugPrint("[Gemma] Chat Service Error: $e");
         errorLog.writeln("Gemma: Exception($e)");
       }
     } else {
-      debugPrint("Skipping Gemma: No API token configured.");
+      if (kDebugMode) debugPrint("Skipping Gemma: No API token configured.");
       errorLog.writeln("Gemma: Skipped (no API token)");
     }
 
@@ -175,14 +175,14 @@ class ChatService {
 
       // Skip provider if no token is configured
       if (token.isEmpty) {
-        debugPrint("Skipping $providerName: No API token configured.");
+        if (kDebugMode) debugPrint("Skipping $providerName: No API token configured.");
         errorLog.writeln("$providerName: Skipped (no API token)");
         continue;
       }
 
       for (final modelId in models) {
         try {
-          debugPrint("[$providerName] Attempting model: $modelId");
+          if (kDebugMode) debugPrint("[$providerName] Attempting model: $modelId");
 
           final response = await _client
               .post(
@@ -201,7 +201,7 @@ class ChatService {
               )
               .timeout(const Duration(seconds: 30));
 
-          debugPrint(
+          if (kDebugMode) debugPrint(
             "[$providerName] Response Status ($modelId): ${response.statusCode}",
           );
 
@@ -235,11 +235,11 @@ class ChatService {
           }
 
           errorLog.writeln("$providerName/$modelId: $errorMsg");
-          debugPrint(
+          if (kDebugMode) debugPrint(
             "[$providerName] Model $modelId failed: $errorMsg. Trying next...",
           );
         } catch (e) {
-          debugPrint('[$providerName] Chat Service Error ($modelId): $e');
+          if (kDebugMode) debugPrint('[$providerName] Chat Service Error ($modelId): $e');
           errorLog.writeln("$providerName/$modelId: Exception($e)");
         }
       }

@@ -21,17 +21,17 @@ class UserDatabaseService {
   /// Upload a profile image and return the download URL.
   Future<String> uploadProfileImage(String userId, File imageFile, {String? userName, String? email}) async {
     try {
-      debugPrint("Starting image upload for user: $userId");
+      if (kDebugMode) debugPrint("Starting image upload for user: $userId");
 
       // 1. Compress Image
-      debugPrint("Compressing image...");
+      if (kDebugMode) debugPrint("Compressing image...");
       final tempDir = await getTemporaryDirectory();
       final targetPath = p.join(
         tempDir.path,
         '${userId}_compressed_profile.webp',
       );
 
-      debugPrint("Calling FlutterImageCompress.compressAndGetFile...");
+      if (kDebugMode) debugPrint("Calling FlutterImageCompress.compressAndGetFile...");
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         targetPath,
@@ -40,10 +40,10 @@ class UserDatabaseService {
         minHeight: 400,
         format: CompressFormat.webp,
       ).timeout(const Duration(seconds: 15), onTimeout: () {
-        debugPrint("FlutterImageCompress timed out!");
+        if (kDebugMode) debugPrint("FlutterImageCompress timed out!");
         throw Exception("Image compression timed out");
       });
-      debugPrint("FlutterImageCompress completed. Result: $compressedXFile");
+      if (kDebugMode) debugPrint("FlutterImageCompress completed. Result: $compressedXFile");
 
       final fileToUpload = compressedXFile != null
           ? File(compressedXFile.path)
@@ -51,12 +51,12 @@ class UserDatabaseService {
 
       // Clean up legacy .jpg file if it exists so we don't have duplicates
       try {
-        debugPrint("Attempting to delete legacy .jpg profile image...");
+        if (kDebugMode) debugPrint("Attempting to delete legacy .jpg profile image...");
         await _storage.ref().child('user_images').child('$userId.jpg').delete()
           .timeout(const Duration(seconds: 5));
-        debugPrint("Deleted legacy .jpg profile image.");
+        if (kDebugMode) debugPrint("Deleted legacy .jpg profile image.");
       } catch (e) {
-        debugPrint("Legacy .jpg delete failed or not found: $e");
+        if (kDebugMode) debugPrint("Legacy .jpg delete failed or not found: $e");
         // Ignore if it doesn't exist
       }
 
@@ -71,33 +71,33 @@ class UserDatabaseService {
         customMetadata: customMetadata,
       );
 
-      debugPrint("Starting putFile...");
+      if (kDebugMode) debugPrint("Starting putFile...");
       final uploadTask = ref.putFile(fileToUpload, metadata);
       
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        debugPrint('Upload progress: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
+        if (kDebugMode) debugPrint('Upload progress: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
       }, onError: (e) {
-        debugPrint('Upload task error event: $e');
+        if (kDebugMode) debugPrint('Upload task error event: $e');
       });
 
-      debugPrint("Awaiting uploadTask...");
+      if (kDebugMode) debugPrint("Awaiting uploadTask...");
       final snapshot = await uploadTask.timeout(const Duration(seconds: 30), onTimeout: () {
-        debugPrint("UploadTask timed out!");
+        if (kDebugMode) debugPrint("UploadTask timed out!");
         throw Exception("Upload to Firebase Storage timed out");
       });
 
-      debugPrint("Upload finished. State: ${snapshot.state}");
-      debugPrint(
+      if (kDebugMode) debugPrint("Upload finished. State: ${snapshot.state}");
+      if (kDebugMode) debugPrint(
         "Bytes transferred: ${snapshot.bytesTransferred} / ${snapshot.totalBytes}",
       );
 
       if (snapshot.state == TaskState.success) {
-        debugPrint("Getting download URL...");
+        if (kDebugMode) debugPrint("Getting download URL...");
         final url = await ref.getDownloadURL().timeout(const Duration(seconds: 10), onTimeout: () {
-           debugPrint("getDownloadURL timed out!");
+           if (kDebugMode) debugPrint("getDownloadURL timed out!");
            throw Exception("Getting download URL timed out");
         });
-        debugPrint("Download URL retrieved: $url");
+        if (kDebugMode) debugPrint("Download URL retrieved: $url");
         return url;
       } else {
         throw FirebaseException(
@@ -107,7 +107,7 @@ class UserDatabaseService {
         );
       }
     } catch (e) {
-      debugPrint("Error uploading image: $e");
+      if (kDebugMode) debugPrint("Error uploading image: $e");
       rethrow;
     }
   }
@@ -141,7 +141,7 @@ class UserDatabaseService {
           .doc(user.id)
           .set(userModel.toMap(), SetOptions(merge: true));
     } catch (e) {
-      debugPrint("Error saving user: $e");
+      if (kDebugMode) debugPrint("Error saving user: $e");
       rethrow;
     }
   }
@@ -151,7 +151,7 @@ class UserDatabaseService {
     try {
       await _firestore.collection(_usersCollection).doc(uid).update(data);
     } catch (e) {
-      debugPrint("Error updating user field: $e");
+      if (kDebugMode) debugPrint("Error updating user field: $e");
       rethrow;
     }
   }
@@ -186,7 +186,7 @@ class UserDatabaseService {
       }
       return null;
     } catch (e) {
-      debugPrint("Error getting user (possibly timeout): $e");
+      if (kDebugMode) debugPrint("Error getting user (possibly timeout): $e");
       return null;
     }
   }
@@ -238,7 +238,7 @@ class UserDatabaseService {
           .where((user) => user.id != currentUserId)
           .toList();
     } catch (e) {
-      debugPrint("Error getting users: $e");
+      if (kDebugMode) debugPrint("Error getting users: $e");
       return [];
     }
   }
@@ -246,19 +246,19 @@ class UserDatabaseService {
   /// Delete user Firestore document and their profile image from Storage.
   Future<void> deleteUser(String uid) async {
     try {
-      debugPrint("Deleting user data in Firestore for: $uid");
+      if (kDebugMode) debugPrint("Deleting user data in Firestore for: $uid");
       await _firestore.collection(_usersCollection).doc(uid).delete();
       
-      debugPrint("Deleting user profile image in Storage for: $uid");
+      if (kDebugMode) debugPrint("Deleting user profile image in Storage for: $uid");
       try {
         await _storage.ref().child('user_images').child('$uid.webp').delete();
-        debugPrint("Successfully deleted profile image for user: $uid");
+        if (kDebugMode) debugPrint("Successfully deleted profile image for user: $uid");
       } catch (e) {
         // Ignore file-not-found or other storage errors during account deletion
-        debugPrint("Storage image deletion failed (likely didn't exist): $e");
+        if (kDebugMode) debugPrint("Storage image deletion failed (likely didn't exist): $e");
       }
     } catch (e) {
-      debugPrint("Error deleting user document and media: $e");
+      if (kDebugMode) debugPrint("Error deleting user document and media: $e");
       rethrow;
     }
   }

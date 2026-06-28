@@ -54,7 +54,12 @@ class ChatDatabaseService {
 
   ChatDatabaseService();
 
-  Future<SharedPreferences> get _prefs async => await SharedPreferences.getInstance();
+  SharedPreferences? _cachedPrefs;
+
+  Future<SharedPreferences> get _prefs async {
+    _cachedPrefs ??= await SharedPreferences.getInstance();
+    return _cachedPrefs!;
+  }
 
   Future<String?> _safeRead(String key) async {
     try {

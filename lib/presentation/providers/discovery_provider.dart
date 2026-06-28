@@ -76,9 +76,9 @@ class DiscoveryProvider extends ChangeNotifier {
   double get minAge => _minAge;
   double get maxAge => _maxAge;
 
-  List<User> _filteredUsers = [];
-  List<User> get filteredUsers => _filteredUsers;
-  bool get allCardsSwiped => _filteredUsers.isNotEmpty && _filteredUsers.every((u) => _swipedUserIds.contains(u.id));
+  bool get allCardsSwiped => _filteredUsers.isNotEmpty && _unswipedCount <= 0;
+
+  int _unswipedCount = 0;
 
   Function(User)? onMatchFound;
   Function(User)? onMatchUndone;
@@ -98,9 +98,16 @@ class DiscoveryProvider extends ChangeNotifier {
 
       return matchesAge && matchesGender;
     }).toList();
+    
+    _unswipedCount = 0;
+    for (var u in _filteredUsers) {
+      if (!_swipedUserIds.contains(u.id)) {
+        _unswipedCount++;
+      }
+    }
   }
 
-  void updateAgeRange(double min, double max) async {
+  Future<void> updateAgeRange(double min, double max) async {
     _minAge = min;
     _maxAge = max;
     _updateFilteredUsers();
@@ -204,7 +211,7 @@ class DiscoveryProvider extends ChangeNotifier {
       uniqueUsers.shuffle(Random());
 
       // Prioritize users with shared interests by sorting them to the front
-      final currentUserInterests = currentUser?.interests ?? [];
+      final currentUserInterests = currentUser?.interests.toSet() ?? {};
       if (currentUserInterests.isNotEmpty) {
         uniqueUsers.sort((a, b) {
           final aShares = a.interests.any((i) => currentUserInterests.contains(i));
@@ -279,7 +286,10 @@ class DiscoveryProvider extends ChangeNotifier {
     }
 
     // Mark as swiped so it won't appear again
-    _swipedUserIds.add(swipedUser.id);
+    if (!_swipedUserIds.contains(swipedUser.id)) {
+      _swipedUserIds.add(swipedUser.id);
+      _unswipedCount--;
+    }
 
     if (direction == CardSwiperDirection.right) {
       _handleRightSwipe(swipedUser);
@@ -340,8 +350,7 @@ class DiscoveryProvider extends ChangeNotifier {
 
     if (_matchedUserIds.contains(swipedUser.id)) return;
 
-    final isMutualLike = swipedUser.favoriteUserIds.contains(currentUser.id);
-    bool hasMatch = isMutualLike;
+    bool hasMatch = swipedUser.favoriteUserIds.contains(currentUser.id);
 
     // Ensure simulated matches trigger reliably by waiting for a random number
     // of right swipes before guaranteeing a match.
@@ -353,8 +362,6 @@ class DiscoveryProvider extends ChangeNotifier {
       // Force a match when the target is reached so it doesn't randomly fail
       hasMatch = true;
     }
-
-    if (!hasMatch) return;
 
     // Only trigger if a listener is actually attached, otherwise we'd waste the match
     if (onMatchFound != null) {

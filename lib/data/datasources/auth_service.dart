@@ -50,7 +50,7 @@ class AuthService {
         await _googleSignIn.initialize(serverClientId: clientId);
       }
     } catch (e) {
-      debugPrint("GoogleSignIn.initialize error: $e");
+      if (kDebugMode) debugPrint("GoogleSignIn.initialize error: $e");
     }
 
     // Credential Manager initialization happens here.
@@ -65,7 +65,7 @@ class AuthService {
       if (_credentialManager.isSupportedPlatform) {
         final clientId = dotenv.env['GOOGLE_CLIENT_ID'];
         if (clientId == null || clientId.isEmpty) {
-          debugPrint("WARNING: GOOGLE_CLIENT_ID is missing from .env file. Credential Manager might fail.");
+          if (kDebugMode) debugPrint("WARNING: GOOGLE_CLIENT_ID is missing from .env file. Credential Manager might fail.");
         }
         await _credentialManager.init(
           preferImmediatelyAvailableCredentials: true,
@@ -74,7 +74,7 @@ class AuthService {
         _isCredentialManagerInitialized = true;
       }
     } catch (e) {
-      debugPrint("Failed to initialize CredentialManager: $e");
+      if (kDebugMode) debugPrint("Failed to initialize CredentialManager: $e");
     }
   }
 
@@ -101,12 +101,12 @@ class AuthService {
 
         final googleAuth = googleUser.authentication;
 
-        debugPrint(
+        if (kDebugMode) debugPrint(
           "Google auth idToken present: ${googleAuth.idToken != null}",
         );
 
         if (googleAuth.idToken == null) {
-          debugPrint("Google Sign-In returned no idToken — aborting.");
+          if (kDebugMode) debugPrint("Google Sign-In returned no idToken — aborting.");
           return null;
         }
 
@@ -117,10 +117,10 @@ class AuthService {
         return await _auth.signInWithCredential(credential);
       }
     } on PlatformException catch (e, stackTrace) {
-      debugPrint(
+      if (kDebugMode) debugPrint(
         "PlatformException signing in with Google: ${e.code} - ${e.message}",
       );
-      debugPrint("Stack trace: $stackTrace");
+      if (kDebugMode) debugPrint("Stack trace: $stackTrace");
       // Error code 10 / 16 = SHA fingerprint mismatch (common in Play Store builds)
       if (e.code == '10' || e.code == '16' || e.code == 'DEVELOPER_ERROR') {
         Error.throwWithStackTrace(
@@ -145,13 +145,13 @@ class AuthService {
         stackTrace,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint(
+      if (kDebugMode) debugPrint(
         "FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}",
       );
       rethrow;
     } catch (e, stackTrace) {
-      debugPrint("Error signing in with Google: $e");
-      debugPrint("Stack trace: $stackTrace");
+      if (kDebugMode) debugPrint("Error signing in with Google: $e");
+      if (kDebugMode) debugPrint("Stack trace: $stackTrace");
       // Check type properly to survive AOT minification
       if (e is GoogleSignInException &&
           e.code == GoogleSignInExceptionCode.canceled) {
@@ -199,8 +199,8 @@ class AuthService {
 
       return userCredential;
     } catch (e, stackTrace) {
-      debugPrint("Error signing in with Apple: $e");
-      debugPrint("Stack trace: $stackTrace");
+      if (kDebugMode) debugPrint("Error signing in with Apple: $e");
+      if (kDebugMode) debugPrint("Stack trace: $stackTrace");
       return null;
     }
   }
@@ -228,7 +228,7 @@ class AuthService {
 
       return credential;
     } catch (e) {
-      debugPrint("Error signing in with email and password: $e");
+      if (kDebugMode) debugPrint("Error signing in with email and password: $e");
       rethrow;
     }
   }
@@ -261,20 +261,20 @@ class AuthService {
             GoogleAuthProvider.credential(idToken: idToken);
         return await _auth.signInWithCredential(firebaseCredential);
       } else {
-        debugPrint("Unknown credential type: ${credential.runtimeType}");
+        if (kDebugMode) debugPrint("Unknown credential type: ${credential.runtimeType}");
       }
 
       return null;
     } on PlatformException catch (e) {
-      debugPrint("Credential Manager Sign-In Error: ${e.message}");
+      if (kDebugMode) debugPrint("Credential Manager Sign-In Error: ${e.message}");
       rethrow;
     } catch (e) {
-      debugPrint("Error signing in with Credential Manager: $e");
+      if (kDebugMode) debugPrint("Error signing in with Credential Manager: $e");
       // Check type properly to survive AOT minification
       if (e is CredentialException ||
           e.toString().contains('CredentialException')) {
         // This usually means the user cancelled the dialog or no credentials exist
-        debugPrint("CredentialException details: ${(e as dynamic).message}");
+        if (kDebugMode) debugPrint("CredentialException details: ${(e as dynamic).message}");
         return null;
       }
       rethrow;
@@ -306,13 +306,13 @@ class AuthService {
             PasswordCredential(username: email, password: password),
           );
         } catch (e) {
-          debugPrint("Failed to save password credential: $e");
+          if (kDebugMode) debugPrint("Failed to save password credential: $e");
         }
       }
 
       return credential;
     } catch (e) {
-      debugPrint("Error registering with email and password: $e");
+      if (kDebugMode) debugPrint("Error registering with email and password: $e");
       rethrow;
     }
   }
@@ -322,7 +322,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      debugPrint("Error sending password reset email: $e");
+      if (kDebugMode) debugPrint("Error sending password reset email: $e");
       rethrow;
     }
   }
@@ -332,7 +332,7 @@ class AuthService {
     try {
       await _auth.currentUser?.verifyBeforeUpdateEmail(newEmail);
     } catch (e) {
-      debugPrint("Error updating email: $e");
+      if (kDebugMode) debugPrint("Error updating email: $e");
       rethrow;
     }
   }
@@ -342,7 +342,7 @@ class AuthService {
     try {
       await _auth.currentUser?.updatePassword(newPassword);
     } catch (e) {
-      debugPrint("Error updating password: $e");
+      if (kDebugMode) debugPrint("Error updating password: $e");
       rethrow;
     }
   }
@@ -352,7 +352,7 @@ class AuthService {
     try {
       await _auth.currentUser?.delete();
     } catch (e) {
-      debugPrint("Error deleting account: $e");
+      if (kDebugMode) debugPrint("Error deleting account: $e");
       rethrow;
     }
   }
@@ -365,7 +365,7 @@ class AuthService {
     try {
       await _auth.confirmPasswordReset(code: code, newPassword: newPassword);
     } catch (e) {
-      debugPrint("Error confirming password reset: $e");
+      if (kDebugMode) debugPrint("Error confirming password reset: $e");
       rethrow;
     }
   }
@@ -386,7 +386,7 @@ class AuthService {
       );
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
-      debugPrint("Error re-authenticating with password: $e");
+      if (kDebugMode) debugPrint("Error re-authenticating with password: $e");
       rethrow;
     }
   }
@@ -414,7 +414,7 @@ class AuthService {
       );
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
-      debugPrint("Error re-authenticating with Google: $e");
+      if (kDebugMode) debugPrint("Error re-authenticating with Google: $e");
       if (e is GoogleSignInException &&
           e.code == GoogleSignInExceptionCode.canceled) {
         return; // User cancelled
@@ -449,7 +449,7 @@ class AuthService {
       );
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
-      debugPrint("Error re-authenticating with Apple: $e");
+      if (kDebugMode) debugPrint("Error re-authenticating with Apple: $e");
       if (e is SignInWithAppleAuthorizationException &&
           e.code == AuthorizationErrorCode.canceled) {
         return; // User cancelled
@@ -472,7 +472,7 @@ class AuthService {
         }
       }
     } catch (e) {
-      debugPrint("Error clearing secure storage during signOut: $e");
+      if (kDebugMode) debugPrint("Error clearing secure storage during signOut: $e");
     }
 
     // Clear local chat/message cache from SharedPreferences
@@ -486,7 +486,7 @@ class AuthService {
         }
       }
     } catch (e) {
-      debugPrint("Error clearing chat cache during signOut: $e");
+      if (kDebugMode) debugPrint("Error clearing chat cache during signOut: $e");
     }
 
     await _googleSignIn.signOut();

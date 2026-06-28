@@ -178,7 +178,7 @@ class UserModel extends User {
       email: map['email'] ?? '',
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',
-      age: map['age'] ?? 0,
+      age: (map['age'] as num?)?.toInt() ?? 0,
       city: map['city'] ?? '',
       country: map['country'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
@@ -186,8 +186,8 @@ class UserModel extends User {
       interests: List<String>.from(map['interests'] ?? []),
       genderPreference: map['genderPreference'],
       bio: map['bio'],
-      streak: map['streak'] ?? 0,
-      coins: map['coins'] ?? 0,
+      streak: (map['streak'] as num?)?.toInt() ?? 0,
+      coins: (map['coins'] as num?)?.toInt() ?? 0,
       lastLoginDate: map['lastLoginDate'],
       prompts: List<Map<String, String>>.from(
         (map['prompts'] as List<dynamic>?)?.map(
