@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:soulmate/presentation/providers/login_provider.dart';
 import 'package:soulmate/presentation/screens/gender_selection_screen.dart';
 import 'package:soulmate/presentation/screens/register_screen.dart';
@@ -139,7 +140,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   isLoading: loginProvider.isLoading,
                                   onPressed: _handleLogin,
                                 ),
+                                const SizedBox(height: 24),
+                                _buildDivider(theme),
                                 const SizedBox(height: 20),
+                                _buildSocialButtons(context, loginProvider),
+                                const SizedBox(height: 24),
                                 _RegisterLink(
                                   onTap: () {
                                     Navigator.of(context).push(
@@ -166,6 +171,50 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildDivider(ThemeData theme) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Or continue with',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
+      ],
+    );
+  }
+
+  Widget _buildSocialButtons(BuildContext context, LoginProvider provider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _SocialButton(
+          onPressed: provider.isLoading ? null : () => _handleGoogleSignIn(provider),
+          child: const FaIcon(
+            FontAwesomeIcons.google,
+            color: Color(0xFFDB4437),
+            size: 28,
+          ),
+        ),
+        _SocialButton(
+          onPressed: provider.isLoading ? null : () => _handleAppleSignIn(provider),
+          child: FaIcon(
+            FontAwesomeIcons.apple,
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : Colors.black,
+            size: 28,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Navigate based on the result from LoginProvider.
   /// isNewUser == true  → CreateProfileScreen
   /// isNewUser == false → GenderSelectionScreen
@@ -186,7 +235,6 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(content: Text(displayMessage)),
         );
       }
-      // If no error message, sign-in was cancelled by user — no snackbar needed.
       return;
     }
 
@@ -224,6 +272,16 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
+    _navigateAfterAuth(isNewUser);
+  }
+
+  Future<void> _handleGoogleSignIn(LoginProvider provider) async {
+    final isNewUser = await provider.signInWithGoogle();
+    _navigateAfterAuth(isNewUser);
+  }
+
+  Future<void> _handleAppleSignIn(LoginProvider provider) async {
+    final isNewUser = await provider.signInWithApple();
     _navigateAfterAuth(isNewUser);
   }
 
@@ -295,6 +353,49 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     }
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onPressed;
+
+  const _SocialButton({
+    this.onPressed,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2A2E37) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? const Color(0xFF353A44) : const Color(0xFFE7DCE0),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: child,
+        ),
+      ),
+    );
   }
 }
 
